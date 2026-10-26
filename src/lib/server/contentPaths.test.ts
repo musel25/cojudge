@@ -32,6 +32,15 @@ describe('contentPaths', () => {
 		expect(mod.getCoursesDir()).toBe(path.join(tmpRoot, 'user', 'courses'));
 	});
 
+	it('rejects problem directory paths that could expose private profile storage', async () => {
+		const mod = await import('./contentPaths');
+		await fs.mkdir(path.join(tmpRoot, 'user', 'progress'), { recursive: true });
+		for (const slug of ['../progress', '..', 'two-sum/../../progress', '..\\progress']) {
+			await expect(mod.resolveProblemDir(slug)).rejects.toThrow();
+			expect(() => mod.resolveProblemDirSync(slug)).toThrow();
+		}
+	});
+
 	it('resolveProblemFileSync prefers user file then falls back to bundled', async () => {
 		// Point CWD at the fake bundled root for this test.
 		const cwdSpy = vi.spyOn(process, 'cwd').mockReturnValue(bundledRoot);
