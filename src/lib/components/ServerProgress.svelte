@@ -13,24 +13,46 @@
   } = $props();
   let sync: ProgressSync;
   let details = $state(false);
+  let runAction = async (action: () => Promise<void>) => { await action(); };
 
   onMount(() => {
+    let stopped = false;
+    let cleanup = () => {};
+    const lifecycle = new AbortController();
+    async function initialize() {
     const profileId = profile?.id;
     if (profileId && owner) {
       try {
-        const outgoingId = localStorage.getItem(ACTIVE_PROFILE_KEY) || owner;
-        if (outgoingId !== profileId) {
-          withServerRestore(() => switchBrowserProfile(localStorage, profileId, owner!));
-          return;
-        }
-        switchBrowserProfile(localStorage, profileId, owner);
+        if (!navigator.locks) throw new Error('This browser needs secure browser-lock support to load a profile.');
+        await navigator.locks.request('cojudge-profile-state', { signal: lifecycle.signal }, () => {
+          if (stopped) return;
+          const outgoingId = localStorage.getItem(ACTIVE_PROFILE_KEY) || owner;
+          if (outgoingId !== profileId) withServerRestore(() => switchBrowserProfile(localStorage, profileId, owner!));
+          else switchBrowserProfile(localStorage, profileId, owner!);
+        });
+        if (serverRestorePending()) { reloadAfterServerRestore(); return; }
       } catch (error) {
-        status = { state: 'error', message: error instanceof Error ? error.message : 'Could not load profile.' };
+        if (!stopped) status = { state: 'error', message: error instanceof Error ? error.message : 'Could not load profile.' };
         return;
       }
     }
+    if (stopped) return;
     const identityHeaders: Record<string, string> = profileId ? { 'X-CoJudge-Profile': profileId } : {};
     const checkIdentity = (response?: Headers) => { if (profileId) assertCurrentProfile(localStorage, profileId, response); };
+    runAction = async (action) => {
+      try {
+        if (profileId) {
+          await navigator.locks.request('cojudge-profile-state', { signal: lifecycle.signal }, async () => {
+            if (stopped) return;
+            if (serverRestorePending()) { reloadAfterServerRestore(); return; }
+            checkIdentity();
+            await action();
+          });
+        } else await action();
+      } catch (error) {
+        if (!stopped) status = { state: 'error', message: error instanceof Error ? error.message : 'Could not save profile.' };
+      }
+    };
     async function responseData(response: Response) {
       if (!response.ok && response.status !== 409) throw new Error(`Server unavailable (${response.status}). Changes remain in this browser.`);
       checkIdentity(response.headers);
@@ -57,9 +79,12 @@
       apply: data => withServerRestore(() => applyProgressData(data)),
       status: value => { status = serverRestorePending() ? { state: 'connecting' } : value; }
     });
+    let checking = false;
     const check = () => {
       if (serverRestorePending()) { reloadAfterServerRestore(); return; }
-      void sync.tick();
+      if (checking) return;
+      checking = true;
+      void runAction(() => sync.tick()).finally(() => { checking = false; });
     };
     const changed = (event: Event) => {
       const key = (event as CustomEvent<string>).detail;
@@ -78,11 +103,12 @@
     window.addEventListener('storage', check);
     window.addEventListener('pagehide', leaving);
     document.addEventListener('visibilitychange', leaving);
-    void sync.tick().finally(() => {
+    void runAction(() => sync.tick()).finally(() => {
+      if (stopped) return;
       if (serverRestorePending()) reloadAfterServerRestore();
       else onReady();
     });
-    return () => {
+    cleanup = () => {
       clearTimeout(debounce); clearInterval(timer);
       window.removeEventListener('cojudge:progress-written', changed);
       window.removeEventListener('online', check);
@@ -90,6 +116,9 @@
       window.removeEventListener('pagehide', leaving);
       document.removeEventListener('visibilitychange', leaving);
     };
+    }
+    void initialize();
+    return () => { stopped = true; lifecycle.abort(); cleanup(); };
   });
 </script>
 
@@ -109,10 +138,10 @@
       {#if status.savedAt}<p>Last server save: {new Date(status.savedAt).toLocaleString()}</p>{/if}
       {#if status.message}<p>{status.message}</p>{/if}
       {#if status.state === 'conflict'}
-        <button onclick={() => sync.useServer()}>Use server copy</button>
-        <button onclick={() => sync.useBrowser()}>Save this browser copy</button>
+        <button onclick={() => runAction(() => sync.useServer())}>Use server copy</button>
+        <button onclick={() => runAction(() => sync.useBrowser())}>Save this browser copy</button>
         <p>The replaced server copy stays in server history. Before a restore, this browser copy is kept in local recovery storage.</p>
-      {:else if status.state === 'error'}<button onclick={() => sync ? sync.tick() : window.location.reload()}>Retry save</button>{/if}
+      {:else if status.state === 'error'}<button onclick={() => sync ? runAction(() => sync.tick()) : window.location.reload()}>Retry save</button>{/if}
     </div>
   {/if}
 </aside>

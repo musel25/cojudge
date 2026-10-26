@@ -96,3 +96,30 @@ test('keeps two authenticated profiles separate and preserves offline work when 
   expect((await (await request.get('/api/server-progress')).json()).data.solutions.offlineOwner).toBe('offline owner work');
   await context.close();
 });
+
+test('waits for another tab before changing the active browser profile', async ({ browser }) => {
+  test.skip(!process.env.COJUDGE_SYNC_E2E, 'Run with the isolated server-progress config.');
+  const context = await browser.newContext({ extraHTTPHeaders: { 'X-CoJudge-User': 'musel' } });
+  const original = await context.newPage();
+  await original.goto('http://localhost:4175/');
+  await expect(original.getByRole('button', { name: '✓ Saved to VPS', exact: true })).toBeVisible();
+  await original.close();
+  await context.route('**/lock-holder', route => route.fulfill({ contentType: 'text/html', body: '<html><body>Lock holder</body></html>' }));
+  const holder = await context.newPage();
+  await holder.goto('http://localhost:4175/lock-holder');
+  await holder.evaluate(() => {
+    void navigator.locks.request('cojudge-profile-state', () => new Promise<void>(resolve => {
+      (window as any).releaseProfileLock = resolve;
+    }));
+  });
+  await expect.poll(() => holder.evaluate(() => Boolean((window as any).releaseProfileLock))).toBe(true);
+  await context.setExtraHTTPHeaders({ 'X-CoJudge-User': 'alessa' });
+  const incoming = await context.newPage();
+  await incoming.goto('http://localhost:4175/');
+  await expect.poll(() => holder.evaluate(async () => (await navigator.locks.query()).pending?.filter(lock => lock.name === 'cojudge-profile-state').length || 0)).toBeGreaterThan(0);
+  expect(await holder.evaluate(() => localStorage.getItem('cojudge-vps-active-profile'))).toBe('musel');
+  await holder.evaluate(() => (window as any).releaseProfileLock());
+  await expect(incoming.getByLabel('Current profile')).toHaveText('Alessa');
+  await expect(incoming.getByRole('button', { name: '✓ Saved to VPS', exact: true })).toBeVisible();
+  await context.close();
+});
