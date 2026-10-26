@@ -44,7 +44,9 @@ The browser test starts a separate local Node server and a temporary data direct
 
 Upstream v0.8.7 has 30 pre-existing Svelte/type errors and 29 warnings. Compare `npm run check` with that baseline; this feature must add none.
 
-## Deployment record — October 26, 2026
+## Initial deployment record — October 26, 2026
+
+This single-profile deployment was replaced by the profile deployment recorded below.
 
 - Running application: `cojudge-vps`, image `cojudge:vps-cef3d5cba8844d4e7f9f93c14133c8d5b23f840a`.
 - nginx keeps the original HTTPS and HTTP authentication. It forwards to loopback port 5378.
@@ -84,3 +86,17 @@ The API requires an expected-profile header and checks it against the authentica
 These profiles cover solutions, files, solved flags, bookmarks, custom tests and game results. Browser preferences, images and whiteboards remain outside server synchronization. Old browser caches are private to that browser installation, not encrypted against someone who can inspect that same browser profile.
 
 Profile changes and synchronization share an origin-wide browser lock. A waiting tab reads the active profile again after it acquires the lock. This prevents simultaneous tabs from replacing the outgoing offline cache with another profile's data. The browser must support Web Locks in a secure context. The browser regression test holds this lock in one tab and confirms that another tab cannot switch profiles until release.
+
+## Profile deployment record — October 26, 2026
+
+- Running application: `cojudge-profiles`, image `cojudge:profiles-af6d9fa9ec3ef29e087caa4f5192bfd972f2c2fa`, loopback port 5379.
+- nginx uses `/etc/nginx/.htpasswd-cojudge` and overwrites `X-CoJudge-User` with `$remote_user`. The password file has mode 0640 and owner `root:www-data`. The existing owner password hash is unchanged. The separate password file used by the other website is unchanged.
+- The same `cojudge-trial-data` volume remains mounted at `/data`. The prior `cojudge-vps` writer was stopped before nginx sent traffic to the new application. Both previous application containers remain available for rollback.
+- Private cutover backups are in `/home/ubuntu/cojudge-backups/pre-profiles.dEZH2J/`. They include the prior runtime environment, `nginx-at-cutover.conf`, and `progress-at-cutover.tar.gz`. Local private backups include the browser copy before the switch and the VPS progress directory after the switch.
+- The isolated VPS verification container and its test-only volume were removed.
+
+Verification: 261 unit/integration tests and three browser tests passed. The production build passed. The type check remains at the upstream baseline of 30 errors and 29 warnings. Browser tests cover separate profiles, rejected cross-profile requests, offline work when switching both ways, and a tab waiting for another tab's profile lock. Independent review found no remaining blocking issue after the lock change. Its original cache race was demonstrated by a controlled storage-helper interleaving, not by the reviewer's initial browser attempt.
+
+The isolated VPS test saved different data for both profiles, restarted the container, and confirmed that both stores persisted independently. Live checks verified Alessa's supplied password, rejection of an invalid password, and rejection of forged-identity reads and writes through nginx. A fresh browser showed **Alessa** and **Saved to VPS**, with all six progress collections empty at revision 1. The existing owner's browser showed **Müsel** and **Saved to VPS**; its data matched server revision 22, including four file groups, four custom-test collections and three progress entries. These are observations at deployment time; later learner activity changes the counts.
+
+To roll back to the prior server-save deployment, stop `cojudge-profiles`, start the retained `cojudge-vps` container, and restore `nginx-at-cutover.conf` from the profile backup directory to `/etc/nginx/sites-available/cojudge.musel.dev`. Validate with `sudo nginx -t` and reload nginx. Restore the complete nginx configuration, including its original owner-only password file; never enable Alessa's login against the old shared store. Keep the full `/data/progress` directory, including Alessa's subdirectory, intact for recovery. The prior application continues saving the owner's progress only.

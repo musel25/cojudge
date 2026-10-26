@@ -9,11 +9,11 @@ The existing owner continues using `/data/progress`; Alessa uses `/data/progress
 **Constraints:** Preserve existing work, authentication and other websites. Never commit passwords, password hashes, learner data or private account notes. The password was explicitly supplied by the user and is stored only in private configuration. No profile picker that bypasses authentication. Basic-auth login changes can use a separate browser/private window.
 
 ## Tasks
-- [ ] Test profile identity validation, separate repositories and rejection of wrong expected-profile headers.
-- [ ] Implement server identity resolution and profile-bound API responses.
-- [ ] Test browser migration from the owner cache, switching both ways, stale responses and storage failure.
-- [ ] Implement browser profile caches and a visible profile name.
-- [ ] Test two authenticated profiles in separate browser contexts and account changes on one browser.
-- [ ] Run suite, build and baseline type check. Request independent review and resolve material findings.
-- [ ] Create private credentials, build and verify staging with both profiles, then update nginx and the application.
-- [ ] Verify live isolation, existing owner data, Alessa's empty initial state, password access and preserved save behavior. Record recovery and push all commits.
+- [x] Test profile identity validation, separate repositories and rejection of wrong expected-profile headers.
+- [x] Implement server identity resolution and profile-bound API responses.
+- [x] Test browser migration from the owner cache, switching both ways, stale responses and storage failure.
+- [x] Implement browser profile caches and a visible profile name.
+- [x] Test two authenticated profiles in separate browser contexts and account changes on one browser.
+- [x] Run suite, build and baseline type check. Request independent review and resolve material findings.
+- [x] Create private credentials, build and verify staging with both profiles, then update nginx and the application.
+- [x] Verify live isolation, existing owner data, Alessa's empty initial state, password access and preserved save behavior. Record recovery and push all commits.
