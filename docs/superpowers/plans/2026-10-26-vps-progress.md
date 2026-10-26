@@ -24,19 +24,19 @@
 - Restart, invalid data and failed disk writes must not produce a false saved status.
 
 ## Task 1: Revisioned server store
-- [ ] Write failing tests for persistent restart reads, revision conflict, concurrent writes, invalid data, size limits and origin enforcement.
-- [ ] Implement shared snapshot types/validation and a serialized atomic file store.
-- [ ] Add GET/PUT /api/server-progress. GET returns {revision, savedAt, data}; PUT accepts {baseRevision, data}; conflicts return 409 with the current snapshot.
-- [ ] Run focused tests, then commit and push.
+- [x] Write failing tests for persistent restart reads, revision conflict, concurrent writes, invalid data, size limits and origin enforcement.
+- [x] Implement shared snapshot types/validation and a serialized atomic file store.
+- [x] Add GET/PUT /api/server-progress. GET returns {revision, savedAt, data}; PUT accepts {baseRevision, data}; conflicts return 409 with the current snapshot.
+- [x] Run focused tests, then commit and push.
 
 ## Task 2: Browser synchronization
-- [ ] Write failing tests for migration, fresh-browser restore, offline retry, conflict refusal and edits during requests.
-- [ ] Implement a testable sync controller using storage, transport, apply-data and status callbacks. Keep the last acknowledged data/revision in a reserved local key.
-- [ ] Integrate automatic save, polling and visibility/pagehide flushing with the existing layout. Add a compact server save status with retry and explicit conflict actions.
-- [ ] Run tests and build; commit and push.
+- [x] Write failing tests for migration, fresh-browser restore, offline retry, conflict refusal and edits during requests.
+- [x] Implement a testable sync controller using storage, transport, apply-data and status callbacks. Keep the last acknowledged data/revision in a reserved local key.
+- [x] Integrate automatic save, polling and visibility/pagehide flushing with the existing layout. Add a compact server save status with retry and explicit conflict actions.
+- [x] Run tests and build; commit and push.
 
 ## Task 3: Deployment and proof
-- [ ] Document deployment, data directory and recovery. Request independent review and resolve material findings.
-- [ ] Back up existing server content/config, build a pinned image, test on a loopback port and switch the production container with a rollback path.
-- [ ] Verify authentication, browser-to-server save, fresh-browser restore, stale-write rejection and persistence after restart. Import the existing browser state.
-- [ ] Record verification and commit/push tracked documentation.
+- [x] Document deployment, data directory and recovery. Request independent review and resolve material findings.
+- [x] Back up existing server content/config, build a pinned image, test on a loopback port and switch the production container with a rollback path.
+- [x] Verify authentication, browser-to-server save, fresh-browser restore, stale-write rejection and persistence after restart. Import the existing browser state.
+- [x] Record verification and commit/push tracked documentation.
