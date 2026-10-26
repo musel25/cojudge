@@ -18,6 +18,8 @@ Code solutions, workspace files (including dotfiles), completed-problem flags, b
 
 Browser storage remains the offline copy. The first visit imports into an empty server. A fresh browser restores before the editor opens. Saves start after a 500 ms debounce; a three-second poll catches other changes and checks for server updates. Wait for **Saved to VPS** before closing the browser. Closing a browser before acknowledgement can leave the final edit only in that browser; reopening retries it.
 
+Restoring server data reloads open tabs. An origin-wide restore marker stops old editors and page teardown from writing stale tabs back into the new snapshot.
+
 Server status is separate from the existing local save indicator. Network or disk errors never show a successful server save. If both browser and server changed, writes stop for review. **Save this browser copy** uses a revision check and keeps the previous server revision. **Use server copy** first stores the displaced browser data under `cojudge-vps-conflict-<timestamp>` in browser local storage. That key is intentionally excluded from ordinary exports; recover it directly if needed.
 
 ## Storage and recovery

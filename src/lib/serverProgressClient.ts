@@ -78,7 +78,7 @@ export class ProgressSync {
       this.conflict = false;
       this.acknowledge(remote);
     } catch (error) {
-      this.options.status({ state: 'error', message: error instanceof Error ? error.message : 'Restore failed.' });
+      this.options.status({ state: this.conflict ? 'conflict' : 'error', message: error instanceof Error ? error.message : 'Restore failed.' });
     } finally { this.busy = false; }
   }
 
@@ -86,7 +86,7 @@ export class ProgressSync {
     if (this.busy) return;
     this.busy = true;
     try { await this.write(validateSnapshot(await this.options.get()), this.local()); }
-    catch (error) { this.options.status({ state: 'error', message: error instanceof Error ? error.message : 'Server save failed.' }); }
+    catch (error) { this.options.status({ state: this.conflict ? 'conflict' : 'error', message: error instanceof Error ? error.message : 'Server save failed.' }); }
     finally { this.busy = false; }
   }
 }

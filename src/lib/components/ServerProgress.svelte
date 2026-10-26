@@ -4,6 +4,7 @@
   import { validateSnapshot, PROGRESS_KEYS } from '$lib/serverProgressData';
   import { applyProgressData } from '$lib/progressBackupClient';
   import { flushProgressStorageWrites } from '$lib/progressBackup';
+  import { withServerRestore, serverRestorePending, reloadAfterServerRestore } from '$lib/serverProgressRestore';
 
   let status = $state<SyncStatus>({ state: 'connecting' });
   let { onReady }: { onReady: () => void } = $props();
@@ -25,10 +26,13 @@
         });
         return { conflict: response.status === 409, snapshot: await responseData(response) };
       },
-      apply: data => applyProgressData(data),
-      status: value => { status = value; }
+      apply: data => withServerRestore(() => applyProgressData(data)),
+      status: value => { status = serverRestorePending() ? { state: 'connecting' } : value; }
     });
-    const check = () => void sync.tick();
+    const check = () => {
+      if (serverRestorePending()) { reloadAfterServerRestore(); return; }
+      void sync.tick();
+    };
     const changed = (event: Event) => {
       const key = (event as CustomEvent<string>).detail;
       if (!(PROGRESS_KEYS as readonly string[]).includes(key)) return;
@@ -46,7 +50,10 @@
     window.addEventListener('storage', check);
     window.addEventListener('pagehide', leaving);
     document.addEventListener('visibilitychange', leaving);
-    void sync.tick().finally(onReady);
+    void sync.tick().finally(() => {
+      if (serverRestorePending()) reloadAfterServerRestore();
+      else onReady();
+    });
     return () => {
       clearTimeout(debounce); clearInterval(timer);
       window.removeEventListener('cojudge:progress-written', changed);
@@ -82,7 +89,7 @@
 </aside>
 
 <style>
-  .server-progress { position: fixed; bottom: 12px; right: 16px; z-index: 200; max-width: min(380px, calc(100vw - 32px)); border: 1px solid #38566b; border-radius: 8px; background: #142330; color: #e6f0f6; box-shadow: 0 2px 8px #0003; font-size: 12px; }
+  .server-progress { position: fixed; bottom: 5px; right: 16px; z-index: 200; max-width: min(380px, calc(100vw - 32px)); border: 1px solid #38566b; border-radius: 8px; background: #142330; color: #e6f0f6; box-shadow: 0 2px 8px #0003; font-size: 12px; }
   .attention { border-color: #e4b45b; }
   button { cursor: pointer; color: inherit; background: transparent; border: 1px solid #667c8d; border-radius: 4px; padding: 6px 9px; margin: 3px; font: inherit; }
   .status-button { border: 0; margin: 0; padding: 7px 11px; }

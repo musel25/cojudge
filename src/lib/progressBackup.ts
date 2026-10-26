@@ -1,3 +1,5 @@
+import { serverRestorePending } from './serverProgressRestore';
+
 export type ProgressData = Record<string, unknown>;
 
 export type StorageReader = Pick<Storage, 'length' | 'key' | 'getItem'>;
@@ -81,6 +83,7 @@ export function writeProgressStorageItem(
 	key: string,
 	value: string
 ): boolean {
+	if (serverRestorePending()) return false;
 	if (isCloudRestoreInProgress()) {
 		deferredStorageWrites.set(key, value);
 		return false;
@@ -93,6 +96,7 @@ export function writeProgressStorageItem(
 
 export function resumeProgressStorageWrites(): void {
 	if (typeof window === 'undefined') return;
+	if (serverRestorePending()) return;
 	sessionStorage.removeItem(CLOUD_RESTORE_SESSION_KEY);
 	if (isCloudRestoreInProgress()) return;
 	for (const [key, value] of deferredStorageWrites) localStorage.setItem(key, value);
@@ -105,6 +109,7 @@ export function resumeProgressStorageWrites(): void {
 // would silently drop the freshest edits.
 export function flushProgressStorageWrites(): void {
 	if (typeof window === 'undefined') return;
+	if (serverRestorePending()) return;
 	for (const [key, value] of deferredStorageWrites) localStorage.setItem(key, value);
 	deferredStorageWrites.clear();
 }

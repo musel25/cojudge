@@ -109,4 +109,20 @@ describe('VPS browser sync', () => {
     expect(h.states.at(-1)).toBe('conflict');
     expect(h.storage.getItem(BASELINE_KEY)).toBeNull();
   });
+
+  it('keeps conflict actions available after a failed resolution', async () => {
+    const h = setup();
+    h.storage.setItem('solutions', '{"a":"browser edit"}');
+    h.setRemote({ revision: 1, savedAt: 'date', data: progress });
+    await h.sync.tick();
+    h.setOnline(false);
+    await h.sync.useServer();
+    expect(h.states.at(-1)).toBe('conflict');
+    await h.sync.useBrowser();
+    expect(h.states.at(-1)).toBe('conflict');
+    h.setOnline(true);
+    await h.sync.useBrowser();
+    expect(h.states.at(-1)).toBe('saved');
+    expect(h.remote().data.solutions).toEqual({ a: 'browser edit' });
+  });
 });

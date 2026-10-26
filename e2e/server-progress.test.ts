@@ -19,6 +19,23 @@ test('restores before opening the editor and synchronizes real browser changes',
   await page.keyboard.type('// VPS sync browser proof', { delay: 10 });
   await expect.poll(async () => JSON.stringify((await (await request.get('/api/server-progress')).json()).data.files)).toContain('VPS sync browser proof');
   await page.screenshot({ path: '/tmp/cojudge-editor-server-status.png' });
+  await page.getByRole('button', { name: 'Submit', exact: true }).click({ trial: true, timeout: 1500 });
+
+  // A different device replaces the active file. Both open local tabs must
+  // reload from that snapshot, without recreating their deleted editor tabs.
+  const sibling = await page.context().newPage();
+  await sibling.goto('http://localhost:4175/problems/two-sum');
+  await expect(sibling.getByRole('button', { name: '✓ Saved to VPS', exact: true })).toBeVisible();
+  const beforeReplace = await (await request.get('/api/server-progress')).json();
+  beforeReplace.data.files['two-sum'] = JSON.stringify([{ fileId: 'replacement-file', fileName: 'replacement.java', language: 'java', content: '// replacement from another browser', isActive: true, isOpen: true }]);
+  const replace = await request.put('/api/server-progress', { headers: { Origin: 'http://localhost:4175', 'X-CoJudge-Sync': '1' }, data: { baseRevision: beforeReplace.revision, data: beforeReplace.data } });
+  expect(replace.ok()).toBeTruthy();
+  for (const tab of [page, sibling]) {
+    await expect(tab.getByText('replacement.java', { exact: true })).toBeVisible({ timeout: 15000 });
+    await expect(tab.getByRole('button', { name: '✓ Saved to VPS', exact: true })).toBeVisible();
+  }
+  expect(JSON.stringify((await (await request.get('/api/server-progress')).json()).data.files)).not.toContain('persisted-file');
+  await sibling.close();
 
   // Exercise the actual bookmark UI and wait for a server acknowledgement.
   await page.goto('/?course=basic50');
