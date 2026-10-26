@@ -1,6 +1,6 @@
 # Private VPS progress storage
 
-This fork adds optional server persistence for one learner behind an authenticated reverse proxy. Everyone with access to this deployment shares the same progress. It is not a multi-user account service.
+This fork adds optional server persistence behind an authenticated reverse proxy. Without profile configuration, everyone shares one progress store. The private deployment supports separate authenticated learner profiles as described below.
 
 Set these runtime variables on the existing Node application:
 
@@ -58,3 +58,27 @@ Verification: 253 unit/integration tests passed; the production build passed. Th
 An independent review found two issues: failed conflict actions could hide recovery controls, and stale editor tabs could recreate deleted files. Regression tests reproduced both issues. Conflict controls now remain available after failure. Restores now invalidate old editor contexts and reload tabs; tests cover teardown writes and browser-storage exhaustion. Visual testing also confirmed that the server indicator leaves Submit accessible. The type-check result remains the upstream baseline of 30 errors and 29 warnings.
 
 Rollback: start the retained `cojudge` container, restore `nginx-before-switch.conf` from the backup directory to `/etc/nginx/sites-available/cojudge.musel.dev`, validate with `sudo nginx -t`, and reload nginx. Stop `cojudge-vps` only after traffic has moved. Keep `/data/progress` intact. The old application will use browser storage again and will not synchronize server progress.
+
+## Separate profiles
+
+Enable profile isolation with:
+
+```
+COJUDGE_SERVER_PROGRESS_OWNER=musel
+COJUDGE_SERVER_PROGRESS_USERS=musel,alessa
+```
+
+nginx must authenticate users with a CoJudge-specific password file and overwrite the identity header:
+
+```
+auth_basic_user_file /etc/nginx/.htpasswd-cojudge;
+proxy_set_header X-CoJudge-User $remote_user;
+```
+
+Keep the application port bound to loopback. The identity header is trusted only because the reverse proxy overwrites it. Do not expose this port directly or accept identity from a client-controlled header through another proxy. Both profile variables must be valid; incomplete configuration fails closed.
+
+The `musel` account keeps the existing `/data/progress/current.json` and history. The `alessa` account uses `/data/progress/profiles/alessa/`. Existing owner work requires no copy or move. Courses and problem definitions remain shared. Credentials are held only in private configuration; they are not application source files.
+
+The API requires an expected-profile header and checks it against the authenticated username. The response identifies its profile too. A browser whose login changes must reload before saving. The footer shows the active profile name. Each profile has its own browser cache for code/progress and sync state. Switching accounts saves the outgoing offline copy before changing the active cache; failure to save that copy stops the switch. Use a separate browser profile or private window when two people use the same computer at the same time. HTTP Basic authentication does not provide an in-app account picker or logout button.
+
+These profiles cover solutions, files, solved flags, bookmarks, custom tests and game results. Browser preferences, images and whiteboards remain outside server synchronization. Old browser caches are private to that browser installation, not encrypted against someone who can inspect that same browser profile.

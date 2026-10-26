@@ -72,7 +72,9 @@
   <p role="status" style="padding: 24px">Loading saved progress…</p>
 {/if}
 <AppDialog />
-{#if data.serverProgressEnabled}<ServerProgress onReady={() => progressReady = true} />{/if}
+{#if data.serverProgressEnabled}
+  <ServerProgress profile={data.progressProfile} owner={data.progressOwner} onReady={() => progressReady = true} />
+{/if}
 
 <style>
   .vps-content { padding-bottom: 40px; }

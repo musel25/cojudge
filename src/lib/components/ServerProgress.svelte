@@ -5,26 +5,54 @@
   import { applyProgressData } from '$lib/progressBackupClient';
   import { flushProgressStorageWrites } from '$lib/progressBackup';
   import { withServerRestore, serverRestorePending, reloadAfterServerRestore } from '$lib/serverProgressRestore';
+  import { ACTIVE_PROFILE_KEY, switchBrowserProfile, assertCurrentProfile } from '$lib/browserProfiles';
 
   let status = $state<SyncStatus>({ state: 'connecting' });
-  let { onReady }: { onReady: () => void } = $props();
+  let { onReady, profile = null, owner = null }: {
+    onReady: () => void; profile?: { id: string; name: string } | null; owner?: string | null
+  } = $props();
   let sync: ProgressSync;
   let details = $state(false);
 
   onMount(() => {
+    const profileId = profile?.id;
+    if (profileId && owner) {
+      try {
+        const outgoingId = localStorage.getItem(ACTIVE_PROFILE_KEY) || owner;
+        if (outgoingId !== profileId) {
+          withServerRestore(() => switchBrowserProfile(localStorage, profileId, owner!));
+          return;
+        }
+        switchBrowserProfile(localStorage, profileId, owner);
+      } catch (error) {
+        status = { state: 'error', message: error instanceof Error ? error.message : 'Could not load profile.' };
+        return;
+      }
+    }
+    const identityHeaders: Record<string, string> = profileId ? { 'X-CoJudge-Profile': profileId } : {};
+    const checkIdentity = (response?: Headers) => { if (profileId) assertCurrentProfile(localStorage, profileId, response); };
     async function responseData(response: Response) {
       if (!response.ok && response.status !== 409) throw new Error(`Server unavailable (${response.status}). Changes remain in this browser.`);
+      checkIdentity(response.headers);
       return validateSnapshot(await response.json());
     }
     sync = new ProgressSync({
       storage: localStorage,
-      get: async () => responseData(await fetch('/api/server-progress', { cache: 'no-store', signal: AbortSignal.timeout(10000) })),
+      get: async () => {
+        checkIdentity();
+        const snapshot = await responseData(await fetch('/api/server-progress', { headers: identityHeaders, cache: 'no-store', signal: AbortSignal.timeout(10000) }));
+        checkIdentity();
+        return snapshot;
+      },
       put: async (baseRevision, data) => {
+        checkIdentity();
         const response = await fetch('/api/server-progress', {
-          method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-CoJudge-Sync': '1' },
+          method: 'PUT', headers: { ...identityHeaders, 'Content-Type': 'application/json', 'X-CoJudge-Sync': '1' },
           body: JSON.stringify({ baseRevision, data }), signal: AbortSignal.timeout(10000)
         });
-        return { conflict: response.status === 409, snapshot: await responseData(response) };
+        const snapshot = await responseData(response);
+        checkIdentity();
+        return { conflict: response.status === 409, snapshot };
       },
       apply: data => withServerRestore(() => applyProgressData(data)),
       status: value => { status = serverRestorePending() ? { state: 'connecting' } : value; }
@@ -66,6 +94,7 @@
 </script>
 
 <aside class="server-progress" class:attention={status.state === 'error' || status.state === 'conflict'} aria-label="Server save status">
+  {#if profile}<span class="profile-name" aria-label="Current profile">{profile.name}</span>{/if}
   <button class="status-button" onclick={() => details = !details} aria-expanded={details}>
     {#if status.state === 'saved'}✓ Saved to VPS
     {:else if status.state === 'saving'}Saving to VPS…
@@ -83,7 +112,7 @@
         <button onclick={() => sync.useServer()}>Use server copy</button>
         <button onclick={() => sync.useBrowser()}>Save this browser copy</button>
         <p>The replaced server copy stays in server history. Before a restore, this browser copy is kept in local recovery storage.</p>
-      {:else if status.state === 'error'}<button onclick={() => sync.tick()}>Retry save</button>{/if}
+      {:else if status.state === 'error'}<button onclick={() => sync ? sync.tick() : window.location.reload()}>Retry save</button>{/if}
     </div>
   {/if}
 </aside>
@@ -93,6 +122,7 @@
   .attention { border-color: #e4b45b; }
   button { cursor: pointer; color: inherit; background: transparent; border: 1px solid #667c8d; border-radius: 4px; padding: 6px 9px; margin: 3px; font: inherit; }
   .status-button { border: 0; margin: 0; padding: 7px 11px; }
+  .profile-name { padding-left: 11px; font-weight: 600; }
   .details { padding: 0 11px 10px; }
   p { margin: 7px 0; line-height: 1.5; }
 </style>
