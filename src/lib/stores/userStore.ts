@@ -1,6 +1,7 @@
 import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
 import { writeProgressStorageItem } from '$lib/progressBackup';
+import { crossTabSync, isApplyingCrossTabSync } from './crossTabSync';
 
 // The key we'll use to save the checkbox data in localStorage
 const STORAGE_KEY = 'user-checkboxes';
@@ -37,8 +38,10 @@ const userStore = writable<Record<string, boolean>>(initialValue);
 
 if (browser) {
     userStore.subscribe((value) => {
+        if (isApplyingCrossTabSync(STORAGE_KEY)) return;
         writeProgressStorageItem(localStorage, STORAGE_KEY, JSON.stringify(value));
     });
+    crossTabSync(userStore, STORAGE_KEY);
 }
 
 export default userStore;

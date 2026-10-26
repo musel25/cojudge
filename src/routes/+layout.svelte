@@ -2,12 +2,14 @@
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
 	import AppDialog from '$lib/components/AppDialog.svelte';
+	import ServerProgress from '$lib/components/ServerProgress.svelte';
 	import { startCloudSync, stopCloudSync } from '$lib/cloudSync';
 	import { isDesktopRuntime } from '$lib/firebaseSettings';
 	import favicon from '$lib/assets/favicon.svg';
 	import '../app.css';
 
-	let { children } = $props();
+	let { children, data } = $props();
+	let progressReady = $state(!data.serverProgressEnabled);
 
 	let zoom = 1;
 
@@ -39,8 +41,10 @@
 	}
 
 	onMount(() => {
-		void startCloudSync();
-		return stopCloudSync;
+		if (!data.serverProgressEnabled) {
+			void startCloudSync();
+			return stopCloudSync;
+		}
 	});
 
 	onMount(() => {
@@ -58,5 +62,10 @@
 	<link rel="icon" href={favicon} />
 </svelte:head>
 
-{@render children?.()}
+{#if progressReady}
+  {@render children?.()}
+{:else}
+  <p role="status" style="padding: 24px">Loading saved progress…</p>
+{/if}
 <AppDialog />
+{#if data.serverProgressEnabled}<ServerProgress onReady={() => progressReady = true} />{/if}

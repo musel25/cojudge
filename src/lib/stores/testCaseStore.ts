@@ -1,6 +1,7 @@
 import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
 import { writeProgressStorageItem } from '$lib/progressBackup';
+import { crossTabSync, isApplyingCrossTabSync } from './crossTabSync';
 
 // Key for localStorage
 const STORAGE_KEY = 'testcases';
@@ -12,8 +13,10 @@ const testCaseStore = writable<Record<string, any[]>>(initialValue);
 
 if (browser) {
     testCaseStore.subscribe((value) => {
+        if (isApplyingCrossTabSync(STORAGE_KEY)) return;
         writeProgressStorageItem(localStorage, STORAGE_KEY, JSON.stringify(value));
     });
+    crossTabSync(testCaseStore, STORAGE_KEY);
 }
 
 export default testCaseStore;

@@ -15,7 +15,7 @@ export function isDotFileName(fileName: string): boolean {
 }
 
 const EXCLUDED_KEYS = new Set(['cojudge-firebase-settings']);
-const EXCLUDED_PREFIXES = ['firebase:', 'cojudge-cloud-'];
+const EXCLUDED_PREFIXES = ['firebase:', 'cojudge-cloud-', 'cojudge-vps-'];
 const CLOUD_KEYS = new Set([
 	'files',
 	'game-results',
@@ -87,6 +87,7 @@ export function writeProgressStorageItem(
 	}
 	deferredStorageWrites.delete(key);
 	storage.setItem(key, value);
+	if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('cojudge:progress-written', { detail: key }));
 	return true;
 }
 

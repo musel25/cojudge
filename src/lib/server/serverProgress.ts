@@ -1,4 +1,4 @@
-import { mkdir, open, readFile, rename, rm } from 'node:fs/promises';
+import { mkdir, open, readFile, readdir, rename, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { MAX_PROGRESS_BYTES, normalizeProgress, sameProgress, validateSnapshot, type ProgressSnapshot } from '../serverProgressData';
@@ -37,6 +37,11 @@ export class ProgressRepository {
       // current file fails; the next attempt can safely replace that revision.
       await this.atomicWrite(join(this.directory, 'history', `${next.revision}.json`), text);
       await this.atomicWrite(join(this.directory, 'current.json'), text);
+      for (const name of await readdir(join(this.directory, 'history'))) {
+        if (/^\d+\.json$/.test(name) && Number(name.slice(0, -5)) <= next.revision - 100) {
+          await rm(join(this.directory, 'history', name));
+        }
+      }
       return next;
     });
     this.queue = operation.catch(() => {});

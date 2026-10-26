@@ -57,10 +57,21 @@ describe('private server progress', () => {
 
   it('requires the configured origin and explicit JSON sync header', async () => {
     const { repo } = await repository();
-    for (const headers of [{ Origin: 'https://attacker.example' }, { Origin: '' }, { 'X-CoJudge-Sync': '' }, { 'Content-Type': 'text/plain' }]) {
+    const rejectedHeaders: Record<string, string>[] = [{ Origin: 'https://attacker.example' }, { Origin: '' }, { 'X-CoJudge-Sync': '' }, { 'Content-Type': 'text/plain' }];
+    for (const headers of rejectedHeaders) {
       expect((await handleProgressRequest(request({ baseRevision: 0, data }, headers), repo, origin)).status).toBe(403);
     }
     expect((await repo.read()).revision).toBe(0);
+  });
+
+  it('bounds retained history to the latest 100 committed revisions', async () => {
+    const { directory, repo } = await repository();
+    for (let i = 0; i < 102; i++) await repo.save(i, { solutions: { a: String(i) } });
+    const files = await readdir(join(directory, 'history'));
+    expect(files).toHaveLength(100);
+    expect(files).toContain('102.json');
+    expect(files).not.toContain('1.json');
+    expect((await repo.read()).revision).toBe(102);
   });
 
   it('returns conflicts with current data and disables caching', async () => {

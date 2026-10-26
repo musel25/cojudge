@@ -1,0 +1,91 @@
+<script lang="ts">
+  import { onMount } from 'svelte';
+  import { ProgressSync, type SyncStatus } from '$lib/serverProgressClient';
+  import { validateSnapshot, PROGRESS_KEYS } from '$lib/serverProgressData';
+  import { applyProgressData } from '$lib/progressBackupClient';
+  import { flushProgressStorageWrites } from '$lib/progressBackup';
+
+  let status = $state<SyncStatus>({ state: 'connecting' });
+  let { onReady }: { onReady: () => void } = $props();
+  let sync: ProgressSync;
+  let details = $state(false);
+
+  onMount(() => {
+    async function responseData(response: Response) {
+      if (!response.ok && response.status !== 409) throw new Error(`Server unavailable (${response.status}). Changes remain in this browser.`);
+      return validateSnapshot(await response.json());
+    }
+    sync = new ProgressSync({
+      storage: localStorage,
+      get: async () => responseData(await fetch('/api/server-progress', { cache: 'no-store', signal: AbortSignal.timeout(10000) })),
+      put: async (baseRevision, data) => {
+        const response = await fetch('/api/server-progress', {
+          method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-CoJudge-Sync': '1' },
+          body: JSON.stringify({ baseRevision, data }), signal: AbortSignal.timeout(10000)
+        });
+        return { conflict: response.status === 409, snapshot: await responseData(response) };
+      },
+      apply: data => applyProgressData(data),
+      status: value => { status = value; }
+    });
+    const check = () => void sync.tick();
+    const changed = (event: Event) => {
+      const key = (event as CustomEvent<string>).detail;
+      if (!(PROGRESS_KEYS as readonly string[]).includes(key)) return;
+      if (status.state === 'saved') status = { ...status, state: 'pending' };
+      clearTimeout(debounce);
+      debounce = setTimeout(check, 500);
+    };
+    let debounce: ReturnType<typeof setTimeout>;
+    const leaving = () => { flushProgressStorageWrites(); check(); };
+    // Polling also covers imports, deletes, and writes from other tabs that
+    // bypass the normal persistence helper.
+    const timer = setInterval(check, 3000);
+    window.addEventListener('cojudge:progress-written', changed);
+    window.addEventListener('online', check);
+    window.addEventListener('storage', check);
+    window.addEventListener('pagehide', leaving);
+    document.addEventListener('visibilitychange', leaving);
+    void sync.tick().finally(onReady);
+    return () => {
+      clearTimeout(debounce); clearInterval(timer);
+      window.removeEventListener('cojudge:progress-written', changed);
+      window.removeEventListener('online', check);
+      window.removeEventListener('storage', check);
+      window.removeEventListener('pagehide', leaving);
+      document.removeEventListener('visibilitychange', leaving);
+    };
+  });
+</script>
+
+<aside class="server-progress" class:attention={status.state === 'error' || status.state === 'conflict'} aria-label="Server save status">
+  <button class="status-button" onclick={() => details = !details} aria-expanded={details}>
+    {#if status.state === 'saved'}✓ Saved to VPS
+    {:else if status.state === 'saving'}Saving to VPS…
+    {:else if status.state === 'pending'}Waiting to save to VPS…
+    {:else if status.state === 'conflict'}Server save needs review
+    {:else if status.state === 'error'}VPS save failed — local copy kept
+    {:else}Connecting to VPS…{/if}
+  </button>
+  {#if details || status.state === 'error' || status.state === 'conflict'}
+    <div class="details">
+      <p>Code, files, completed problems, bookmarks, custom tests and game results are saved on this VPS.</p>
+      {#if status.savedAt}<p>Last server save: {new Date(status.savedAt).toLocaleString()}</p>{/if}
+      {#if status.message}<p>{status.message}</p>{/if}
+      {#if status.state === 'conflict'}
+        <button onclick={() => sync.useServer()}>Use server copy</button>
+        <button onclick={() => sync.useBrowser()}>Save this browser copy</button>
+        <p>The replaced server copy stays in server history. Before a restore, this browser copy is kept in local recovery storage.</p>
+      {:else if status.state === 'error'}<button onclick={() => sync.tick()}>Retry save</button>{/if}
+    </div>
+  {/if}
+</aside>
+
+<style>
+  .server-progress { position: fixed; bottom: 12px; right: 16px; z-index: 200; max-width: min(380px, calc(100vw - 32px)); border: 1px solid #38566b; border-radius: 8px; background: #142330; color: #e6f0f6; box-shadow: 0 2px 8px #0003; font-size: 12px; }
+  .attention { border-color: #e4b45b; }
+  button { cursor: pointer; color: inherit; background: transparent; border: 1px solid #667c8d; border-radius: 4px; padding: 6px 9px; margin: 3px; font: inherit; }
+  .status-button { border: 0; margin: 0; padding: 7px 11px; }
+  .details { padding: 0 11px 10px; }
+  p { margin: 7px 0; line-height: 1.5; }
+</style>
