@@ -30,10 +30,13 @@ export const load: PageServerLoad = async ({ url }) => {
         discoverCourses(coursesDir),
         coursesDir === getBundledCoursesDir() ? Promise.resolve([]) : discoverCourses(getBundledCoursesDir())
     ]);
-    const courses = [...userCourses];
+    const merged = [...userCourses];
     for (const c of bundledCourses) {
-        if (!courses.some((existing) => existing.id === c.id)) courses.push(c);
+        if (!merged.some((existing) => existing.id === c.id)) merged.push(c);
     }
+    // `"hidden": true` in courseinfo.json drops a course from the tabs.
+    // Merge first so a hidden user copy also hides the bundled one.
+    const courses = merged.filter((course) => !course.info.hidden);
     // Keep LeetCode 1000 (the catch-all archive) as the last tab.
     courses.sort((a, b) =>
         (a.id === 'leetcode-1000' ? 1 : 0) - (b.id === 'leetcode-1000' ? 1 : 0) ||

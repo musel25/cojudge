@@ -9,6 +9,8 @@ export type CourseInfo = {
     /** Optional per-course display numbers (problem id -> number shown
      *  in place of the metadata title prefix). */
     'problem-numbers'?: Record<string, number>;
+    /** Leave the course out of the home-page tabs (content stays on disk). */
+    hidden?: boolean;
 };
 
 export type Course = {
@@ -36,6 +38,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 export function parseCourseInfo(value: unknown): CourseInfo | null {
     if (!isRecord(value) || typeof value.title !== 'string' || !value.title.trim()) return null;
     if (value.description !== undefined && typeof value.description !== 'string') return null;
+    if (value.hidden !== undefined && typeof value.hidden !== 'boolean') return null;
 
     const categoryOrder = value['category-order'];
     if (categoryOrder !== undefined && (!Array.isArray(categoryOrder) || categoryOrder.some((category) => typeof category !== 'string'))) {
@@ -69,7 +72,8 @@ export function parseCourseInfo(value: unknown): CourseInfo | null {
         description: value.description ?? '',
         'category-order': categoryOrder ? [...categoryOrder] as string[] : [],
         'problems-of-category': Object.fromEntries(mappingEntries),
-        ...(problemNumbers !== undefined ? { 'problem-numbers': problemNumbers } : {})
+        ...(problemNumbers !== undefined ? { 'problem-numbers': problemNumbers } : {}),
+        ...(value.hidden !== undefined ? { hidden: value.hidden } : {})
     };
 }
 
