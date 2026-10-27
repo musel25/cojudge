@@ -71,7 +71,14 @@
         return best;
     })();
     let CodeEditor: any = null;
-    let language: ProgrammingLanguage = $userSettingsStorage.preferredLanguage ?? 'java';
+    // Start in the preferred language, unless this problem only ships starter
+    // code for other languages (for example Python-only courses).
+    const starterLanguages = Object.keys(data.problem.starterCode ?? {}) as ProgrammingLanguage[];
+    const preferredLanguage: ProgrammingLanguage = $userSettingsStorage.preferredLanguage ?? 'java';
+    let language: ProgrammingLanguage =
+        starterLanguages.length === 0 || starterLanguages.includes(preferredLanguage)
+            ? preferredLanguage
+            : starterLanguages[0];
     const fileKey = () => `${problemId}`;
     const codeKey = () => `${problemId}:${language}`;
 
