@@ -30,13 +30,10 @@ export const load: PageServerLoad = async ({ url }) => {
         discoverCourses(coursesDir),
         coursesDir === getBundledCoursesDir() ? Promise.resolve([]) : discoverCourses(getBundledCoursesDir())
     ]);
-    const merged = [...userCourses];
+    const courses = [...userCourses];
     for (const c of bundledCourses) {
-        if (!merged.some((existing) => existing.id === c.id)) merged.push(c);
+        if (!courses.some((existing) => existing.id === c.id)) courses.push(c);
     }
-    // `"hidden": true` in courseinfo.json drops a course from the tabs.
-    // Merge first so a hidden user copy also hides the bundled one.
-    const courses = merged.filter((course) => !course.info.hidden);
     // Keep LeetCode 1000 (the catch-all archive) as the last tab.
     courses.sort((a, b) =>
         (a.id === 'leetcode-1000' ? 1 : 0) - (b.id === 'leetcode-1000' ? 1 : 0) ||
@@ -79,7 +76,12 @@ export const load: PageServerLoad = async ({ url }) => {
         .toSorted((a, b) => (a.title || '').localeCompare(b.title || ''));
 
     return {
-        courses: courses.map((course) => ({ id: course.id, title: course.info.title, source: courseSources[course.id] ?? 'bundled' })),
+        // `"hidden": true` in courseinfo.json only sets the default; each viewer
+        // chooses the visible tabs in the "Lists" menu (stored in the browser).
+        courses: courses.map((course) => ({
+            id: course.id, title: course.info.title, source: courseSources[course.id] ?? 'bundled',
+            hidden: course.info.hidden === true
+        })),
         selectedCourseId: selectedCourse?.id ?? null,
         selectedCourseInfo: selectedCourse?.info ?? null,
         problems: problemsWithSource,

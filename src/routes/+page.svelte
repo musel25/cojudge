@@ -272,6 +272,9 @@
         if (showDropdown && dropdownRef && !dropdownRef.contains(event.target as Node)) {
             showDropdown = false;
         }
+        if (showListsMenu && listsMenuRef && !listsMenuRef.contains(event.target as Node)) {
+            showListsMenu = false;
+        }
     }
 
     function dropdownItems(): HTMLElement[] {
@@ -328,13 +331,16 @@
         if (isDesktopMode) void refreshCliStatus();
         void initializeAppUpdatePreference();
 
+        courseVisibility = readCourseVisibility();
+
         // Restore last selected course from localStorage if no course param in URL
         const url = new URL(window.location.href);
         if (!url.searchParams.has('course')) {
             const saved = localStorage.getItem(COURSE_STORAGE_KEY);
-            if (saved && courses.some(c => c.id === saved)) {
-                goto(`/?course=${encodeURIComponent(saved)}`, { replaceState: true });
-            }
+            const target = saved && visibleCourses.some(c => c.id === saved)
+                ? saved
+                : !visibleCourses.some(c => c.id === selectedCourseId) ? visibleCourses[0]?.id : null;
+            if (target) goto(`/?course=${encodeURIComponent(target)}`, { replaceState: true });
         }
 
         // Automatic update detection on startup (desktop only), same as openduck.
@@ -371,6 +377,8 @@
         id: string;
         title: string;
         source?: ContentSource;
+        /** Default visibility from courseinfo.json; the viewer can override it. */
+        hidden?: boolean;
     };
 
     function sourceLabel(source?: ContentSource): string {
@@ -456,6 +464,52 @@
     }
 
     const COURSE_STORAGE_KEY = 'selected-course';
+    const COURSE_VISIBILITY_KEY = 'course-visibility';
+
+    // Which course tabs this viewer shows: courseId -> visible. Courses without
+    // an entry follow their courseinfo.json default ("hidden": true hides them).
+    let courseVisibility: Record<string, boolean> = {};
+    let showListsMenu = false;
+    let listsMenuRef: HTMLElement | null = null;
+
+    function readCourseVisibility(): Record<string, boolean> {
+        try {
+            const parsed = JSON.parse(localStorage.getItem(COURSE_VISIBILITY_KEY) || '{}');
+            return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+        } catch {
+            return {};
+        }
+    }
+
+    const isCourseVisible = (course: CourseSummary, prefs: Record<string, boolean>) =>
+        prefs[course.id] ?? !course.hidden;
+    $: visibleCourses = courses.filter((course) => isCourseVisible(course, courseVisibility));
+
+    function setCourseVisible(courseId: string, visible: boolean) {
+        courseVisibility = { ...courseVisibility, [courseId]: visible };
+        try {
+            localStorage.setItem(COURSE_VISIBILITY_KEY, JSON.stringify(courseVisibility));
+        } catch {
+            // Storage can be unavailable (private mode); the choice then lasts for this page only.
+        }
+        // Hiding the open course moves to the first list that is still shown.
+        if (!visible && courseId === selectedCourseId && !showBookmarks) {
+            const next = courses.find((course) => isCourseVisible(course, courseVisibility));
+            if (next) {
+                selectCourse(next.id);
+                goto(`/?course=${encodeURIComponent(next.id)}`);
+            }
+        }
+    }
+
+    function resetCourseVisibility() {
+        courseVisibility = {};
+        try {
+            localStorage.removeItem(COURSE_VISIBILITY_KEY);
+        } catch {
+            // ignore
+        }
+    }
 
     // Persist course selection to localStorage
     function selectCourse(courseId: string) {
@@ -2129,8 +2183,9 @@
             {/if}
         </div>
     {/if}
+    <div class="tabs-row">
     <nav class="tabs" aria-label="Course">
-        {#each courses as course}
+        {#each visibleCourses as course}
             <a
                 class="tab"
                 class:active={!showBookmarks && course.id === selectedCourseId}
@@ -2156,6 +2211,41 @@
             >Bookmarks ({bookmarkCount})</button>
         {/if}
     </nav>
+    <div class="lists-menu" bind:this={listsMenuRef}>
+        <button
+            type="button"
+            class="lists-toggle"
+            aria-haspopup="true"
+            aria-expanded={showListsMenu}
+            title="Choose which lists appear as tabs"
+            onclick={() => (showListsMenu = !showListsMenu)}
+        >
+            <svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true">
+                <path d="M4 5h12M4 10h12M4 15h7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none" />
+            </svg>
+            Lists
+        </button>
+        {#if showListsMenu}
+            <div class="lists-panel" role="group" aria-label="Lists shown in the main menu">
+                <div class="lists-panel-title">Show these lists</div>
+                {#each courses as course}
+                    {@const checked = isCourseVisible(course, courseVisibility)}
+                    <label class="lists-option">
+                        <input
+                            type="checkbox"
+                            {checked}
+                            disabled={checked && visibleCourses.length === 1}
+                            onchange={(event) => setCourseVisible(course.id, event.currentTarget.checked)}
+                        />
+                        <span>{course.title}</span>
+                    </label>
+                {/each}
+                <button type="button" class="lists-reset" onclick={resetCourseVisibility}>Reset to default</button>
+                <p class="lists-note">Saved in this browser.</p>
+            </div>
+        {/if}
+    </div>
+    </div>
     {#if hasCustomContent || hasModifiedContent}
         <div class="source-legend" aria-label="Legend for custom content labels">
             {#if hasCustomContent}
@@ -2436,15 +2526,106 @@
     nav.tabs {
         overflow-x: unset;
     }
-    .tabs {
+    .tabs-row {
         position: relative;
         display: flex;
         align-items: flex-end;
-        gap: var(--spacing-1);
+        gap: var(--spacing-2);
         border-bottom: 1px solid var(--color-border, #e5e7eb);
         margin-bottom: var(--spacing-4);
+    }
+    .tabs {
+        position: relative;
+        display: flex;
+        flex: 1 1 auto;
+        min-width: 0;
+        align-items: flex-end;
+        gap: var(--spacing-1);
         padding-top: var(--spacing-2);
         overflow-x: auto;
+    }
+    .lists-menu {
+        position: relative;
+        flex: 0 0 auto;
+        align-self: center;
+    }
+    .lists-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.35rem 0.7rem;
+        border: 1px solid var(--color-border, #e5e7eb);
+        border-radius: 8px;
+        background: transparent;
+        color: var(--color-text-secondary);
+        font: inherit;
+        font-size: 0.85rem;
+        cursor: pointer;
+    }
+    .lists-toggle:hover,
+    .lists-toggle[aria-expanded="true"] {
+        background: var(--color-surface-hover);
+        color: var(--color-text);
+    }
+    .lists-panel {
+        position: absolute;
+        right: 0;
+        top: calc(100% + 6px);
+        z-index: 50;
+        min-width: 240px;
+        max-height: 70vh;
+        overflow-y: auto;
+        padding: 0.6rem;
+        border: 1px solid var(--color-border, #e5e7eb);
+        border-radius: 10px;
+        background: var(--color-surface);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+    }
+    .lists-panel-title {
+        padding: 0.2rem 0.4rem 0.4rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--color-text-secondary);
+    }
+    .lists-option {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        padding: 0.4rem;
+        border-radius: 6px;
+        color: var(--color-text);
+        cursor: pointer;
+    }
+    .lists-option:hover {
+        background: var(--color-surface-hover);
+    }
+    .lists-option input {
+        accent-color: var(--color-correct);
+        width: 16px;
+        height: 16px;
+    }
+    .lists-reset {
+        margin-top: 0.35rem;
+        width: 100%;
+        padding: 0.4rem;
+        border: none;
+        border-top: 1px solid var(--color-border, #e5e7eb);
+        background: transparent;
+        color: var(--color-text-secondary);
+        font: inherit;
+        font-size: 0.8rem;
+        text-align: left;
+        cursor: pointer;
+    }
+    .lists-reset:hover {
+        color: var(--color-text);
+    }
+    .lists-note {
+        margin: 0.15rem 0.4rem 0;
+        font-size: 0.75rem;
+        color: var(--color-text-secondary);
     }
     /* Intro card */
     .intro {
