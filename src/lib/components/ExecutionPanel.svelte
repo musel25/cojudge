@@ -9,6 +9,7 @@
     import SaveStatus from "./SaveStatus.svelte";
     import GameModeTimer from "./GameModeTimer.svelte";
     import DockerSettingsModal from "./DockerSettingsModal.svelte";
+    import AcceptedCelebration from "./AcceptedCelebration.svelte";
     import userStore from "$lib/stores/userStore";
     import { isDesktopRuntime } from "$lib/firebaseSettings";
     import { isDebugSupported, type ProgrammingLanguage } from "$lib/utils/util";
@@ -110,6 +111,11 @@
     }
     $: isLeftPaneVisible = ($leftPaneWidthStore === null ? 50 : $leftPaneWidthStore) > 5;
     $: isBottomPaneVisible = $execPaneHeightStore > minExecPanelHeight;
+
+    // Accepted-submission animation; the key restarts it on every new acceptance.
+    let showCelebration = false;
+    let celebrationKey = 0;
+    let celebrationTests: number | null = null;
 
     function statusToString(status: StatusType) {
         switch (status) {
@@ -784,6 +790,9 @@
                     if (body.allAccepted) {
                         status = "accepted";
                         runningMessage = "";
+                        celebrationTests = totalTc || null;
+                        celebrationKey += 1;
+                        showCelebration = true;
                         userStore.update((prev) => ({
                             ...prev,
                             [problem.id]: true,
@@ -2157,6 +2166,16 @@
         </div>
     </div>
 </div>
+
+{#if showCelebration}
+    {#key celebrationKey}
+        <AcceptedCelebration
+            totalTests={celebrationTests}
+            runtimeMs={executionTimeMs ?? null}
+            on:done={() => (showCelebration = false)}
+        />
+    {/key}
+{/if}
 
 <DockerSettingsModal
     open={showDockerSettings}
