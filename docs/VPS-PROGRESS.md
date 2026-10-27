@@ -107,3 +107,10 @@ To roll back to the prior server-save deployment, stop `cojudge-profiles`, start
 - Running application: `cojudge-profiles`, image `cojudge:profiles-cbccbd08d4fe6b28ce2aa6239ff2fd750026e592`, same port, volume, and environment as before. The previous container is kept, stopped, as `cojudge-profiles-af6d9fa` for rollback.
 - The flag is set in the volume copies of `leetcode-1000`, `nc150`, and `nc250`. Backups of the original files are in `/home/ubuntu/cojudge-backups/hide-courses-20261027T224535/`. Remove the flag (or restore a backup) to show a course again; no restart is needed.
 - The new `python-oop` course (22 exercises) comes from `capital-one-prep/cojudge/oop`; see its README.
+
+## Course picker and accepted animation — October 27, 2026
+
+- Running application: `cojudge-profiles`, image `cojudge:profiles-1bcab72d0f669737fd1b766a6e7b6ad93f4e3071`. The previous container is kept, stopped, as `cojudge-profiles-cbccbd0` for rollback.
+- The home page has a **Lists** menu. Each viewer chooses the visible course tabs; the choice is stored in the browser (`course-visibility`). `"hidden": true` in `courseinfo.json` is now only the default.
+- An accepted submission plays a short green check animation (`AcceptedCelebration.svelte`). It closes after about 2 seconds, on click, or on Escape, and respects reduced motion.
+- A problem opens in a language that has starter code, so Python-only courses no longer open an empty Java editor in a new browser.
