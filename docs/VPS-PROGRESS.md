@@ -100,3 +100,10 @@ Verification: 261 unit/integration tests and three browser tests passed. The pro
 The isolated VPS test saved different data for both profiles, restarted the container, and confirmed that both stores persisted independently. Live checks verified Alessa's supplied password, rejection of an invalid password, and rejection of forged-identity reads and writes through nginx. A fresh browser showed **Alessa** and **Saved to VPS**, with all six progress collections empty at revision 1. The existing owner's browser showed **Müsel** and **Saved to VPS**; its data matched server revision 22, including four file groups, four custom-test collections and three progress entries. These are observations at deployment time; later learner activity changes the counts.
 
 To roll back to the prior server-save deployment, stop `cojudge-profiles`, start the retained `cojudge-vps` container, and restore `nginx-at-cutover.conf` from the profile backup directory to `/etc/nginx/sites-available/cojudge.musel.dev`. Validate with `sudo nginx -t` and reload nginx. Restore the complete nginx configuration, including its original owner-only password file; never enable Alessa's login against the old shared store. Keep the full `/data/progress` directory, including Alessa's subdirectory, intact for recovery. The prior application continues saving the owner's progress only.
+
+## Hidden courses — October 27, 2026
+
+- A course with `"hidden": true` in its `courseinfo.json` is left out of the home-page tabs. Its content stays on disk.
+- Running application: `cojudge-profiles`, image `cojudge:profiles-cbccbd08d4fe6b28ce2aa6239ff2fd750026e592`, same port, volume, and environment as before. The previous container is kept, stopped, as `cojudge-profiles-af6d9fa` for rollback.
+- The flag is set in the volume copies of `leetcode-1000`, `nc150`, and `nc250`. Backups of the original files are in `/home/ubuntu/cojudge-backups/hide-courses-20261027T224535/`. Remove the flag (or restore a backup) to show a course again; no restart is needed.
+- The new `python-oop` course (22 exercises) comes from `capital-one-prep/cojudge/oop`; see its README.
