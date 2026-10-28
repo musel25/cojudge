@@ -92,6 +92,8 @@ describe('Python exercise assertion values', () => {
             .toMatchObject({ output: '2', correctAnswer: '3' });
         expect(display(await exercise('def test_example():\n    assert 1 == 1; assert False')))
             .not.toHaveProperty('failureDetail');
+        expect(display(await exercise('def test_example():\n    assert 1 == 1; raise AssertionError("other failure")')))
+            .not.toHaveProperty('failureDetail');
         expect(display(await exercise('def test_example():\n    assert 1 == 1; assert fail() == 3',
             'def fail():\n    raise AssertionError("no returned value")')))
             .not.toHaveProperty('failureDetail');

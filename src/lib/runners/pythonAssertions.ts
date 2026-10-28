@@ -43,7 +43,7 @@ def _cojudge_enable_assertion_values(module):
             selected = ast.Assign(targets=[ast.Name(id=active, ctx=ast.Store())], value=ast.Constant(len(captures) - 1))
             comparison.left = ast.copy_location(ast.Name(id=left, ctx=ast.Load()), comparison.left)
             comparison.comparators[0] = ast.copy_location(ast.Name(id=right, ctx=ast.Load()), comparison.comparators[0])
-            return [clear, ast.copy_location(actual, node), ast.copy_location(expected, node), ast.copy_location(selected, node), node]
+            return [clear, ast.copy_location(actual, node), ast.copy_location(expected, node), ast.copy_location(selected, node), node, clear]
 
     tree = ast.fix_missing_locations(CaptureEquality().visit(tree))
 
