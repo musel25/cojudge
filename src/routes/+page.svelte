@@ -3849,6 +3849,7 @@
         border-radius: var(--border-radius-lg);
         padding: var(--spacing-2);
         margin-top: var(--spacing-2);
+        overflow-x: auto;
     }
 
     .problem-table {
