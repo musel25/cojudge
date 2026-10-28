@@ -26,21 +26,24 @@ def _cojudge_enable_assertion_values(module):
     while any(name.startswith(prefix) for name in identifiers):
         prefix += '_'
     captures = []
+    active = prefix + 'active'
 
     class CaptureEquality(ast.NodeTransformer):
         def visit_Assert(self, node):
+            clear = ast.copy_location(ast.Assign(targets=[ast.Name(id=active, ctx=ast.Store())], value=ast.Constant(None)), node)
             comparison = node.test
             if not (isinstance(comparison, ast.Compare) and len(comparison.ops) == 1
                     and isinstance(comparison.ops[0], ast.Eq)):
-                return node
+                return [clear, node]
             left = prefix + str(len(captures)) + '_actual'
             right = prefix + str(len(captures)) + '_expected'
             captures.append((node.lineno, node.end_lineno, left, right))
             actual = ast.Assign(targets=[ast.Name(id=left, ctx=ast.Store())], value=comparison.left)
             expected = ast.Assign(targets=[ast.Name(id=right, ctx=ast.Store())], value=comparison.comparators[0])
+            selected = ast.Assign(targets=[ast.Name(id=active, ctx=ast.Store())], value=ast.Constant(len(captures) - 1))
             comparison.left = ast.copy_location(ast.Name(id=left, ctx=ast.Load()), comparison.left)
             comparison.comparators[0] = ast.copy_location(ast.Name(id=right, ctx=ast.Load()), comparison.comparators[0])
-            return [ast.copy_location(actual, node), ast.copy_location(expected, node), node]
+            return [clear, ast.copy_location(actual, node), ast.copy_location(expected, node), ast.copy_location(selected, node), node]
 
     tree = ast.fix_missing_locations(CaptureEquality().visit(tree))
 
@@ -68,9 +71,9 @@ def _cojudge_enable_assertion_values(module):
                 failed = tb
             tb = tb.tb_next
         if failed is not None:
-            for start, end, left, right in captures:
+            for index, (start, end, left, right) in enumerate(captures):
                 values = failed.tb_frame.f_locals
-                if start <= failed.tb_lineno <= end and left in values and right in values:
+                if values.get(active) == index and start <= failed.tb_lineno <= end and left in values and right in values:
                     return ':::ASSERTION:::' + json.dumps({
                         'actual': display(values[left]), 'expected': display(values[right]), 'detail': detail,
                     })

@@ -87,6 +87,16 @@ describe('Python exercise assertion values', () => {
             'from __future__ import annotations')).toBe('passed');
     });
 
+    it('selects the failed assertion when two assertions share a source line', async () => {
+        expect(display(await exercise('def test_example():\n    assert 1 == 1; assert 2 == 3')))
+            .toMatchObject({ output: '2', correctAnswer: '3' });
+        expect(display(await exercise('def test_example():\n    assert 1 == 1; assert False')))
+            .not.toHaveProperty('failureDetail');
+        expect(display(await exercise('def test_example():\n    assert 1 == 1; assert fail() == 3',
+            'def fail():\n    raise AssertionError("no returned value")')))
+            .not.toHaveProperty('failureDetail');
+    });
+
     it('does not change normal solution modules', async () => {
         const folder = await mkdtemp(path.join(tmpdir(), 'cojudge-normal-'));
         try {
