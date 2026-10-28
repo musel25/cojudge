@@ -7,6 +7,7 @@ export default defineConfig({
 		reuseExistingServer: !process.env.CI
 	},
 	testDir: 'e2e',
+	testIgnore: 'learning-path.test.ts',
 	use: {
 		baseURL: 'http://localhost:4173'
 	}

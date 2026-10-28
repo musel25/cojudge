@@ -8,6 +8,7 @@
     import Tooltip from "$lib/components/Tooltip.svelte";
     import DemoBanner from "$lib/components/DemoBanner.svelte";
     import SortIcon from "$lib/components/SortIcon.svelte";
+    import LearningPath from "$lib/components/LearningPath.svelte";
     import userSettingsStorage from '$lib/stores/userSettingsStorage';
     import userStore from "$lib/stores/userStore";
     import bookmarkStore, { toggleBookmarkId } from '$lib/stores/bookmarkStore';
@@ -379,6 +380,7 @@
         source?: ContentSource;
         /** Default visibility from courseinfo.json; the viewer can override it. */
         hidden?: boolean;
+        problemIds?: string[];
     };
 
     function sourceLabel(source?: ContentSource): string {
@@ -471,6 +473,15 @@
     let courseVisibility: Record<string, boolean> = {};
     let showListsMenu = false;
     let listsMenuRef: HTMLElement | null = null;
+    let showLearningPath = false;
+    let learningPathToggle: HTMLButtonElement | null = null;
+
+    function selectLearningCourse(courseId: string) {
+        const course = courses.find((item) => item.id === courseId);
+        if (course && !isCourseVisible(course, courseVisibility)) setCourseVisible(courseId, true);
+        searchQuery = '';
+        selectCourse(courseId);
+    }
 
     function readCourseVisibility(): Record<string, boolean> {
         try {
@@ -979,6 +990,10 @@
 
     function handleModalKeydown(event: KeyboardEvent) {
         if ($activeDialog) return;
+        if (event.key === 'Escape' && showLearningPath && !document.querySelector('[aria-modal="true"]')) {
+            showLearningPath = false;
+            learningPathToggle?.focus();
+        }
         // Cmd+S or Ctrl+S — open cloud sync, even outside modals.
         if ((event.ctrlKey || event.metaKey) && !event.shiftKey && !event.altKey && event.key.toLowerCase() === 's') {
             event.preventDefault();
@@ -2211,6 +2226,20 @@
             >Bookmarks ({bookmarkCount})</button>
         {/if}
     </nav>
+    <button
+        bind:this={learningPathToggle}
+        type="button"
+        class="learning-path-toggle"
+        aria-expanded={showLearningPath}
+        aria-controls="learning-path-panel"
+        onclick={() => { showLearningPath = !showLearningPath; showListsMenu = false; }}
+    >
+        <svg viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <circle cx="4" cy="5" r="2" /><circle cx="16" cy="15" r="2" />
+            <path d="M6 5h7a3 3 0 0 1 0 6H7a2 2 0 0 0 0 4h7" />
+        </svg>
+        Learning path
+    </button>
     <div class="lists-menu" bind:this={listsMenuRef}>
         <button
             type="button"
@@ -2246,6 +2275,15 @@
         {/if}
     </div>
     </div>
+    {#if showLearningPath}
+        <LearningPath
+            {courses}
+            solved={checkMap}
+            selectedCourseId={showBookmarks ? null : selectedCourseId}
+            {pendingCourseId}
+            onSelect={selectLearningCourse}
+        />
+    {/if}
     {#if hasCustomContent || hasModifiedContent}
         <div class="source-legend" aria-label="Legend for custom content labels">
             {#if hasCustomContent}
@@ -2523,6 +2561,36 @@
     }
 
     /* Tabs header - browser-like tab bar */
+    .learning-path-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        align-self: center;
+        flex: 0 0 auto;
+        gap: 0.5rem;
+        min-height: 36px;
+        padding: 0.5rem 0.7rem;
+        border: 1px solid var(--color-border);
+        border-radius: 8px;
+        background: transparent;
+        color: var(--color-text-secondary);
+        font: inherit;
+        font-size: 0.85rem;
+        cursor: pointer;
+    }
+    .learning-path-toggle:hover,
+    .learning-path-toggle[aria-expanded="true"] {
+        background: var(--color-surface-hover);
+        color: var(--color-text);
+    }
+    .learning-path-toggle:focus-visible {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 3px;
+    }
+    @media (max-width: 480px) {
+        .tabs-row { flex-wrap: wrap; }
+        .tabs { flex-basis: 100%; order: 1; }
+    }
     .tabs-row {
         position: relative;
         display: flex;
