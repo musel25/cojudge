@@ -2523,9 +2523,6 @@
     }
 
     /* Tabs header - browser-like tab bar */
-    nav.tabs {
-        overflow-x: unset;
-    }
     .tabs-row {
         position: relative;
         display: flex;
@@ -3663,6 +3660,7 @@
         background: transparent;
         color: var(--color-text-secondary);
         flex: 0 0 auto;
+        white-space: nowrap;
         text-decoration: none;
         user-select: none;
         font: inherit;
