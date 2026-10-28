@@ -128,3 +128,36 @@ Verification: all 380 new-ticket cases and all 390 Pybites cases pass the live j
 The application image is unchanged: `cojudge:profiles-1bcab72d0f669737fd1b766a6e7b6ad93f4e3071`. Content updates need no application restart.
 
 Rollback files are outside the served volume under `/home/ubuntu/cojudge-backups/software-tickets.PJshjq/`. `content-before.tar.gz` contains the prior Pybites content and affected course indexes. `retired-courses/` holds the three removed course directories. To reverse this replacement, move the new `software-engineering` index out of the served courses directory, restore the three old indexes, and restore prior Pybites definitions if required. Keep all progress data in place.
+
+## Pybites FastAPI course — October 28, 2026
+
+All 10 FastAPI exercises are published at `/?course=pybites-fastapi`. Content,
+import provenance, documented adaptations, locked dependencies, references, and
+verification tools live in `capital-one-prep/cojudge/fastapi_path` (commits
+`39adadb` and `f9ff81f`). The course uses real FastAPI, Pydantic, pytest, and JWT libraries.
+
+The application remains `cojudge:typer-b58c197`. Its environment now sets
+`COJUDGE_PYTHON_IMAGE=cojudge-python:fastapi-20261028`. Commit `8b49b46` supplies
+this setting for the judge, playground, and debugger. The runtime includes
+SQLModel to preserve the existing SQLModel course. Packages and `/usr/bin/time`
+are installed at image build time. The runtime image ID is
+`sha256:c2a1e4e43f2d24fe34ab7912e54364c30c0c270e544d787956ca1bc2e427d966`.
+
+Verification: 59 isolated live tests pass; all starters are rejected; 12 prepared
+faults are detected locally. The Python repository suite passes 146 tests. The
+image setting passes 264 Cojudge unit tests and the production build. Production
+checks pass both hello-world cases, token creation, an authenticated create, and
+rejection of an ownership transfer. The browser shows the new course with 0 / 10
+progress. These API checks do not change learner code or completion flags.
+
+Parallel judge instances can remove other sessions' pooled execution containers.
+The final isolated JWT check used fresh containers after each completed request.
+The temporary FastAPI judge was removed after verification.
+
+Private backup: `/home/ubuntu/cojudge-backups/fastapi-20261028.y1dFbs/`. The prior
+application is retained, stopped, as `cojudge-profiles-pre-fastapi-20261028T123728`.
+To restore its runtime configuration, stop and rename the current application,
+then rename and start that retained container as `cojudge-profiles`. Keep the
+content volume and progress data. To hide the course, move only its course index
+out of the served courses directory. The startup health request must include
+`X-CoJudge-User: musel`; the public reverse proxy adds that identity header.
