@@ -161,3 +161,28 @@ then rename and start that retained container as `cojudge-profiles`. Keep the
 content volume and progress data. To hide the course, move only its course index
 out of the served courses directory. The startup health request must include
 `X-CoJudge-User: musel`; the public reverse proxy adds that identity header.
+
+## Course tab overflow and save panel — October 28, 2026
+
+The application now runs `cojudge:ui-307af20`. This image replaces the application
+build in `cojudge:typer-b58c197`. It keeps the existing runtime environment,
+Python image, data volume, Docker socket, and loopback port 5379.
+
+Course tabs now scroll within their row. Long names stay on one line and do not
+cover the Lists button. The routine VPS save panel, profile name, description,
+and timestamp are removed. Automatic saves continue. Errors and conflicts still
+show recovery controls. The editor uses the space previously reserved for the
+panel.
+
+Verification: 267 unit tests pass. The production build and all three server-save
+browser tests pass. Browser checks cover 1280, 768, and 390 pixel widths. An
+isolated VPS container passed before deployment. Live checks with all lists
+enabled confirm scrolling and access to the Lists button at desktop and phone
+widths. These live checks made no learner-data writes. The type check retains
+the documented baseline of 30 errors and 29 warnings. Code review found no issues.
+
+Private backup: `/home/ubuntu/cojudge-backups/ui-307af20/`. It contains the prior
+container configuration and a progress backup. The prior container is retained,
+stopped, as `cojudge-profiles-pre-ui-307af20`. To roll back, stop and rename the
+current container. Rename the retained container to `cojudge-profiles` and start
+it. Keep the current data volume and progress data.
