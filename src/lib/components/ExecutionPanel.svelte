@@ -10,6 +10,8 @@
     import GameModeTimer from "./GameModeTimer.svelte";
     import DockerSettingsModal from "./DockerSettingsModal.svelte";
     import AcceptedCelebration from "./AcceptedCelebration.svelte";
+    import TestCaseDetails from "./TestCaseDetails.svelte";
+    import { getTestCasePresentation } from "$lib/utils/testCasePresentation";
     import userStore from "$lib/stores/userStore";
     import { isDesktopRuntime } from "$lib/firebaseSettings";
     import { isDebugSupported, type ProgrammingLanguage } from "$lib/utils/util";
@@ -47,6 +49,7 @@
         | "debugger"
         | "debug-console" = "testcase";
     let activeTestCaseIndex = 0;
+    let editingTestCaseIndex: number | null = null;
     let isLoading = false;
     let isMac = false;
     let isResizing = false;
@@ -415,6 +418,7 @@
         const pushed = { ...newCase, output: null, logs: "", error: null };
         testCaseResults = [...testCaseResults, pushed];
         activeTestCaseIndex = testCaseResults.length - 1;
+        editingTestCaseIndex = getTestCasePresentation(problem, pushed) ? activeTestCaseIndex : null;
     }
 
     function resetTestCases() {
@@ -426,6 +430,7 @@
             error: null,
         }));
         activeTestCaseIndex = 0;
+        editingTestCaseIndex = null;
         hasRunOnce = false;
         status = "no-status";
     }
@@ -451,6 +456,7 @@
     }
 
     function removeTestCase(index: number) {
+        editingTestCaseIndex = null;
         // Remove the case
         const next = testCaseResults.filter((_: any, i: number) => i !== index);
         testCaseResults = next;
@@ -516,6 +522,7 @@
 
     // A reactive statement to get the currently selected test case
     $: activeTestCase = testCaseResults[activeTestCaseIndex];
+    $: activeTestCasePresentation = getTestCasePresentation(problem, activeTestCase);
 
     function delay(ms: number) {
         return new Promise((res) => setTimeout(res, ms));
@@ -1419,6 +1426,10 @@
                 </div>
                 {#if activeTestCase}
                     <div class="case-inputs">
+                        {#if activeTestCasePresentation && editingTestCaseIndex !== activeTestCaseIndex}
+                            <TestCaseDetails detail={activeTestCasePresentation} />
+                            <button type="button" class="link-btn" on:click={() => (editingTestCaseIndex = activeTestCaseIndex)}>Edit test selection</button>
+                        {:else}
                         {#each Object.entries(activeTestCase) as [key, value]}
                             {#if problem.params.find((x: any) => x.name === key)}
                                 <label for={key}>{key} =</label>
@@ -1447,6 +1458,10 @@
                                 {/if}
                             {/if}
                         {/each}
+                        {#if activeTestCasePresentation}
+                            <button type="button" class="link-btn" on:click={() => (editingTestCaseIndex = null)}>Show test details</button>
+                        {/if}
+                        {/if}
                     </div>
                 {/if}
             </div>
@@ -1479,6 +1494,9 @@
                 {#if activeTestCase}
                     <div class="result-item">
                         <div class="case-inputs">
+                            {#if activeTestCasePresentation}
+                                <TestCaseDetails detail={activeTestCasePresentation} />
+                            {:else}
                             {#each Object.entries(activeTestCase) as [key, value]}
                                 {#if problem.params.find((x: any) => x.name === key)}
                                     <label for={key}>{key} =</label>
@@ -1503,6 +1521,7 @@
                                     {/if}
                                 {/if}
                             {/each}
+                            {/if}
                         </div>
                         <span class="result-title">Your Answer</span>
                         {#if activeTestCase.error}

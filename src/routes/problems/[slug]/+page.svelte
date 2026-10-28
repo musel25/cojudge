@@ -1092,6 +1092,15 @@
                     </div>
                 {/if}
 
+                {#if data.problem.courseHelp?.body}
+                    <details class="course-help">
+                        <summary>{data.problem.courseHelp.title || 'Course help'}</summary>
+                        <div class="markdown-body">
+                            {@html renderMarkdown(data.problem.courseHelp.body)}
+                        </div>
+                    </details>
+                {/if}
+
                 {#if data.problem.hints && data.problem.hints.length}
                     {#each data.problem.hints as hint, i}
                         <div class="hint-item">
