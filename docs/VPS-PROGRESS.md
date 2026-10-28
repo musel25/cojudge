@@ -214,3 +214,21 @@ backup. The prior container is retained, stopped, as
 `cojudge-profiles-pre-learning-path-20261028T130540`. To roll back, stop and rename
 the current container. Rename the retained container to `cojudge-profiles` and
 start it. Keep the current data volume and progress data.
+## Compact course selector — October 28, 2026
+
+The application now runs `cojudge:picker-e5de36c`, based on
+`cojudge:learning-path-e66bce7`. The course header uses one selector with search
+and full list names. Manage lists retains the existing visibility preferences.
+Bookmarks and the Learning path button remain available. The routine VPS save
+panel remains removed.
+
+Verification: 271 unit tests and the production build pass. All nine browser
+checks pass across the picker, course loading, learning path, and server saving.
+Live checks cover nine lists at desktop and phone widths. Search and Escape
+work. The checks made no learner-data writes. The type check retains the baseline
+of 30 errors and 29 warnings. Code review found no issues.
+
+Private backup: `/home/ubuntu/cojudge-backups/picker-e5de36c/`. The prior container
+is retained, stopped, as `cojudge-profiles-pre-picker-e5de36c`. To roll back, stop
+and rename the current container. Rename the retained container to
+`cojudge-profiles` and start it. Keep the current data volume and progress data.
