@@ -186,3 +186,31 @@ container configuration and a progress backup. The prior container is retained,
 stopped, as `cojudge-profiles-pre-ui-307af20`. To roll back, stop and rename the
 current container. Rename the retained container to `cojudge-profiles` and start
 it. Keep the current data volume and progress data.
+
+## Python learning path — October 28, 2026
+
+The application now runs `cojudge:learning-path-e66bce7`. The image replaces the
+application build in `cojudge:ui-307af20`. It preserves the runtime environment,
+Python image, data volume, Docker socket, restart policy, and loopback port 5379.
+
+The home page has a **Learning path** button beside **Lists**. The panel groups
+nine steps into Foundation and Build, in the approved course order. Each
+available course shows saved exercise progress. **Continue** opens the first
+available unfinished course. Opening a hidden course makes it visible in the
+course navigation. Decorators and Context Managers remains visible as
+**Not available** until its course is added.
+
+Verification: the clean release from commit `e66bce7` passes 271 unit tests,
+three learning-path browser tests, and the production build. An isolated VPS
+container passes with a copy of the live course content. Live browser checks
+confirm both phases, eight available course links, 111 exercises, and the saved
+completion flags. The 390-pixel layout has no horizontal overflow. The browser
+checks block progress writes and recorded no write attempts. The type check
+retains the baseline of 30 errors and 29 warnings.
+
+Private backup: `/home/ubuntu/cojudge-backups/learning-path-e66bce7.qSVu9f/`.
+It contains the prior container configuration, runtime environment, and progress
+backup. The prior container is retained, stopped, as
+`cojudge-profiles-pre-learning-path-20261028T130540`. To roll back, stop and rename
+the current container. Rename the retained container to `cojudge-profiles` and
+start it. Keep the current data volume and progress data.
