@@ -232,3 +232,40 @@ Private backup: `/home/ubuntu/cojudge-backups/picker-e5de36c/`. The prior contai
 is retained, stopped, as `cojudge-profiles-pre-picker-e5de36c`. To roll back, stop
 and rename the current container. Rename the retained container to
 `cojudge-profiles` and start it. Keep the current data volume and progress data.
+
+## Decorators and Context Managers course — October 28, 2026
+
+All twelve exercises are published at
+`/?course=pybites-decorators-context-managers`. The existing Foundation step now
+opens this course. Its 12 exercises increase the available learning path to 123
+exercises. Course authoring, references, tests, and provenance live in
+`capital-one-prep/cojudge/decorators_path` (commit `bcf656a`; publication record
+`c0982fb`). The Account exercise retains its original free template and tests.
+The eleven other templates and test suites are explicitly labeled recreations
+from public descriptions because the account does not expose their premium code.
+
+Verification: all 181 authoring repository tests pass. All 200 reference cases
+pass on the live Docker judge. All twelve starters and sixty prepared faults
+are rejected through completed test runs. The same reference checks also pass
+under real pytest. The CLI creates all twelve exact starter files and passes
+the sandwich reference samples; its starter reports test failures. Live browser
+checks confirm the course order and the active Foundation link. No learner
+progress writes were made by these checks.
+
+The small-screen check exposed existing table overflow when exercise groups
+are open. Commit `67c7497` keeps horizontal scrolling inside the table container.
+The application now runs `cojudge:table-scroll-67c7497`, based on
+`cojudge:no-legend-1b3fbdf`. All 275 application unit tests and the production
+build pass. Live checks at 375, 390, 768, and 1280 pixels confirm that all twelve
+links remain accessible and the page does not overflow. The runtime environment,
+mounts, and loopback port are unchanged.
+
+Content backup: `/home/ubuntu/cojudge-backups/decorators-context-20261028.MzvSzE/`.
+To unpublish, move only the `pybites-decorators-context-managers` course index out
+of the served courses directory. Keep saved learner work and completion flags.
+
+Application backup: `/home/ubuntu/cojudge-backups/table-scroll-67c7497.LmkCCe/`.
+The prior container is retained, stopped, as
+`cojudge-profiles-pre-table-scroll-20261028T133434`. To roll back the layout fix,
+stop and rename the current container, rename the retained container to
+`cojudge-profiles`, and start it. Keep the current data volume and progress data.
