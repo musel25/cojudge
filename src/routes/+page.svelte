@@ -592,12 +592,6 @@
     $: selectedCourseProblems = (data?.problems ?? []) as Problem[];
     $: courseDescription = data?.selectedCourseInfo?.description ?? "";
     $: categoryOrder = data?.selectedCourseInfo?.["category-order"] ?? [];
-    $: hasCustomContent =
-        courses.some((c) => c.source === 'custom') ||
-        selectedCourseProblems.some((p) => p.source === 'custom');
-    $: hasModifiedContent =
-        courses.some((c) => c.source === 'modified') ||
-        selectedCourseProblems.some((p) => p.source === 'modified');
     // Map for fast lookup of category rank
     let orderMap: Record<string, number> = {};
     $: (function buildOrderMap() {
@@ -2362,19 +2356,6 @@
             onSelect={selectLearningCourse}
         />
     {/if}
-    {#if hasCustomContent || hasModifiedContent}
-        <div class="source-legend" aria-label="Legend for custom content labels">
-            {#if hasCustomContent}
-                <span class="source-badge custom">Custom</span> created in your Cojudge folder
-            {/if}
-            {#if hasCustomContent && hasModifiedContent}
-                <span class="source-legend-sep" aria-hidden="true">·</span>
-            {/if}
-            {#if hasModifiedContent}
-                <span class="source-badge modified">Modified</span> edited in your Cojudge folder
-            {/if}
-        </div>
-    {/if}
     <div class="intro" class:stale={isCourseNavigating} aria-busy={isCourseNavigating || undefined}>
         <!-- Overall progress at top of intro -->
         <div class="overall">
@@ -3803,21 +3784,6 @@
         background: rgba(245, 158, 11, 0.14);
         color: #b45309;
         border: 1px solid rgba(245, 158, 11, 0.5);
-    }
-    .source-legend {
-        display: flex;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 0.4rem;
-        margin: 0.5rem 0 0;
-        font-size: 0.78rem;
-        color: var(--color-text-secondary);
-    }
-    .source-legend .source-badge {
-        margin-left: 0;
-    }
-    .source-legend-sep {
-        opacity: 0.6;
     }
 
     /* Group header (accordion) */
