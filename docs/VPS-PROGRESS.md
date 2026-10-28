@@ -114,3 +114,17 @@ To roll back to the prior server-save deployment, stop `cojudge-profiles`, start
 - The home page has a **Lists** menu. Each viewer chooses the visible course tabs; the choice is stored in the browser (`course-visibility`). `"hidden": true` in `courseinfo.json` is now only the default.
 - An accepted submission plays a short green check animation (`AcceptedCelebration.svelte`). It closes after about 2 seconds, on click, or on Escape, and respects reduced motion.
 - A problem opens in a language that has starter code, so Python-only courses no longer open an empty Java editor in a new browser.
+
+## Software Engineering Tickets and Pybites checks — October 28, 2026
+
+- Published **Software Engineering Tickets** at `/?course=software-engineering`: 24 short Python tickets covering data, APIs, reliability, state, SQL, CSV, UTC, permissions, paths, versions, dependencies, synchronization, and HTML escaping.
+- Removed the live `capital-one-codebase-practice`, `capital-one-engineering-50`, and `python-oop` course indexes. Their problem files and saved learner work remain available. Other course indexes are unchanged by this publication.
+- Updated all 22 `pybites-oop` problems with input contracts and additional boundary tests. The User bite guarantees nonempty ASCII names. The Ninja Rankings reference now prevents reused people and self-pairs.
+- Older Pybites editor tabs keep their old embedded tests. Use **+** to open the current template, then copy the learner implementation into that tab. The old saved tab remains intact.
+- Authoring lives in `capital-one-prep/cojudge/production` and `capital-one-prep/cojudge/pybites`. Relevant commits are `355370d`, `ec5695a`, `a8035ea`, and `b119851`. See `cojudge/production/verification.md` in that repository for the detailed record.
+
+Verification: all 380 new-ticket cases and all 390 Pybites cases pass the live judge. All 103 prepared faulty ticket implementations are rejected. Local Pybites verification also rejects 83 prepared faults. Python and independent Java ticket references match all manual expectations; Python 3.11 runs every supplied adapter. An isolated copy of this task passes 86 repository tests. CLI checks accept a correct example solution and reject an incorrect one. Browser and catalog checks confirm the new list and updated content. Learner progress was not written by these checks.
+
+The application image is unchanged: `cojudge:profiles-1bcab72d0f669737fd1b766a6e7b6ad93f4e3071`. Content updates need no application restart.
+
+Rollback files are outside the served volume under `/home/ubuntu/cojudge-backups/software-tickets.PJshjq/`. `content-before.tar.gz` contains the prior Pybites content and affected course indexes. `retired-courses/` holds the three removed course directories. To reverse this replacement, move the new `software-engineering` index out of the served courses directory, restore the three old indexes, and restore prior Pybites definitions if required. Keep all progress data in place.
