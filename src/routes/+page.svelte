@@ -273,7 +273,7 @@
         if (showDropdown && dropdownRef && !dropdownRef.contains(event.target as Node)) {
             showDropdown = false;
         }
-        if (showListsMenu && listsMenuRef && !listsMenuRef.contains(event.target as Node)) {
+        if (showListsMenu && listsMenuRef && !event.composedPath().includes(listsMenuRef)) {
             showListsMenu = false;
         }
     }
@@ -328,6 +328,7 @@
     }
 
     onMount(() => {
+        listsReady = true;
         window.addEventListener("click", handleClickOutside);
         if (isDesktopMode) void refreshCliStatus();
         void initializeAppUpdatePreference();
@@ -468,10 +469,13 @@
     const COURSE_STORAGE_KEY = 'selected-course';
     const COURSE_VISIBILITY_KEY = 'course-visibility';
 
-    // Which course tabs this viewer shows: courseId -> visible. Courses without
+    // Which courses this viewer shows in the picker: courseId -> visible. Courses without
     // an entry follow their courseinfo.json default ("hidden": true hides them).
     let courseVisibility: Record<string, boolean> = {};
     let showListsMenu = false;
+    let listsReady = false;
+    let manageLists = false;
+    let listSearch = '';
     let listsMenuRef: HTMLElement | null = null;
     let showLearningPath = false;
     let learningPathToggle: HTMLButtonElement | null = null;
@@ -481,6 +485,41 @@
         if (course && !isCourseVisible(course, courseVisibility)) setCourseVisible(courseId, true);
         searchQuery = '';
         selectCourse(courseId);
+    }
+
+    let listsToggleButton: HTMLButtonElement | null = null;
+    let listSearchInput: HTMLInputElement | null = null;
+
+    async function toggleListsMenu() {
+        showListsMenu = !showListsMenu;
+        manageLists = false;
+        listSearch = '';
+        if (showListsMenu) {
+            await tick();
+            listSearchInput?.focus();
+        }
+    }
+
+    function closeListsMenu(returnFocus = false) {
+        showListsMenu = false;
+        if (returnFocus) listsToggleButton?.focus();
+    }
+
+    function handleListsKeydown(event: KeyboardEvent) {
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            event.stopPropagation();
+            closeListsMenu(true);
+        } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+            const items = Array.from(listsMenuRef?.querySelectorAll<HTMLElement>('.list-link') ?? []);
+            if (!items.length) return;
+            event.preventDefault();
+            const index = items.indexOf(document.activeElement as HTMLElement);
+            const next = event.key === 'ArrowDown'
+                ? (index + 1) % items.length
+                : (index < 0 ? items.length - 1 : (index - 1 + items.length) % items.length);
+            items[next]?.focus();
+        }
     }
 
     function readCourseVisibility(): Record<string, boolean> {
@@ -495,6 +534,11 @@
     const isCourseVisible = (course: CourseSummary, prefs: Record<string, boolean>) =>
         prefs[course.id] ?? !course.hidden;
     $: visibleCourses = courses.filter((course) => isCourseVisible(course, courseVisibility));
+    $: filteredListCourses = (manageLists ? courses : visibleCourses).filter((course) =>
+        course.title.toLowerCase().includes(listSearch.trim().toLowerCase())
+    );
+    $: pickerCourse = courses.find((course) => course.id === (pendingCourseId ?? selectedCourseId));
+
 
     function setCourseVisible(courseId: string, visible: boolean) {
         courseVisibility = { ...courseVisibility, [courseId]: visible };
@@ -536,7 +580,6 @@
     $: pendingCourseId = isCourseNavigating
         ? ($navigating?.to?.url?.searchParams?.get('course') ?? null)
         : null;
-    $: isTabPending = (courseId: string) => isCourseNavigating && pendingCourseId === courseId;
 
     // Selected course data from the server loader
     let courses: CourseSummary[] = [];
@@ -2198,34 +2241,103 @@
             {/if}
         </div>
     {/if}
-    <div class="tabs-row">
-    <nav class="tabs" aria-label="Course">
-        {#each visibleCourses as course}
-            <a
-                class="tab"
-                class:active={!showBookmarks && course.id === selectedCourseId}
-                class:pending={isTabPending(course.id)}
-                href={`/?course=${encodeURIComponent(course.id)}`}
-                aria-current={!showBookmarks && course.id === selectedCourseId ? "page" : undefined}
-                aria-disabled={isTabPending(course.id) ? 'true' : undefined}
-                onclick={() => selectCourse(course.id)}
-            >{#if isTabPending(course.id)}<span class="tab-spinner" aria-hidden="true"></span>{/if}{course.title}{#if course.source && course.source !== 'bundled'}<span
-                    class="source-badge {course.source}"
-                    title={sourceTitle(course.source)}
-                >{sourceLabel(course.source)}</span>{/if}</a>
-        {/each}
-        {#if bookmarkCount > 0}
+    <div class="course-navigation">
+        <div class="lists-menu" bind:this={listsMenuRef}>
             <button
+                bind:this={listsToggleButton}
                 type="button"
-                class="tab"
-                class:active={showBookmarks}
-                aria-current={showBookmarks ? "page" : undefined}
-                aria-pressed={showBookmarks}
-                title={showBookmarks ? 'Showing bookmarked problems' : `Show bookmarked problems (${bookmarkCount})`}
-                onclick={() => { showBookmarks = true; }}
-            >Bookmarks ({bookmarkCount})</button>
+                class="lists-toggle"
+                class:pending={isCourseNavigating}
+                disabled={!listsReady}
+                aria-haspopup="dialog"
+                aria-expanded={showListsMenu}
+                aria-controls="course-picker-panel"
+                aria-label={`Choose a list. Current list: ${pickerCourse?.title ?? 'None'}`}
+                aria-busy={isCourseNavigating || undefined}
+                onclick={toggleListsMenu}
+            >
+                <svg class="list-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="4" y="3" width="16" height="18" rx="3" />
+                    <path d="M9 8h6M9 12h6M9 16h3" />
+                </svg>
+                <span class="selected-course-title">{pickerCourse?.title ?? 'Choose a list'}</span>
+                {#if isCourseNavigating}<span class="tab-spinner" aria-hidden="true"></span>{/if}
+                <span class="lists-count">{visibleCourses.length} {visibleCourses.length === 1 ? 'list' : 'lists'}</span>
+                <svg class="lists-chevron" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m6 8 4 4 4-4" />
+                </svg>
+            </button>
+            {#if showListsMenu}
+                <div id="course-picker-panel" class="lists-panel" role="dialog" aria-label={manageLists ? 'Manage lists' : 'Choose a list'} tabindex="-1" onkeydown={handleListsKeydown}>
+                    {#if manageLists}
+                        <button class="lists-back" type="button" onclick={() => { manageLists = false; listSearch = ''; listSearchInput?.focus(); }}>
+                            <span aria-hidden="true">←</span> Back to lists
+                        </button>
+                    {/if}
+                    <div class="lists-search">
+                        <svg viewBox="0 0 20 20" width="17" height="17" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+                            <circle cx="8.5" cy="8.5" r="5.5" /><path d="m13 13 4 4" />
+                        </svg>
+                        <input bind:this={listSearchInput} bind:value={listSearch} type="search" placeholder="Find a list…" aria-label="Find a list" autocomplete="off" />
+                    </div>
+                    <div class="lists-results">
+                        {#if manageLists}
+                            <p class="lists-help">Choose the lists you want in your menu.</p>
+                            <div role="group" aria-label="Lists shown in the main menu">
+                                {#each filteredListCourses as course}
+                                    {@const checked = isCourseVisible(course, courseVisibility)}
+                                    <label class="lists-option">
+                                        <input type="checkbox" {checked} disabled={checked && visibleCourses.length === 1} onchange={(event) => setCourseVisible(course.id, event.currentTarget.checked)} />
+                                        <span>{course.title}</span>
+                                    </label>
+                                {/each}
+                            </div>
+                        {:else}
+                            <nav aria-label="Course">
+                                {#each filteredListCourses as course}
+                                    <a
+                                        class="list-link"
+                                        class:active={!showBookmarks && course.id === selectedCourseId}
+                                        href={`/?course=${encodeURIComponent(course.id)}`}
+                                        aria-current={!showBookmarks && course.id === selectedCourseId ? 'page' : undefined}
+                                        onclick={(event) => {
+                                            if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+                                            event.preventDefault();
+                                            selectCourse(course.id);
+                                            closeListsMenu();
+                                            void goto(`/?course=${encodeURIComponent(course.id)}`);
+                                        }}
+                                    >
+                                        <span>{course.title}</span>
+                                        {#if !showBookmarks && course.id === selectedCourseId}
+                                            <svg viewBox="0 0 20 20" width="17" height="17" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m4 10 4 4 8-8" /></svg>
+                                        {/if}
+                                    </a>
+                                {/each}
+                            </nav>
+                        {/if}
+                        {#if filteredListCourses.length === 0}<p class="lists-empty">No lists match “{listSearch}”.</p>{/if}
+                    </div>
+                    <div class="lists-footer">
+                        {#if manageLists}
+                            <button type="button" onclick={resetCourseVisibility}>Reset to default</button>
+                        {:else}
+                            <button type="button" onclick={() => { manageLists = true; listSearch = ''; listSearchInput?.focus(); }}>
+                                <svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 6h14M3 14h14" /><circle cx="7" cy="6" r="2" fill="var(--color-bg)" /><circle cx="13" cy="14" r="2" fill="var(--color-bg)" /></svg>
+                                Manage lists
+                            </button>
+                            <span>{visibleCourses.length} {visibleCourses.length === 1 ? 'list' : 'lists'}</span>
+                        {/if}
+                    </div>
+                </div>
+            {/if}
+        </div>
+        {#if bookmarkCount > 0}
+            <button type="button" class="bookmarks-toggle" class:active={showBookmarks} aria-pressed={showBookmarks} onclick={() => { showBookmarks = !showBookmarks; }}>
+                <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M5 3h10v14l-5-3-5 3z" /></svg>
+                Bookmarks <span>{bookmarkCount}</span>
+            </button>
         {/if}
-    </nav>
     <button
         bind:this={learningPathToggle}
         type="button"
@@ -2240,40 +2352,6 @@
         </svg>
         Learning path
     </button>
-    <div class="lists-menu" bind:this={listsMenuRef}>
-        <button
-            type="button"
-            class="lists-toggle"
-            aria-haspopup="true"
-            aria-expanded={showListsMenu}
-            title="Choose which lists appear as tabs"
-            onclick={() => (showListsMenu = !showListsMenu)}
-        >
-            <svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true">
-                <path d="M4 5h12M4 10h12M4 15h7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none" />
-            </svg>
-            Lists
-        </button>
-        {#if showListsMenu}
-            <div class="lists-panel" role="group" aria-label="Lists shown in the main menu">
-                <div class="lists-panel-title">Show these lists</div>
-                {#each courses as course}
-                    {@const checked = isCourseVisible(course, courseVisibility)}
-                    <label class="lists-option">
-                        <input
-                            type="checkbox"
-                            {checked}
-                            disabled={checked && visibleCourses.length === 1}
-                            onchange={(event) => setCourseVisible(course.id, event.currentTarget.checked)}
-                        />
-                        <span>{course.title}</span>
-                    </label>
-                {/each}
-                <button type="button" class="lists-reset" onclick={resetCourseVisibility}>Reset to default</button>
-                <p class="lists-note">Saved in this browser.</p>
-            </div>
-        {/if}
-    </div>
     </div>
     {#if showLearningPath}
         <LearningPath
@@ -2560,7 +2638,6 @@
         padding: var(--spacing-5) var(--spacing-4);
     }
 
-    /* Tabs header - browser-like tab bar */
     .learning-path-toggle {
         display: inline-flex;
         align-items: center;
@@ -2568,10 +2645,10 @@
         align-self: center;
         flex: 0 0 auto;
         gap: 0.5rem;
-        min-height: 36px;
-        padding: 0.5rem 0.7rem;
+        min-height: 44px;
+        padding: 0.65rem 0.9rem;
         border: 1px solid var(--color-border);
-        border-radius: 8px;
+        border-radius: 10px;
         background: transparent;
         color: var(--color-text-secondary);
         font: inherit;
@@ -2587,110 +2664,79 @@
         outline: 2px solid var(--color-primary);
         outline-offset: 3px;
     }
-    @media (max-width: 480px) {
-        .tabs-row { flex-wrap: wrap; }
-        .tabs { flex-basis: 100%; order: 1; }
-    }
-    .tabs-row {
-        position: relative;
+    /* A single course selector keeps long list names out of the page layout. */
+    .course-navigation {
         display: flex;
-        align-items: flex-end;
-        gap: var(--spacing-2);
-        border-bottom: 1px solid var(--color-border, #e5e7eb);
-        margin-bottom: var(--spacing-4);
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1.25rem;
     }
-    .tabs {
-        position: relative;
-        display: flex;
-        flex: 1 1 auto;
-        min-width: 0;
-        align-items: flex-end;
-        gap: var(--spacing-1);
-        padding-top: var(--spacing-2);
-        overflow-x: auto;
-    }
-    .lists-menu {
-        position: relative;
-        flex: 0 0 auto;
-        align-self: center;
-    }
+    .lists-menu { position: relative; flex: 0 1 620px; min-width: 0; }
     .lists-toggle {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.35rem;
-        padding: 0.35rem 0.7rem;
-        border: 1px solid var(--color-border, #e5e7eb);
-        border-radius: 8px;
-        background: transparent;
-        color: var(--color-text-secondary);
-        font: inherit;
-        font-size: 0.85rem;
-        cursor: pointer;
-    }
-    .lists-toggle:hover,
-    .lists-toggle[aria-expanded="true"] {
-        background: var(--color-surface-hover);
-        color: var(--color-text);
-    }
-    .lists-panel {
-        position: absolute;
-        right: 0;
-        top: calc(100% + 6px);
-        z-index: 50;
-        min-width: 240px;
-        max-height: 70vh;
-        overflow-y: auto;
-        padding: 0.6rem;
-        border: 1px solid var(--color-border, #e5e7eb);
-        border-radius: 10px;
-        background: var(--color-surface);
-        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
-    }
-    .lists-panel-title {
-        padding: 0.2rem 0.4rem 0.4rem;
-        font-size: 0.75rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        color: var(--color-text-secondary);
-    }
-    .lists-option {
         display: flex;
         align-items: center;
-        gap: 0.55rem;
-        padding: 0.4rem;
-        border-radius: 6px;
-        color: var(--color-text);
-        cursor: pointer;
-    }
-    .lists-option:hover {
-        background: var(--color-surface-hover);
-    }
-    .lists-option input {
-        accent-color: var(--color-correct);
-        width: 16px;
-        height: 16px;
-    }
-    .lists-reset {
-        margin-top: 0.35rem;
+        gap: 0.75rem;
         width: 100%;
-        padding: 0.4rem;
-        border: none;
-        border-top: 1px solid var(--color-border, #e5e7eb);
-        background: transparent;
-        color: var(--color-text-secondary);
+        min-height: 54px;
+        padding: 0.85rem 1rem;
+        border: 1px solid var(--color-border);
+        border-radius: 12px;
+        background: var(--color-surface);
+        color: var(--color-text);
         font: inherit;
-        font-size: 0.8rem;
         text-align: left;
         cursor: pointer;
+        transition: border-color 0.15s ease, background-color 0.15s ease;
     }
-    .lists-reset:hover {
-        color: var(--color-text);
+    .lists-toggle:hover, .lists-toggle[aria-expanded="true"] { border-color: var(--color-text-secondary); }
+    .lists-toggle:focus-visible, .list-link:focus-visible, .lists-footer button:focus-visible, .bookmarks-toggle:focus-visible {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 3px;
     }
-    .lists-note {
-        margin: 0.15rem 0.4rem 0;
-        font-size: 0.75rem;
-        color: var(--color-text-secondary);
+    .list-icon { flex: 0 0 auto; color: var(--color-text-secondary); }
+    .selected-course-title { flex: 1; min-width: 0; overflow-wrap: anywhere; font-size: 1rem; font-weight: 600; line-height: 1.45; }
+    .lists-count { margin-left: 0.5rem; color: var(--color-text-secondary); font-size: 0.75rem; white-space: nowrap; }
+    .lists-chevron { flex: 0 0 auto; color: var(--color-text-secondary); transition: transform 0.15s ease; }
+    .lists-toggle[aria-expanded="true"] .lists-chevron { transform: rotate(180deg); }
+    .lists-panel {
+        position: absolute;
+        left: 0;
+        top: calc(100% + 8px);
+        z-index: 50;
+        width: 100%;
+        min-width: min(360px, calc(100vw - 48px));
+        overflow: hidden;
+        border: 1px solid var(--color-border);
+        border-radius: 12px;
+        background: var(--color-bg);
+        box-shadow: 0 12px 32px #0002;
+    }
+    .lists-search { display: flex; align-items: center; gap: 0.65rem; padding: 0.9rem 1rem; border-bottom: 1px solid var(--color-border); color: var(--color-text-secondary); }
+    .lists-search svg { flex: 0 0 auto; }
+    .lists-search input { width: 100%; min-width: 0; padding: 0; border: 0; outline: 0; background: transparent; color: var(--color-text); font: inherit; font-size: 0.9rem; }
+    .lists-results { max-height: min(420px, 50dvh); overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; padding: 0.35rem; }
+    .lists-results nav { display: block; }
+    .list-link, .lists-option { display: flex; align-items: center; gap: 0.75rem; min-height: 42px; padding: 0.65rem 0.7rem; border-radius: 7px; color: var(--color-text-secondary); font-size: 0.9rem; line-height: 1.4; cursor: pointer; text-decoration: none; }
+    .list-link span, .lists-option span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+    .list-link svg { flex: 0 0 auto; color: var(--color-primary); }
+    .list-link:hover, .lists-option:hover { background: var(--color-surface-hover); color: var(--color-text); }
+    .list-link.active { background: color-mix(in srgb, var(--color-primary) 10%, transparent); color: var(--color-text); font-weight: 600; }
+    .lists-option input { width: 16px; height: 16px; flex: 0 0 auto; accent-color: var(--color-primary); }
+    .lists-footer { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.65rem 1rem; border-top: 1px solid var(--color-border); color: var(--color-text-secondary); font-size: 0.75rem; }
+    .lists-footer button, .lists-back { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.3rem 0; border: 0; background: transparent; color: var(--color-text-secondary); font: inherit; cursor: pointer; }
+    .lists-footer button:hover, .lists-back:hover { color: var(--color-text); }
+    .lists-back { margin: 0.6rem 1rem 0; font-size: 0.8rem; }
+    .lists-help, .lists-empty { margin: 0; padding: 0.75rem; color: var(--color-text-secondary); font-size: 0.8rem; }
+    .bookmarks-toggle { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; flex: 0 0 auto; min-height: 44px; padding: 0.65rem 0.9rem; border: 1px solid var(--color-border); border-radius: 10px; background: transparent; color: var(--color-text-secondary); font: inherit; font-size: 0.85rem; cursor: pointer; }
+    .bookmarks-toggle.active { background: var(--color-surface); color: var(--color-text); }
+    .bookmarks-toggle span { font-size: 0.75rem; }
+    @media (max-width: 640px) {
+        .course-navigation { flex-wrap: wrap; gap: 0.65rem; }
+        .lists-menu { flex-basis: 100%; }
+        .lists-toggle { padding: 0.75rem; gap: 0.6rem; }
+        .lists-count { display: none; }
+        .lists-panel { min-width: 0; }
+        .bookmarks-toggle { min-height: 36px; padding: 0.45rem 0.7rem; }
     }
     /* Intro card */
     .intro {
@@ -3714,60 +3760,7 @@
     .import-toast.error {
         border-left-color: var(--color-hard);
     }
-    .tab {
-        position: relative;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.55rem 1rem;
-        border: 1px solid transparent;
-        border-top-left-radius: 12px;
-        border-top-right-radius: 12px;
-        border-bottom: none; /* make it look attached to the bar */
-        margin-bottom: -1px; /* sit on top of the bar's bottom border */
-        background: transparent;
-        color: var(--color-text-secondary);
-        flex: 0 0 auto;
-        white-space: nowrap;
-        text-decoration: none;
-        user-select: none;
-        font: inherit;
-        cursor: pointer;
-        transition:
-            background-color 0.15s ease,
-            color 0.15s ease,
-            border-color 0.15s ease;
-    }
-    .tab:hover {
-        background: var(--color-surface-hover);
-        color: var(--color-text);
-    }
-    .tab.active {
-        background: var(--color-surface);
-        color: var(--color-text);
-        border-color: var(--color-border, #e5e7eb);
-        box-shadow:
-            0 -1px 0 0 rgba(0, 0, 0, 0.02) inset,
-            0 1px 2px rgba(0, 0, 0, 0.06);
-        font-weight: 600;
-    }
-    /* Mask the bar's bottom border beneath the active tab */
-    .tab.active::after {
-        content: "";
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: -1px;
-        height: 2px;
-        background: var(--color-surface);
-        pointer-events: none;
-    }
-    .tab.pending {
-        cursor: wait;
-        opacity: 0.75;
-    }
-    /* Spinner for pending course-tab navigations (__data.json can take
-       seconds on slow connections) and the status line below the tabs. */
+    /* Loading indicator for course changes. */
     .tab-spinner {
         width: 0.8rem;
         height: 0.8rem;
@@ -3800,9 +3793,6 @@
         letter-spacing: 0.02em;
         line-height: 1.5;
         white-space: nowrap;
-    }
-    .tab .source-badge {
-        margin-left: 0;
     }
     .source-badge.custom {
         background: rgba(99, 102, 241, 0.14);

@@ -4,9 +4,11 @@ test.use({ baseURL: 'http://127.0.0.1:5375' });
 
 test('leetcode-1000 shows Cojudge numbers, pattern groups, last tab', async ({ page }) => {
   await page.goto('/?course=leetcode-1000');
-  // Tabs: LeetCode 1000 last
-  const tabs = page.locator('nav.tabs a.tab');
-  await expect(tabs.last()).toContainText('LeetCode 1000');
+  // LeetCode 1000 stays last in the course picker.
+  const picker = page.getByRole('button', { name: /Choose a list\. Current list:/ });
+  await picker.click();
+  await expect(page.locator('.list-link').last()).toContainText('LeetCode 1000');
+  await picker.click();
   // Pattern groups (NeetCode 250 style + union-find / segment-tree + prefix-sum / strings / sorting / simulation / design)
   await expect(page.getByText('Arrays Hashing', { exact: false }).first()).toBeVisible();
   await expect(page.getByText('Union Find', { exact: false }).first()).toBeVisible();
