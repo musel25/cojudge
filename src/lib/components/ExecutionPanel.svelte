@@ -73,6 +73,7 @@
         testCase: any | null; // inputs for the failing/TLE case
         yourAnswer?: string | null;
         expectedAnswer?: string | null;
+        failureDetail?: string | null;
         error?: string | null;
     } | null;
     let submissionFailure: SubmissionFailure = null;
@@ -391,7 +392,7 @@
         const toStore = testCaseResults.map((tc: any) => {
             const copy: any = {};
             Object.entries(tc).forEach(([k, v]) => {
-                if (k !== "output" && k !== "error" && k !== "logs")
+                if (k !== "output" && k !== "error" && k !== "logs" && k !== "failureDetail")
                     copy[k] = v;
             });
             return copy;
@@ -409,6 +410,7 @@
                 k !== "output" &&
                 k !== "error" &&
                 k !== "logs" &&
+                k !== "failureDetail" &&
                 k !== "correctAnswer" &&
                 k !== "isCorrect"
             )
@@ -444,6 +446,7 @@
                 k !== "output" &&
                 k !== "error" &&
                 k !== "logs" &&
+                k !== "failureDetail" &&
                 k !== "correctAnswer" &&
                 k !== "isCorrect"
             )
@@ -543,6 +546,7 @@
             logs: "",
             error: null,
             correctAnswer: null,
+            failureDetail: null,
         }));
         hasRunOnce = true;
         status = "running";
@@ -559,7 +563,7 @@
             const payloadTestCases = testCaseResults.map((tc: any) => {
                 const copy: any = {};
                 Object.entries(tc).forEach(([k, v]) => {
-                    if (k !== "output" && k !== "error" && k !== "logs")
+                    if (k !== "output" && k !== "error" && k !== "logs" && k !== "failureDetail")
                         copy[k] = v;
                 });
                 return copy;
@@ -829,6 +833,7 @@
                             testCase: failing || null,
                             yourAnswer: failing?.output ?? null,
                             expectedAnswer: failing?.correctAnswer ?? null,
+                            failureDetail: failing?.failureDetail ?? null,
                             error: failing?.error ?? null,
                         };
                         activeMainTab = "submission";
@@ -1092,7 +1097,7 @@
         return testCaseResults.map((tc: any) => {
             const copy: any = {};
             Object.entries(tc).forEach(([k, v]) => {
-                if (k !== "output" && k !== "error" && k !== "logs")
+                if (k !== "output" && k !== "error" && k !== "logs" && k !== "failureDetail")
                     copy[k] = v;
             });
             return copy;
@@ -1523,6 +1528,10 @@
                             {/each}
                             {/if}
                         </div>
+                        {#if activeTestCase.failureDetail}
+                            <span class="result-title">Failed assertion</span>
+                            <pre class="result-output error">{activeTestCase.failureDetail}</pre>
+                        {/if}
                         <span class="result-title">Your Answer</span>
                         {#if activeTestCase.error}
                             <span class="result-status error">Error</span>
@@ -1606,6 +1615,12 @@
                     </div>
                 </div>
                 <div class="outputs">
+                    {#if submissionFailure.failureDetail}
+                        <div class="result-item">
+                            <span class="result-title">Failed assertion</span>
+                            <pre class="result-output error">{submissionFailure.failureDetail}</pre>
+                        </div>
+                    {/if}
                     {#if submissionFailure.type === "tle"}
                         <div class="result-item">
                             <span class="result-title">Result</span>

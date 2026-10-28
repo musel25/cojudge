@@ -27,6 +27,22 @@ These fields only affect presentation. The runner receives the original test
 input. Course help appears in a closed section below the statement and examples.
 Problems without these fields keep their existing display.
 
+## Failed assertion values
+
+The Python runner captures both values when a supplied Pybites test fails a
+simple equality assertion (`assert actual == expected`). Run and Submit show
+these values under **Your Answer** and **Correct Answer**. **Failed assertion**
+keeps the test name, error, source line, and any assertion message.
+
+Values use Python `repr`, so quotes, spaces, line breaks, and types stay visible.
+Each operand runs once. The marker still judges the original failure report.
+The display conversion cannot change a failed verdict to a passing verdict.
+
+The runner applies this change in memory to the supplied `_PB_TESTS`/`_report`
+harness. It also works with saved editor code. Other assertion forms and runtime
+errors keep their existing reports. Values longer than 8,000 characters have a
+marked, shortened display. No exercise content or saved learner code changes.
+
 The nine custom courses are authored in `capital-one-prep`. Their presentation
 refresh command updates only `statement.md`, examples, check descriptions, and
 course help. It preserves execution code and tests. See `cojudge/PRESENTATION.md`

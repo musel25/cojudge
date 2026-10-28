@@ -2,6 +2,7 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import fs from 'fs/promises';
 import { getMarkerResponses } from '../../../lib/markerRunner';
+import { presentAssertionResult } from '$lib/utils/assertionResult';
 import { ensureUserContentSeeded, resolveProblemFile } from '$lib/server/contentPaths';
 import { ProgramRunner } from '$lib/runners/ProgramRunner';
 import { JavaRunner } from '$lib/runners/JavaRunner';
@@ -170,7 +171,7 @@ async function judgeRawResults(rawResults: string[], testCases: any[], problemDa
             }));
         }
 
-        const finalResponse: RunSuccess = testCases.map((tc: any, index: number) => ({
+        const finalResponse: RunSuccess = testCases.map((tc: any, index: number) => presentAssertionResult({
             ...tc,
             output: parsed[index]?.output ?? 'No output',
             logs: parsed[index]?.logs ?? '',

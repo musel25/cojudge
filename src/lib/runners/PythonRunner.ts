@@ -10,6 +10,7 @@ import { ProgramRunner, RunnerCrashError } from "./ProgramRunner";
 import ContainerPool from "./ContainerPool";
 import { cojudgeContainerLabels } from "$lib/server/containerSession";
 import { withPythonDependencies } from './pythonSupport';
+import { withPythonExerciseAssertions } from './pythonAssertions';
 
 const docker = new Dockerode();
 
@@ -30,7 +31,7 @@ export class PythonRunner extends ProgramRunner {
             const runnerCode = interactive
                 ? generatePythonInteractiveRunner(problemData.functionName, this.testCases, interactive)
                 : generatePythonRunner(problemData.functionName, problemData.params, this.testCases, problemData.checkGraphClone);
-            const support = await withPythonDependencies(runnerCode, problemData.pythonDependencies === true,
+            const support = await withPythonDependencies(withPythonExerciseAssertions(runnerCode), problemData.pythonDependencies === true,
                 async () => fs.readFile(await resolveProblemFile(this.problemId, 'python-libs.zip')));
 
             this.container = await ContainerPool.acquire(pythonImage);

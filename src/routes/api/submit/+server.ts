@@ -4,6 +4,7 @@ import fs from 'fs/promises';
 import vm from 'vm';
 import { ensureUserContentSeeded, resolveProblemFile } from '$lib/server/contentPaths';
 import { getMarkerResponses } from '../../../lib/markerRunner';
+import { presentAssertionResult } from '$lib/utils/assertionResult';
 import { ProgramRunner } from '$lib/runners/ProgramRunner';
 import { JavaRunner } from '$lib/runners/JavaRunner';
 import { PythonRunner } from '$lib/runners/PythonRunner';
@@ -247,7 +248,7 @@ async function executeSubmit(problemId: string, language: string, code: string, 
             }));
         }
 
-        const finalResponse = testCases.map((tc, index) => ({
+        const finalResponse = testCases.map((tc, index) => presentAssertionResult({
             ...tc,
             output: parsed[index]?.error ? parsed[index].output : ((markerResponses[index] as any)?.actualAnswer ?? markerResponses[index]?.output ?? 'No output'),
             logs: markerResponses[index]?.logs ?? '',
