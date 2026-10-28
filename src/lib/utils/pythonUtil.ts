@@ -2,7 +2,7 @@ import type { Param } from "./util";
 import type { InteractiveConfig } from "./interactiveUtil";
 import { interactiveBudget, isTranscriptKind } from "./interactiveUtil";
 
-export const pythonImage = 'python:3.11-slim';
+export const pythonImage = process.env.COJUDGE_PYTHON_IMAGE || 'python:3.11-slim';
 
 export const pythonListNodeClass = `
 class ListNode:
