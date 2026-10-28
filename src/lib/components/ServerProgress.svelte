@@ -12,7 +12,6 @@
     onReady: () => void; profile?: { id: string; name: string } | null; owner?: string | null
   } = $props();
   let sync: ProgressSync;
-  let details = $state(false);
   let runAction = async (action: () => Promise<void>) => { await action(); };
 
   onMount(() => {
@@ -122,20 +121,10 @@
   });
 </script>
 
-<aside class="server-progress" class:attention={status.state === 'error' || status.state === 'conflict'} aria-label="Server save status">
-  {#if profile}<span class="profile-name" aria-label="Current profile">{profile.name}</span>{/if}
-  <button class="status-button" onclick={() => details = !details} aria-expanded={details}>
-    {#if status.state === 'saved'}✓ Saved to VPS
-    {:else if status.state === 'saving'}Saving to VPS…
-    {:else if status.state === 'pending'}Waiting to save to VPS…
-    {:else if status.state === 'conflict'}Server save needs review
-    {:else if status.state === 'error'}VPS save failed — local copy kept
-    {:else}Connecting to VPS…{/if}
-  </button>
-  {#if details || status.state === 'error' || status.state === 'conflict'}
+{#if status.state === 'error' || status.state === 'conflict'}
+<aside class="server-progress" aria-label="Server save status">
     <div class="details">
-      <p>Code, files, completed problems, bookmarks, custom tests and game results are saved on this VPS.</p>
-      {#if status.savedAt}<p>Last server save: {new Date(status.savedAt).toLocaleString()}</p>{/if}
+      <p>{status.state === 'conflict' ? 'Server save needs review' : 'VPS save failed — local copy kept'}</p>
       {#if status.message}<p>{status.message}</p>{/if}
       {#if status.state === 'conflict'}
         <button onclick={() => runAction(() => sync.useServer())}>Use server copy</button>
@@ -143,15 +132,12 @@
         <p>The replaced server copy stays in server history. Before a restore, this browser copy is kept in local recovery storage.</p>
       {:else if status.state === 'error'}<button onclick={() => sync ? runAction(() => sync.tick()) : window.location.reload()}>Retry save</button>{/if}
     </div>
-  {/if}
 </aside>
+{/if}
 
 <style>
-  .server-progress { position: fixed; bottom: 5px; right: 16px; z-index: 200; max-width: min(380px, calc(100vw - 32px)); border: 1px solid #38566b; border-radius: 8px; background: #142330; color: #e6f0f6; box-shadow: 0 2px 8px #0003; font-size: 12px; }
-  .attention { border-color: #e4b45b; }
+  .server-progress { position: fixed; bottom: 5px; right: 16px; z-index: 200; max-width: min(380px, calc(100vw - 32px)); border: 1px solid #e4b45b; border-radius: 8px; background: #142330; color: #e6f0f6; box-shadow: 0 2px 8px #0003; font-size: 12px; }
   button { cursor: pointer; color: inherit; background: transparent; border: 1px solid #667c8d; border-radius: 4px; padding: 6px 9px; margin: 3px; font: inherit; }
-  .status-button { border: 0; margin: 0; padding: 7px 11px; }
-  .profile-name { padding-left: 11px; font-weight: 600; }
   .details { padding: 0 11px 10px; }
   p { margin: 7px 0; line-height: 1.5; }
 </style>

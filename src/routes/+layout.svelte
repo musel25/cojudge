@@ -63,11 +63,7 @@
 </svelte:head>
 
 {#if progressReady}
-  {#if data.serverProgressEnabled}
-    <div class="vps-content">{@render children?.()}</div>
-  {:else}
-    {@render children?.()}
-  {/if}
+  {@render children?.()}
 {:else}
   <p role="status" style="padding: 24px">Loading saved progress…</p>
 {/if}
@@ -75,9 +71,3 @@
 {#if data.serverProgressEnabled}
   <ServerProgress profile={data.progressProfile} owner={data.progressOwner} onReady={() => progressReady = true} />
 {/if}
-
-<style>
-  .vps-content { padding-bottom: 40px; }
-  :global(.vps-content.vps-content .workspace),
-  :global(.vps-content.vps-content .demo-problems-wrap) { height: calc(100dvh - 40px); }
-</style>

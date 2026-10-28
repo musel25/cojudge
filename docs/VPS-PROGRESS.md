@@ -16,11 +16,11 @@ The directory must be a persistent, private volume. Keep the application port on
 
 Code solutions, workspace files (including dotfiles), completed-problem flags, bookmarks, custom tests and game results are included. Browser settings, Firebase credentials, whiteboard drawings and pasted images are not included. Existing browser export remains available for those items.
 
-Browser storage remains the offline copy. The first visit imports into an empty server. A fresh browser restores before the editor opens. Saves start after a 500 ms debounce; a three-second poll catches other changes and checks for server updates. Wait for **Saved to VPS** before closing the browser. Closing a browser before acknowledgement can leave the final edit only in that browser; reopening retries it.
+Browser storage remains the offline copy. The first visit imports into an empty server. A fresh browser restores before the editor opens. Saves start after a 500 ms debounce; a three-second poll catches other changes and checks for server updates. Saves run in the background without a routine status panel. Allow time for the save before closing the browser. Closing a browser before acknowledgement can leave the final edit only in that browser; reopening retries it.
 
 Restoring server data reloads open tabs. An origin-wide restore marker stops old editors and page teardown from writing stale tabs back into the new snapshot.
 
-Server status is separate from the existing local save indicator. Network or disk errors never show a successful server save. If both browser and server changed, writes stop for review. **Save this browser copy** uses a revision check and keeps the previous server revision. **Use server copy** first stores the displaced browser data under `cojudge-vps-conflict-<timestamp>` in browser local storage. That key is intentionally excluded from ordinary exports; recover it directly if needed.
+Server errors and conflicts show recovery controls. Network or disk errors never show a successful server save. If both browser and server changed, writes stop for review. **Save this browser copy** uses a revision check and keeps the previous server revision. **Use server copy** first stores the displaced browser data under `cojudge-vps-conflict-<timestamp>` in browser local storage. That key is intentionally excluded from ordinary exports; recover it directly if needed.
 
 ## Storage and recovery
 
@@ -81,7 +81,7 @@ Keep the application port bound to loopback. The identity header is trusted only
 
 The `musel` account keeps the existing `/data/progress/current.json` and history. The `alessa` account uses `/data/progress/profiles/alessa/`. Existing owner work requires no copy or move. Courses and problem definitions remain shared. Credentials are held only in private configuration; they are not application source files.
 
-The API requires an expected-profile header and checks it against the authenticated username. The response identifies its profile too. A browser whose login changes must reload before saving. The footer shows the active profile name. Each profile has its own browser cache for code/progress and sync state. Switching accounts saves the outgoing offline copy before changing the active cache; failure to save that copy stops the switch. Use a separate browser profile or private window when two people use the same computer at the same time. HTTP Basic authentication does not provide an in-app account picker or logout button.
+The API requires an expected-profile header and checks it against the authenticated username. The response identifies its profile too. A browser whose login changes must reload before saving. Each profile has its own browser cache for code/progress and sync state. Switching accounts saves the outgoing offline copy before changing the active cache; failure to save that copy stops the switch. Use a separate browser profile or private window when two people use the same computer at the same time. HTTP Basic authentication does not provide an in-app account picker or logout button.
 
 These profiles cover solutions, files, solved flags, bookmarks, custom tests and game results. Browser preferences, images and whiteboards remain outside server synchronization. Old browser caches are private to that browser installation, not encrypted against someone who can inspect that same browser profile.
 
