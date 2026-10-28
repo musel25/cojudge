@@ -269,3 +269,27 @@ The prior container is retained, stopped, as
 `cojudge-profiles-pre-table-scroll-20261028T133434`. To roll back the layout fix,
 stop and rename the current container, rename the retained container to
 `cojudge-profiles`, and start it. Keep the current data volume and progress data.
+
+## Failed Python assertion values — October 28, 2026
+
+The application now runs `cojudge:assertion-values-4f87498`. Failed simple
+equality assertions in the supplied Pybites harness show the actual and expected
+Python values in Run and Submit. The failed test name, assertion message, and
+source line remain visible. The runner also handles saved editor code. Course
+content and saved learner code were not changed.
+
+Verification: 284 unit tests, four focused browser tests, and the production
+build pass. Type checking retains the existing 30 errors and 29 warnings.
+An isolated Docker application verified a failed Run, a passing reference Run,
+and a failed Submit. A live Docker Run verified the exact Vehicles test from
+the reported failure, including both strings and test line 57. These checks did
+not save learner progress. Code review found no remaining issues.
+
+The runtime environment, mounts, restart policy, and loopback port remain the
+same. Backup: `/home/ubuntu/cojudge-backups/assertion-values-4f87498/`. The prior
+container is retained, stopped, as
+`cojudge-profiles-pre-assertion-values-4f87498`. To roll back, stop and rename
+the current container. Rename the retained container to `cojudge-profiles` and
+start it. Keep the current data volume and progress data. The original
+pre-feature application also remains as
+`cojudge-profiles-pre-assertion-values-8f53405`.
