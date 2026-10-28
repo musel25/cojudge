@@ -89,6 +89,14 @@ Explanation: Because nums[0] + nums[1] == 9, we return [0, 1].
 
 ### Starter Code Per Language
 
+Python problems can bundle real, pure-Python libraries for offline execution.
+Set `"pythonDependencies": true` in `metadata.json` and place `python-libs.zip`
+beside it. The ZIP must contain importable packages at its root. Include their
+license files. The Python runner stages the archive and adds it to `sys.path`
+before it imports learner code. No packages are downloaded during execution.
+The Run and Submit actions support this archive. The playground and debugger
+do not load problem libraries.
+
 Include starter code for each supported language. The class/method names follow each language's conventions:
 
 ```json

@@ -9,6 +9,7 @@ import { resolveProblemFile } from "$lib/server/contentPaths";
 import { ProgramRunner, RunnerCrashError } from "./ProgramRunner";
 import ContainerPool from "./ContainerPool";
 import { cojudgeContainerLabels } from "$lib/server/containerSession";
+import { withPythonDependencies } from './pythonSupport';
 
 const docker = new Dockerode();
 
@@ -29,6 +30,8 @@ export class PythonRunner extends ProgramRunner {
             const runnerCode = interactive
                 ? generatePythonInteractiveRunner(problemData.functionName, this.testCases, interactive)
                 : generatePythonRunner(problemData.functionName, problemData.params, this.testCases, problemData.checkGraphClone);
+            const support = await withPythonDependencies(runnerCode, problemData.pythonDependencies === true,
+                async () => fs.readFile(await resolveProblemFile(this.problemId, 'python-libs.zip')));
 
             this.container = await ContainerPool.acquire(pythonImage);
             if (!this.container) {
@@ -56,7 +59,8 @@ export class PythonRunner extends ProgramRunner {
             } else {
                 pack.entry({ name: 'Solution.py' }, Buffer.from(this.code));
             }
-            pack.entry({ name: 'main.py' }, Buffer.from(runnerCode));
+            if (support.archive) pack.entry({ name: 'python-libs.zip' }, support.archive);
+            pack.entry({ name: 'main.py' }, Buffer.from(support.code));
             pack.finalize();
             await this.container.putArchive(pack as any, { path: '/app' });
 
