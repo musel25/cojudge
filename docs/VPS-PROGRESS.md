@@ -2,6 +2,11 @@
 
 This fork adds optional server persistence behind an authenticated reverse proxy. Without profile configuration, everyone shares one progress store. The private deployment supports separate authenticated learner profiles as described below.
 
+The current private deployment also remembers sign-in for 30 days. See
+[`deploy/README.md`](../deploy/README.md) for the login helper and current nginx
+configuration. The original Basic-only configuration below is retained as the
+deployment history.
+
 Set these runtime variables on the existing Node application:
 
 ```
@@ -70,7 +75,8 @@ COJUDGE_SERVER_PROGRESS_OWNER=musel
 COJUDGE_SERVER_PROGRESS_USERS=musel,alessa
 ```
 
-nginx must authenticate users with a CoJudge-specific password file and overwrite the identity header:
+The original Basic-only proxy authenticates users with a CoJudge-specific
+password file and overwrites the identity header:
 
 ```
 auth_basic_user_file /etc/nginx/.htpasswd-cojudge;
@@ -293,3 +299,44 @@ the current container. Rename the retained container to `cojudge-profiles` and
 start it. Keep the current data volume and progress data. The original
 pre-feature application also remains as
 `cojudge-profiles-pre-assertion-values-8f53405`.
+
+## Persistent sign-in — October 29, 2026
+
+Commit `c0a8263` adds a separate login helper. The first sign-in uses the existing
+browser prompt and password file. A signed cookie then keeps that browser signed
+in for 30 days. Normal visits do not extend its expiry. Password changes revoke
+that account's cookies. The accounts remain `musel` and `alessa`.
+
+The helper runs as `cojudge-login.service`, under `www-data`, on loopback port
+5380. Its source is installed at `/opt/cojudge-login/persistent-login.mjs`. Its
+private configuration is `/etc/cojudge-login.env`, with mode 0600 and owner root.
+The existing password file remains `/etc/nginx/.htpasswd-cojudge`. No passwords
+or password hashes were changed. Other websites were not changed.
+
+nginx now uses `auth_request` to check the login and sets `X-CoJudge-User` from
+the verified result. It forwards the initial login cookie to the browser. The
+application remains `cojudge:assertion-values-4f87498` on loopback port 5379. The
+application container, runtime environment, content volume and progress stores
+were not changed.
+
+Verification: all 284 application tests pass. All nine login and isolated nginx
+checks pass. They cover password verification, cookie persistence across helper
+restarts, expired and forged cookies, password and account revocation, separate
+profiles, request-body forwarding, and bounded concurrent password checks. Code
+review found a missing concurrency limit; a failing burst test reproduced it.
+The helper now permits at most four password-check processes at once. A second
+review found no remaining issues.
+
+Live checks used short-lived test cookies for both existing identities. Separate
+Chrome processes restored each saved cookie, opened the site, and read the
+correct profile. Forged identity headers did not change the account. A different
+expected profile returned 403. Unauthenticated requests returned 401. Browser
+checks blocked learner writes and recorded no write attempts. The live helper
+and nginx services are active, and `nginx -t` passes.
+
+Rollback configuration:
+`/home/ubuntu/cojudge-backups/persistent-login-20261029/nginx-before.conf`.
+Restore this file to `/etc/nginx/sites-available/cojudge.musel.dev`, run
+`sudo nginx -t`, and reload nginx. Then stop and disable `cojudge-login`. The
+original Basic login returns. Keep the application container and all learner
+data in place.
