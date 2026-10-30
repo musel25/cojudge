@@ -44,3 +44,24 @@ previous runtime details.
 
 Course content used for the audits is in the sibling `capital-one-prep/cojudge`
 repository. The application does not require that repository at runtime.
+
+## Live deployment
+
+The private application uses `cojudge:python-diagnostics-58ca4b0` on loopback
+port 5379. It keeps the existing environment, content volume, and profile data.
+The previous application is retained as
+`cojudge-profiles-pre-python-diagnostics-58ca4b0`.
+
+Private configuration and progress backups are under
+`/home/ubuntu/cojudge-releases/python-diagnostics-58ca4b0/backup/` on the VPS.
+No learner data is stored in this repository.
+
+Both the isolated candidate and the live application passed API checks for the
+reported color failure through Run and Submit. The same checks verified passing
+and failing FastAPI tests and cached SQLModel results. These checks did not save
+learner code or completion flags. Unauthenticated public requests still return
+HTTP 401. The isolated candidate container was removed after verification.
+
+To roll back, stop and remove the current `cojudge-profiles` container. Rename
+the retained container to `cojudge-profiles`, then start it. Keep the data volume
+and profile data unchanged.
