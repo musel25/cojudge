@@ -74,6 +74,7 @@
         yourAnswer?: string | null;
         expectedAnswer?: string | null;
         failureDetail?: string | null;
+        logs?: string | null;
         error?: string | null;
     } | null;
     let submissionFailure: SubmissionFailure = null;
@@ -392,7 +393,7 @@
         const toStore = testCaseResults.map((tc: any) => {
             const copy: any = {};
             Object.entries(tc).forEach(([k, v]) => {
-                if (k !== "output" && k !== "error" && k !== "logs" && k !== "failureDetail")
+                if (k !== "output" && k !== "error" && k !== "logs" && k !== "failureDetail" && k !== "testDetails")
                     copy[k] = v;
             });
             return copy;
@@ -411,6 +412,7 @@
                 k !== "error" &&
                 k !== "logs" &&
                 k !== "failureDetail" &&
+                k !== "testDetails" &&
                 k !== "correctAnswer" &&
                 k !== "isCorrect"
             )
@@ -447,6 +449,7 @@
                 k !== "error" &&
                 k !== "logs" &&
                 k !== "failureDetail" &&
+                k !== "testDetails" &&
                 k !== "correctAnswer" &&
                 k !== "isCorrect"
             )
@@ -483,7 +486,7 @@
 
         testCaseResults = testCaseResults.map((tc: any, idx: number) => {
             if (idx !== activeTestCaseIndex) return tc;
-            return { ...tc, [key]: parsed };
+            return { ...tc, [key]: parsed, testDetails: null, failureDetail: null };
         });
     }
 
@@ -526,6 +529,7 @@
     // A reactive statement to get the currently selected test case
     $: activeTestCase = testCaseResults[activeTestCaseIndex];
     $: activeTestCasePresentation = getTestCasePresentation(problem, activeTestCase);
+    $: submissionTestCasePresentation = getTestCasePresentation(problem, submissionFailure?.testCase);
 
     function delay(ms: number) {
         return new Promise((res) => setTimeout(res, ms));
@@ -547,6 +551,7 @@
             error: null,
             correctAnswer: null,
             failureDetail: null,
+            testDetails: null,
         }));
         hasRunOnce = true;
         status = "running";
@@ -563,7 +568,7 @@
             const payloadTestCases = testCaseResults.map((tc: any) => {
                 const copy: any = {};
                 Object.entries(tc).forEach(([k, v]) => {
-                    if (k !== "output" && k !== "error" && k !== "logs" && k !== "failureDetail")
+                    if (k !== "output" && k !== "error" && k !== "logs" && k !== "failureDetail" && k !== "testDetails")
                         copy[k] = v;
                 });
                 return copy;
@@ -834,6 +839,7 @@
                             yourAnswer: failing?.output ?? null,
                             expectedAnswer: failing?.correctAnswer ?? null,
                             failureDetail: failing?.failureDetail ?? null,
+                            logs: failing?.logs ?? null,
                             error: failing?.error ?? null,
                         };
                         activeMainTab = "submission";
@@ -1097,7 +1103,7 @@
         return testCaseResults.map((tc: any) => {
             const copy: any = {};
             Object.entries(tc).forEach(([k, v]) => {
-                if (k !== "output" && k !== "error" && k !== "logs" && k !== "failureDetail")
+                if (k !== "output" && k !== "error" && k !== "logs" && k !== "failureDetail" && k !== "testDetails")
                     copy[k] = v;
             });
             return copy;
@@ -1529,7 +1535,7 @@
                             {/if}
                         </div>
                         {#if activeTestCase.failureDetail}
-                            <span class="result-title">Failed assertion</span>
+                            <span class="result-title">Failure details</span>
                             <pre class="result-output error">{activeTestCase.failureDetail}</pre>
                         {/if}
                         <span class="result-title">Your Answer</span>
@@ -1594,6 +1600,9 @@
                     <div class="result-title">Inputs</div>
                     <div class="kv-list">
                         {#if submissionFailure.testCase}
+                            {#if submissionTestCasePresentation}
+                                <TestCaseDetails detail={submissionTestCasePresentation} />
+                            {:else}
                             {#each problem.params as p}
                                 {#if submissionFailure.testCase[p.name] !== undefined}
                                     <div class="kv-row">
@@ -1607,6 +1616,7 @@
                                     </div>
                                 {/if}
                             {/each}
+                            {/if}
                         {:else}
                             <div class="kv-row">
                                 <span>No input details available.</span>
@@ -1617,8 +1627,14 @@
                 <div class="outputs">
                     {#if submissionFailure.failureDetail}
                         <div class="result-item">
-                            <span class="result-title">Failed assertion</span>
+                            <span class="result-title">Failure details</span>
                             <pre class="result-output error">{submissionFailure.failureDetail}</pre>
+                        </div>
+                    {/if}
+                    {#if submissionFailure.logs}
+                        <div class="result-item">
+                            <span class="result-title">Console</span>
+                            <pre class="result-output">{submissionFailure.logs}</pre>
                         </div>
                     {/if}
                     {#if submissionFailure.type === "tle"}

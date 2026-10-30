@@ -15,6 +15,18 @@ describe('getTestCasePresentation', () => {
         expect(getTestCasePresentation(problem, { payload: '{"check":"baseline"}' })?.code).toBe('assert fibonacci(0) == 0');
     });
 
+    it('shows operation inputs as readable structured data', () => {
+        expect(getTestCasePresentation({}, { payload: '{"ops":[{"do":"call","obj":"Color","method":"hex_to_rgb","args":["ffffff"]}]}' }))
+            .toMatchObject({ title: 'Test operations', code: expect.stringContaining('"ffffff"') });
+    });
+
+    it('uses concrete runtime inputs when supplied test descriptions are missing or less specific', () => {
+        const runtime = { title: 'test_hex2rgb_bad_values[ffffff]', code: "bad = 'ffffff'\nColor.hex2rgb('ffffff') -> (255, 255, 255)" };
+        const input = { payload: '{"test":"test_motorbike"}', testDetails: runtime };
+        expect(getTestCasePresentation(problem, input)).toEqual(runtime);
+        expect(getTestCasePresentation({}, input)).toEqual(runtime);
+    });
+
     it('keeps ordinary and unknown custom inputs editable', () => {
         expect(getTestCasePresentation(problem, { nums: '[1,2,3]' })).toBeNull();
         expect(getTestCasePresentation(problem, { payload: '{"test":"my_custom_test"}' })).toBeNull();
