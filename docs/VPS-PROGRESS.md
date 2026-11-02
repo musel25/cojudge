@@ -361,3 +361,40 @@ Private configuration and a progress backup are under
 To roll back, stop and remove the current `cojudge-profiles` container. Rename
 `cojudge-profiles-pre-editor-tabs-d68c379` to `cojudge-profiles`, then start it.
 Keep the data volume and profile data unchanged.
+
+## Marie profile and Python First Steps — November 2, 2026
+
+A third learner account, `marie`, was added. It is in
+`/etc/nginx/.htpasswd-cojudge` (mode 0640, `root:www-data`),
+`COJUDGE_LOGIN_USERS` in `/etc/cojudge-login.env`, and
+`COJUDGE_SERVER_PROGRESS_USERS` of the application. Its progress is in
+`/data/progress/profiles/marie/`. Commit `bbb97ef` shows the name **Marie**.
+Credentials are not stored in this repository. The `musel` password was also
+changed on the same day. Changing a password hash revokes that account's
+30-day cookies.
+
+The application now runs `cojudge:first-steps-624f69f`. Commits `5bc43f0` and
+`624f69f` add Python script problems (`"scriptMode": true`). See
+`docs/ADD_PROBLEMS.md`. The new course `python-first-steps` has 25 beginner
+exercises. Its source is in the sibling `capital-one-prep/cojudge/first_steps`
+repository folder.
+
+Checks: 309 application tests and the production build passed. On the local
+judge, an isolated VPS container, and the live application, all 25 references
+passed 128 tests. All 25 starters and 34 prepared mistakes were rejected. One
+mistake submission on the isolated container stopped with a runner error while
+the live container also ran. Two repeated runs passed. The live check after
+cutover had no runner errors. Live checks did not save learner code or
+completion flags. `marie` logs in and sees **Marie**. A `marie` request for
+another profile returns 403. Requests without a login return 401.
+
+Private backups are under `/home/ubuntu/cojudge-releases/profile-marie-20261102T202608Z/backup/`
+(password file, login environment, container settings and progress before the
+profile change) and `/home/ubuntu/cojudge-releases/first-steps-624f69f/backup/`
+(container settings and progress before the application change).
+
+To roll back the application, stop and remove the current `cojudge-profiles`
+container. Rename `cojudge-profiles-pre-first-steps-624f69f` to
+`cojudge-profiles`, then start it. That version cannot run script problems. Move
+`/data/courses/python-first-steps` out of the content directory first. Keep the
+data volume and all profile data.
