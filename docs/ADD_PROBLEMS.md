@@ -514,6 +514,7 @@ whole program, not a function. The editor contains only the learner's code.
 - The judge runs `Solution.py` once for each test. The printed text, without
   final newlines, is the output. An error shows its line number and message.
   Each test can run for 2 seconds.
+- The question text of `input("...")` is not printed, so it is not judged.
 - `Marker.java` has `String <functionName>(String input)`, which returns the
   expected printed text, and `isCorrect(String input, String output)`.
   Compare lines without trailing spaces, so beginners do not fail on invisible

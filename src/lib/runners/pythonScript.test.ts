@@ -35,6 +35,10 @@ describe('Python script problems', () => {
         expect(await runScript(program, ['Ana\n14', 'Leo\n9'])).toEqual(['Hi Ana\nteen', 'Hi Leo\nkid']);
     });
 
+    it('does not judge the question text of input()', async () => {
+        expect(await runScript('name = input("What is your name? ")\nprint("Hi", name)\n', ['Ana'])).toEqual(['Hi Ana']);
+    });
+
     it('runs a test without input', async () => {
         expect(await runScript('print(2 + 3)\n', [undefined])).toEqual(['5']);
     });

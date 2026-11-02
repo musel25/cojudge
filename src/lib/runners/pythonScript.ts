@@ -22,6 +22,15 @@ import time
 
 _INPUTS = json.loads(${payload})
 _ENV = dict(os.environ, PYTHONIOENCODING='utf-8', PYTHONDONTWRITEBYTECODE='1', PYTHONUNBUFFERED='1')
+# input("Your name? ") would print its question into the judged output.
+# The judge gives the answer directly, so the question text is not printed.
+_START = (
+    "import builtins, runpy, sys\n"
+    "_read = builtins.input\n"
+    "builtins.input = lambda prompt='': _read()\n"
+    "sys.argv = ['Solution.py']\n"
+    "runpy.run_path('Solution.py', run_name='__main__')\n"
+)
 
 
 def _friendly_error(stderr):
@@ -43,7 +52,7 @@ def _run(text):
     if text and not text.endswith('\n'):
         text += '\n'
     try:
-        done = subprocess.run([sys.executable, '-B', 'Solution.py'], input=text, capture_output=True,
+        done = subprocess.run([sys.executable, '-B', '-c', _START], input=text, capture_output=True,
                               text=True, encoding='utf-8', errors='replace', timeout=${SCRIPT_TIMEOUT_SECONDS}, env=_ENV)
     except subprocess.TimeoutExpired as stopped:
         printed = stopped.stdout or ''
