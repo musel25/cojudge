@@ -277,7 +277,7 @@
     async function addNewTab(customName: string = '', customContent?: string, customLang: ProgrammingLanguage | null = null, customViewState: string | null = null) {
         suppressSave = true;
         const targetLang = customLang || language;
-        const newTabName = customName || `Solution-${tabs.length + 1}`;
+        const newTabName = customName || `Solution ${tabs.length + 1}`;
         const nextId = uuidv4();
         const fileName = newTabName;
         tabs = [...tabs, { fileId: nextId, fileName }];
@@ -408,6 +408,13 @@
             if (newIdx !== -1) activeTabId = newIdx;
         }
         persistTabOrder();
+    }
+
+    // The tab bar hides its scrollbar, so map vertical wheel motion to horizontal scrolling.
+    function handleTabBarWheel(e: WheelEvent) {
+        const bar = e.currentTarget as HTMLElement;
+        if (bar.scrollWidth <= bar.clientWidth || Math.abs(e.deltaX) >= Math.abs(e.deltaY)) return;
+        bar.scrollLeft += e.deltaY;
     }
 
     function handleTabClick(t: TabMeta) {
@@ -1144,12 +1151,12 @@
 
     <!-- Right Pane: Editor and Console -->
     <div class="editor-pane">
-        <div class="editor-header" style="display:flex;align-items:center;justify-content:space-between;padding:var(--spacing-2);border-bottom:1px solid var(--color-border);">
-            <div class="lang-dropdown-tabs-container">
+        <div class="editor-header">
+            <div class="editor-toolbar">
                 {#if activeTab?.type !== 'whiteboard'}
-                <div style="display:flex;gap:var(--spacing-2);align-items:center;">
-                    <label for="language-select" style="font-size:0.9rem;color:var(--color-text-secondary);">Language</label>
+                <div class="lang-picker">
                     <select
+                        aria-label="Language"
                         id="language-select"
                         bind:value={language}
                         on:focus={() => (suppressSave = true)}
@@ -1171,10 +1178,114 @@
                         <option value="rust">Rust</option>
                         <option value="go">Go</option>
                     </select>
+                    <svg class="lang-picker-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="m6 9 6 6 6-6"></path>
+                    </svg>
                 </div>
+                {:else}
+                <span class="toolbar-title">Whiteboard</span>
                 {/if}
-                <div class="tabs-container">
-                    <div class="tab-bar" role="tablist" aria-label="Editor tabs">
+                <div class="toolbar-actions">
+                    <Tooltip text={"Whiteboard"} pos={"bottom"}>
+                        <button
+                            class="icon-button {activeTab?.type === 'whiteboard' ? 'active' : ''}"
+                            on:click={openWhiteboard}
+                            title="Whiteboard"
+                            aria-label="Whiteboard"
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <rect x="3" y="4" width="18" height="16" rx="2"></rect>
+                                <path d="m8 15 6-6 2 2-6 6H8v-2Z"></path>
+                            </svg>
+                        </button>
+                    </Tooltip>
+                    {#if activeTab?.type !== 'whiteboard'}
+                    {#if !isGameMode}
+                        <Tooltip text={"Start Game"} pos={"bottom"}>
+                            <button class="icon-button game-start-btn" on:click={() => showGameStartPopup = true} title="Start Game">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M6 4l13 8-13 8V4z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </button>
+                        </Tooltip>
+                    {/if}
+                    {#if !isDesktopMode && isFirebaseAvailable}
+                        <Tooltip text={"Share Code"} pos={"bottom"}>
+                            <button class="icon-button" on:click={handleShare} title="Share Code">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <polyline points="16 6 12 2 8 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <line x1="12" y1="2" x2="12" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </button>
+                        </Tooltip>
+                        {/if}
+                    <Tooltip text={"Reset Code"} pos={"bottom"}>
+                        <button
+                            class="icon-button"
+                            title="Reset Code"
+                            aria-label="Reset Code"
+                            on:click={handleResetClick}
+                        >
+                            <!-- Reset icon -->
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                <path d="M4 4v6h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M20 20v-6h-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M20 10a8 8 0 0 0-8-8 8 8 0 0 0-8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M4 14a8 8 0 0 0 8 8 8 8 0 0 0 8-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                    </Tooltip>
+                    {/if}
+                    <div class="settings-wrapper" bind:this={settingsContainer}>
+                        <Tooltip text={"Settings"} pos={"bottom"}>
+                            <button
+                                class="icon-button"
+                                title="Editor Settings"
+                                aria-label="Editor Settings"
+                                on:click={() => (showSettings = !showSettings)}
+                            >
+                                <!-- Cog icon -->
+                                <svg width="16px" height="16px" viewBox="0 0 32 32" id="Lager_100" data-name="Lager 100" xmlns="http://www.w3.org/2000/svg">
+                                    <path id="Path_78" data-name="Path 78" d="M30.329,13.721l-2.65-.441a11.922,11.922,0,0,0-1.524-3.653l1.476-2.066a1.983,1.983,0,0,0-.211-2.553l-.428-.428a1.983,1.983,0,0,0-2.553-.211L22.373,5.845A11.922,11.922,0,0,0,18.72,4.321l-.441-2.65A2,2,0,0,0,16.306,0h-.612a2,2,0,0,0-1.973,1.671l-.441,2.65A11.922,11.922,0,0,0,9.627,5.845L7.561,4.369a1.983,1.983,0,0,0-2.553.211l-.428.428a1.983,1.983,0,0,0-.211,2.553L5.845,9.627A11.922,11.922,0,0,0,4.321,13.28l-2.65.441A2,2,0,0,0,0,15.694v.612a2,2,0,0,0,1.671,1.973l2.65.441a11.922,11.922,0,0,0,1.524,3.653L4.369,24.439a1.983,1.983,0,0,0,.211,2.553l.428.428a1.983,1.983,0,0,0,2.553.211l2.066-1.476a11.922,11.922,0,0,0,3.653,1.524l.441,2.65A2,2,0,0,0,15.694,32h.612a2,2,0,0,0,1.973-1.671l.441-2.65a11.922,11.922,0,0,0,3.653-1.524l2.066,1.476a1.983,1.983,0,0,0,2.553-.211l.428-.428a1.983,1.983,0,0,0,.211-2.553l-1.476-2.066a11.922,11.922,0,0,0,1.524-3.653l2.65-.441A2,2,0,0,0,32,16.306v-.612A2,2,0,0,0,30.329,13.721ZM16,22a6,6,0,1,1,6-6A6,6,0,0,1,16,22Z" 
+                                        fill="currentColor"/>
+                                </svg>
+                            </button>
+                        </Tooltip>
+                        {#if showSettings}
+                            <div class="settings-dropdown" role="dialog" aria-label="Editor settings">
+                                <label for="font-size-select">Font size</label>
+                                <select id="font-size-select" bind:value={fontSize}>
+                                    {#each fontSizes as size}
+                                        <option value={size}>{size}px</option>
+                                    {/each}
+                                </select>
+                                <label for="theme-select">Theme</label>
+                                <select id="theme-select" bind:value={theme}>
+                                    <option value="dark">Dark</option>
+                                    <option value="light">Light</option>
+                                </select>
+                                <label for="vim-mode-select">Key Bindings</label>
+                                <select id="vim-mode-select" bind:value={vimMode}>
+                                    <option value="off">Standard</option>
+                                    <option value="on">Vim</option>
+                                </select>
+                                <label for="indent-select">Indentation</label>
+                                <select id="indent-select" bind:value={indentation}>
+                                    <option value="2-spaces">2 spaces</option>
+                                    <option value="4-spaces">4 spaces</option>
+                                    <option value="tab">Tab</option>
+                                </select>
+                            </div>
+                        {/if}
+                    </div>
+                    {#if activeTab?.type !== 'whiteboard'}
+                        <span class="toolbar-image" title={imageName || language.toUpperCase()}>{imageName || language.toUpperCase()}</span>
+                    {/if}
+                </div>
+            </div>
+            <div class="tabs-container">
+                    <div class="tab-bar" role="tablist" aria-label="Editor tabs" on:wheel={handleTabBarWheel}>
                         {#each tabs as t}
                             <div
                                 class="tab {t.fileId === tabs[activeTabId].fileId ? 'active' : ''} {tabPointerDrag?.active && tabPointerDrag.fileId === t.fileId ? 'is-dragging' : ''}"
@@ -1192,6 +1303,8 @@
                                     e.stopPropagation();
                                 }}
                                 on:auxclick={(e) => { if (e.button === 1) { e.preventDefault(); e.stopPropagation(); closeTab(t.fileId); } }}
+                                on:dblclick={() => { if (t.type !== 'whiteboard') startRename(t.fileId, t.fileName); }}
+                                title={t.type === 'whiteboard' ? t.fileName : 'Double-click to rename'}
                             >
                                 {#if editingTabId === t.fileId}
                                     <input
@@ -1215,20 +1328,6 @@
                                     {/if}
                                     <span class="tab-title">{t.fileName}</span>
                                 {/if}
-                                {#if t.type !== 'whiteboard'}
-                                <button
-                                    class="tab-rename"
-                                    aria-label="Rename tab"
-                                    title="Rename"
-                                    on:click|stopPropagation={() => startRename(t.fileId, t.fileName)}
-                                >
-                                    <!-- Pencil icon -->
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                        <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z" stroke="currentColor" stroke-width="1.5" fill="none"/>
-                                        <path d="M14.06 6.19l3.75 3.75 1.69-1.69a1.5 1.5 0 000-2.12L17.87 4.5a1.5 1.5 0 00-2.12 0l-1.69 1.69z" stroke="currentColor" stroke-width="1.5" fill="none"/>
-                                    </svg>
-                                </button>
-                                {/if}
                                 {#if tabs.length > 1}
                                     <button
                                         class="tab-close"
@@ -1236,7 +1335,9 @@
                                         title="Close"
                                         on:click|stopPropagation={() => closeTab(t.fileId)}
                                     >
-                                        ×
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+                                            <path d="M18 6 6 18M6 6l12 12"></path>
+                                        </svg>
                                     </button>
                                 {/if}
                             </div>
@@ -1244,7 +1345,11 @@
                         {#if tabDropIndicatorStyle}
                             <div class="tab-drop-indicator" style={tabDropIndicatorStyle} aria-hidden="true"></div>
                         {/if}
-                        <button class="tab-add" aria-label="New tab" title="New tab" on:click={() => addNewTab()}>+</button>
+                        <button class="tab-add" aria-label="New tab" title="New tab" on:click={() => addNewTab()}>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                                <path d="M12 5v14M5 12h14"></path>
+                            </svg>
+                        </button>
                     </div>
                 </div>
                 {#if tabContextMenu}
@@ -1264,103 +1369,6 @@
                         on:rename={renameTabFromContext}
                     />
                 {/if}
-            </div>
-            <div style="display:flex;align-items:center;gap:var(--spacing-2);">
-                <Tooltip text={"Whiteboard"} pos={"bottom"}>
-                    <button
-                        class="icon-button {activeTab?.type === 'whiteboard' ? 'active' : ''}"
-                        on:click={openWhiteboard}
-                        title="Whiteboard"
-                        aria-label="Whiteboard"
-                    >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <rect x="3" y="4" width="18" height="16" rx="2"></rect>
-                            <path d="m8 15 6-6 2 2-6 6H8v-2Z"></path>
-                        </svg>
-                    </button>
-                </Tooltip>
-                {#if activeTab?.type !== 'whiteboard'}
-                {#if !isGameMode}
-                    <Tooltip text={"Start Game"} pos={"bottom"}>
-                        <button class="icon-button game-start-btn" on:click={() => showGameStartPopup = true} title="Start Game">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M6 4l13 8-13 8V4z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        </button>
-                    </Tooltip>
-                {/if}
-                {#if !isDesktopMode && isFirebaseAvailable}
-                    <Tooltip text={"Share Code"} pos={"bottom"}>
-                        <button class="icon-button" on:click={handleShare} title="Share Code">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <polyline points="16 6 12 2 8 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <line x1="12" y1="2" x2="12" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        </button>
-                    </Tooltip>
-                    {/if}
-                <Tooltip text={"Reset Code"} pos={"bottom"}>
-                    <button
-                        class="icon-button"
-                        title="Reset Code"
-                        aria-label="Reset Code"
-                        on:click={handleResetClick}
-                    >
-                        <!-- Reset icon -->
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                            <path d="M4 4v6h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M20 20v-6h-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M20 10a8 8 0 0 0-8-8 8 8 0 0 0-8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M4 14a8 8 0 0 0 8 8 8 8 0 0 0 8-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </button>
-                </Tooltip>
-                {/if}
-                <div class="settings-wrapper" bind:this={settingsContainer}>
-                    <Tooltip text={"Settings"} pos={"bottom"}>
-                        <button
-                            class="icon-button"
-                            title="Editor Settings"
-                            aria-label="Editor Settings"
-                            on:click={() => (showSettings = !showSettings)}
-                        >
-                            <!-- Cog icon -->
-                            <svg width="16px" height="16px" viewBox="0 0 32 32" id="Lager_100" data-name="Lager 100" xmlns="http://www.w3.org/2000/svg">
-                                <path id="Path_78" data-name="Path 78" d="M30.329,13.721l-2.65-.441a11.922,11.922,0,0,0-1.524-3.653l1.476-2.066a1.983,1.983,0,0,0-.211-2.553l-.428-.428a1.983,1.983,0,0,0-2.553-.211L22.373,5.845A11.922,11.922,0,0,0,18.72,4.321l-.441-2.65A2,2,0,0,0,16.306,0h-.612a2,2,0,0,0-1.973,1.671l-.441,2.65A11.922,11.922,0,0,0,9.627,5.845L7.561,4.369a1.983,1.983,0,0,0-2.553.211l-.428.428a1.983,1.983,0,0,0-.211,2.553L5.845,9.627A11.922,11.922,0,0,0,4.321,13.28l-2.65.441A2,2,0,0,0,0,15.694v.612a2,2,0,0,0,1.671,1.973l2.65.441a11.922,11.922,0,0,0,1.524,3.653L4.369,24.439a1.983,1.983,0,0,0,.211,2.553l.428.428a1.983,1.983,0,0,0,2.553.211l2.066-1.476a11.922,11.922,0,0,0,3.653,1.524l.441,2.65A2,2,0,0,0,15.694,32h.612a2,2,0,0,0,1.973-1.671l.441-2.65a11.922,11.922,0,0,0,3.653-1.524l2.066,1.476a1.983,1.983,0,0,0,2.553-.211l.428-.428a1.983,1.983,0,0,0,.211-2.553l-1.476-2.066a11.922,11.922,0,0,0,1.524-3.653l2.65-.441A2,2,0,0,0,32,16.306v-.612A2,2,0,0,0,30.329,13.721ZM16,22a6,6,0,1,1,6-6A6,6,0,0,1,16,22Z" 
-                                    fill="currentColor"/>
-                            </svg>
-                        </button>
-                    </Tooltip>
-                    {#if showSettings}
-                        <div class="settings-dropdown" role="dialog" aria-label="Editor settings">
-                            <label for="font-size-select">Font size</label>
-                            <select id="font-size-select" bind:value={fontSize}>
-                                {#each fontSizes as size}
-                                    <option value={size}>{size}px</option>
-                                {/each}
-                            </select>
-                            <label for="theme-select">Theme</label>
-                            <select id="theme-select" bind:value={theme}>
-                                <option value="dark">Dark</option>
-                                <option value="light">Light</option>
-                            </select>
-                            <label for="vim-mode-select">Key Bindings</label>
-                            <select id="vim-mode-select" bind:value={vimMode}>
-                                <option value="off">Standard</option>
-                                <option value="on">Vim</option>
-                            </select>
-                            <label for="indent-select">Indentation</label>
-                            <select id="indent-select" bind:value={indentation}>
-                                <option value="2-spaces">2 spaces</option>
-                                <option value="4-spaces">4 spaces</option>
-                                <option value="tab">Tab</option>
-                            </select>
-                        </div>
-                    {/if}
-                </div>
-                <div style="font-size:0.85rem;color:var(--color-text-secondary);">{activeTab?.type === 'whiteboard' ? 'Whiteboard' : (imageName || language.toUpperCase())}</div>
-            </div>
         </div>
 
         <div class="editor-container" class:whiteboard-active={activeTab?.type === 'whiteboard'}>
@@ -1566,55 +1574,165 @@
         background: rgba(255,255,255,0.06);
     }
 
-    /* --- Browser-like Tabs --- */
+    /* --- Editor header: toolbar row + solution tabs row --- */
+    .editor-header {
+        --tab-hover-bg: color-mix(in srgb, var(--color-text) 6%, transparent);
+        --tab-active-bg: color-mix(in srgb, var(--color-text) 10%, transparent);
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        border-bottom: 1px solid var(--color-border);
+        container-type: inline-size;
+    }
+    .editor-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--spacing-2);
+        min-height: 40px;
+        padding: 4px var(--spacing-2) 4px var(--spacing-1);
+        border-bottom: 1px solid var(--color-border);
+    }
+    .toolbar-title {
+        padding: 0 var(--spacing-2);
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--color-text);
+    }
+    .toolbar-actions {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        min-width: 0;
+    }
+    @container (max-width: 380px) {
+        .toolbar-image {
+            display: none;
+        }
+    }
+    .toolbar-image {
+        margin-left: var(--spacing-2);
+        font-size: 0.8rem;
+        color: var(--color-text-secondary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 16ch;
+    }
+
+    /* Borderless language dropdown with a chevron */
+    .lang-picker {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        flex-shrink: 0;
+    }
+    #language-select {
+        appearance: none;
+        -webkit-appearance: none;
+        background: transparent;
+        color: var(--color-text);
+        border: none;
+        border-radius: 6px;
+        padding: 6px 28px 6px 10px;
+        font-family: inherit;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    #language-select:hover {
+        background: var(--tab-hover-bg);
+    }
+    #language-select:focus-visible {
+        outline: 2px solid var(--color-highlight);
+        outline-offset: 1px;
+    }
+    #language-select option {
+        background: var(--color-bg);
+        color: var(--color-text);
+        font-weight: 400;
+    }
+    .lang-picker-chevron {
+        position: absolute;
+        right: 9px;
+        pointer-events: none;
+        color: var(--color-text-secondary);
+    }
+
+    /* Flat, pill-style solution tabs */
+    .tabs-container {
+        display: flex;
+        align-items: center;
+        min-width: 0;
+        padding: 6px var(--spacing-2);
+    }
     .tab-bar {
         display: flex;
-        align-items: flex-end;
-        gap: 6px;
-        padding: 0 var(--spacing-1) var(--spacing-1) var(--spacing-1);
+        align-items: center;
+        gap: 4px;
         overflow-x: auto;
-        scrollbar-width: thin;
+        scrollbar-width: none;
         flex: 1;
         min-width: 0;
         flex-wrap: nowrap;
         position: relative;
     }
-    /* Compact the tab bar when shown inside the header */
-    .editor-header .tab-bar {
-        padding: 0;
+    .tab-bar::-webkit-scrollbar {
+        display: none;
     }
     .tab-add {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        border: 1px solid var(--color-border);
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        border: none;
         background: transparent;
         color: var(--color-text-secondary);
         cursor: pointer;
-        margin-left: 4px;
+        margin-left: 2px;
+        padding: 0;
         flex-shrink: 0;
     }
     .tab-add:hover {
-        background: rgba(255,255,255,0.06);
+        background: var(--tab-hover-bg);
         color: var(--color-text);
     }
     .tab {
         display: inline-flex;
         align-items: center;
-        padding: 6px 10px;
-        border: 1px solid var(--color-border);
-        background: rgba(255,255,255,0.02);
-        color: var(--color-text);
-        border-radius: 10px 10px 0 0;
+        gap: 6px;
+        flex-shrink: 0;
+        height: 30px;
+        padding: 0 6px 0 12px;
+        border: none;
+        border-radius: 6px;
+        background: transparent;
+        color: var(--color-text-secondary);
         font-size: 0.85rem;
         line-height: 1;
         user-select: none;
         -webkit-user-select: none;
-        cursor: grab;
+        cursor: pointer;
         touch-action: none;
+        transition: background-color 0.12s ease, color 0.12s ease;
+    }
+    .tab:not(:has(.tab-close)) {
+        padding-right: 12px;
+    }
+    .tab:hover {
+        background: var(--tab-hover-bg);
+        color: var(--color-text);
+    }
+    .tab.active {
+        background: var(--tab-active-bg);
+        color: var(--color-text);
+        font-weight: 500;
+    }
+    .tab:focus-visible {
+        outline: 2px solid var(--color-highlight);
+        outline-offset: -2px;
     }
     .tab.is-dragging {
         opacity: 0.45;
@@ -1636,35 +1754,12 @@
     :global(body.tab-dragging .tab) {
         cursor: grabbing;
     }
-    .tab.active {
-        background-color: var(--color-surface);
-        border-bottom-color: var(--color-highlight);
-        box-shadow: 0 -1px 0 var(--color-surface), 0 1px 0 var(--color-surface);
-    }
-    .tab-favicon {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 16px;
-        height: 16px;
-        border-radius: 4px;
-        font-weight: 700;
-        font-size: 0.7rem;
-        color: var(--color-primary-text);
-        background: var(--color-border-active);
-    }
     .tab-title {
         white-space: nowrap;
         max-width: 24ch;
         overflow: hidden;
         text-overflow: ellipsis;
     }
-    .tab:hover {
-        background: rgba(255,255,255,0.06);
-        color: var(--color-text);
-        cursor: pointer;
-    }
-
     .tab-close {
         display: inline-flex;
         align-items: center;
@@ -1672,62 +1767,33 @@
         width: 18px;
         height: 18px;
         border-radius: 4px;
-        border: 1px solid transparent;
+        border: none;
         background: transparent;
         color: var(--color-text-secondary);
         cursor: pointer;
-        line-height: 1;
-        font-size: 12px;
         padding: 0;
-        visibility: hidden;
-        opacity: 0;
-        transition: opacity 0.12s ease-in-out;
+        opacity: 0.55;
+        transition: opacity 0.12s ease, background-color 0.12s ease;
+    }
+    .tab:hover .tab-close,
+    .tab.active .tab-close {
+        opacity: 1;
     }
     .tab-close:hover {
-        background: rgba(255,255,255,0.06);
+        background: var(--tab-hover-bg);
         color: var(--color-text);
-    }
-
-    .tab-rename {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 18px;
-        height: 18px;
-        margin-left: 4px;
-        border-radius: 4px;
-        border: 1px solid transparent;
-        background: transparent;
-        color: var(--color-text-secondary);
-        cursor: pointer;
-        line-height: 1;
-        font-size: 12px;
-        padding: 0;
-        visibility: hidden;
-        opacity: 0;
-        transition: opacity 0.12s ease-in-out;
-    }
-    .tab-rename:hover {
-        background: rgba(255,255,255,0.06);
-        color: var(--color-text);
-    }
-
-    .tab:hover .tab-rename,
-    .tab:hover .tab-close,
-    .tab.active .tab-rename,
-    .tab.active .tab-close {
-        visibility: visible;
-        opacity: 1;
     }
 
     .tab-rename-input {
-        background: rgba(0,0,0,0.2);
-        border: 1px solid var(--color-border);
+        background: var(--color-surface);
+        border: 1px solid var(--color-highlight);
         color: var(--color-text);
         border-radius: 4px;
-        padding: 2px 4px;
+        padding: 3px 6px;
+        font-family: inherit;
         font-size: 0.85rem;
-        max-width: 18ch;
+        width: 14ch;
+        outline: none;
     }
 
     .badge {
@@ -2050,7 +2116,7 @@
         font-size: 0.85rem;
         color: var(--color-text-secondary);
     }
-    .settings-dropdown select, #language-select {
+    .settings-dropdown select {
         background: var(--color-bg);
         color: var(--color-text);
         border: 1px solid var(--color-border);
@@ -2089,21 +2155,6 @@
     }
     .hint-body {
         padding: 0 var(--spacing-3) var(--spacing-3);
-    }
-
-    .lang-dropdown-tabs-container {
-        display: flex;
-        gap: var(--spacing-2);
-        flex: 1;
-        min-width: 0;
-    }
-    
-    .tabs-container {
-        display: flex;
-        gap: var(--spacing-2);
-        align-items: center;
-        flex: 1;
-        min-width: 0;
     }
 
     .constraints-section {
