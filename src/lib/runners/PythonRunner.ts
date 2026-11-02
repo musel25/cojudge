@@ -11,6 +11,7 @@ import ContainerPool from "./ContainerPool";
 import { cojudgeContainerLabels } from "$lib/server/containerSession";
 import { withPythonDependencies } from './pythonSupport';
 import { withPythonExerciseAssertions } from './pythonAssertions';
+import { generatePythonScriptRunner } from './pythonScript';
 
 const docker = new Dockerode();
 
@@ -28,10 +29,13 @@ export class PythonRunner extends ProgramRunner {
             const problemContent = await fs.readFile(problemPath, 'utf-8');
             const problemData = JSON.parse(problemContent);
             const interactive = getInteractive(problemData);
-            const runnerCode = interactive
-                ? generatePythonInteractiveRunner(problemData.functionName, this.testCases, interactive)
-                : generatePythonRunner(problemData.functionName, problemData.params, this.testCases, problemData.checkGraphClone);
-            const support = await withPythonDependencies(withPythonExerciseAssertions(runnerCode), problemData.pythonDependencies === true,
+            const support = problemData.scriptMode === true
+                // Script problems run the learner's file as a program; no class or test adapter.
+                ? { code: generatePythonScriptRunner(this.testCases, problemData.params?.[0]?.name) }
+                : await withPythonDependencies(withPythonExerciseAssertions(interactive
+                    ? generatePythonInteractiveRunner(problemData.functionName, this.testCases, interactive)
+                    : generatePythonRunner(problemData.functionName, problemData.params, this.testCases, problemData.checkGraphClone)),
+                problemData.pythonDependencies === true,
                 async () => fs.readFile(await resolveProblemFile(this.problemId, 'python-libs.zip')));
 
             this.container = await ContainerPool.acquire(pythonImage);

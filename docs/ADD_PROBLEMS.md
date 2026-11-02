@@ -502,6 +502,24 @@ References: `guess-number-higher-or-lower`, `first-bad-version`,
 
 ---
 
+## 7c. Python script problems (beginner `print` and `input`)
+
+Set `"scriptMode": true` for a Python-only problem in which the learner writes a
+whole program, not a function. The editor contains only the learner's code.
+
+- `starterCode` has only a `python` entry.
+- `params` is `[{ "name": "input", "type": "string" }]` and `outputType` is `"string"`.
+- Each test case gives the program its `input` text on stdin. Use `\n` between
+  lines. Use `""` when the program reads no input.
+- The judge runs `Solution.py` once for each test. The printed text, without
+  final newlines, is the output. An error shows its line number and message.
+  Each test can run for 2 seconds.
+- `Marker.java` has `String <functionName>(String input)`, which returns the
+  expected printed text, and `isCorrect(String input, String output)`.
+  Compare lines without trailing spaces, so beginners do not fail on invisible
+  whitespace.
+- Do not print a line that ends with `---`. The judge uses that text to separate tests.
+
 ## 8. Registering in a Course
 
 Add the problem slug to `~/cojudge/courses/blind75/courseinfo.json` under the appropriate category:
