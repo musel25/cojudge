@@ -11,6 +11,11 @@ describe('authenticated learner profiles', () => {
     expect(resolveProgressProfile(headers('musel'), config)).toEqual({ id: 'musel', name: 'Müsel', directory: '/data/progress' });
     expect(resolveProgressProfile(headers('alessa'), config)).toEqual({ id: 'alessa', name: 'Alessa', directory: '/data/progress/profiles/alessa' });
   });
+  it('gives Marie a display name and a separate directory', () => {
+    const withMarie = { ...config, users: 'musel,alessa,marie' };
+    expect(resolveProgressProfile(headers('marie'), withMarie)).toEqual({ id: 'marie', name: 'Marie', directory: '/data/progress/profiles/marie' });
+    expect(() => resolveProgressProfile(headers('marie'), config)).toThrow();
+  });
   it('rejects missing, unknown and path-like identities', () => {
     for (const user of ['', 'someone', '../musel', 'alessa/../../musel', 'alessa,musel']) {
       expect(() => resolveProgressProfile(headers(user), config)).toThrow();

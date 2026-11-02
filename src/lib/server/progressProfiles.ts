@@ -11,7 +11,7 @@ export function resolveProgressProfile(headers: Headers, config: ProfileConfig):
   }
   const id = headers.get('x-cojudge-user') || '';
   if (!validId.test(id) || !users.includes(id)) throw new Error('Authenticated profile required.');
-  const names: Record<string, string> = { musel: 'Müsel', alessa: 'Alessa' };
+  const names: Record<string, string> = { musel: 'Müsel', alessa: 'Alessa', marie: 'Marie' };
   return {
     id, name: names[id] || id,
     directory: id === config.owner ? config.directory : join(config.directory, 'profiles', id)
