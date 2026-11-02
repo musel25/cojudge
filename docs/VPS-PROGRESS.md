@@ -340,3 +340,24 @@ Restore this file to `/etc/nginx/sites-available/cojudge.musel.dev`, run
 `sudo nginx -t`, and reload nginx. Then stop and disable `cojudge-login`. The
 original Basic login returns. Keep the application container and all learner
 data in place.
+
+## Editor tabs top bar — November 2, 2026
+
+Commit `d68c379` changes the problem editor header to a language row and a row
+of flat solution tabs. The live application uses `cojudge:editor-tabs-d68c379` on
+loopback port 5379. The image adds the new client build on top of
+`cojudge:python-diagnostics-58ca4b0`. It keeps the same environment, content
+volume and profile data.
+
+An isolated container with server progress disabled served the new header and
+passed the Docker health check. It was removed before cutover. The live
+container passes the same health check, and its client bundle contains the new
+header. Unauthenticated public requests still return HTTP 401. No learner data
+was read in a browser or written.
+
+Private configuration and a progress backup are under
+`/home/ubuntu/cojudge-releases/editor-tabs-d68c379/backup/` on the VPS.
+
+To roll back, stop and remove the current `cojudge-profiles` container. Rename
+`cojudge-profiles-pre-editor-tabs-d68c379` to `cojudge-profiles`, then start it.
+Keep the data volume and profile data unchanged.
