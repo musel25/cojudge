@@ -431,3 +431,22 @@ without a login returned 401. Through nginx, Chrome received the gzip reply in
 To roll back, stop and remove `cojudge-profiles`, rename
 `cojudge-profiles-pre-sync-423cadd` to `cojudge-profiles`, and start it. Keep
 the data volume. Old browser tabs work with either version.
+
+## Simpler Software Engineering Tickets — November 3, 2026
+
+`/?course=software-engineering` now has 15 guided tickets in four stages:
+Clean Input, Data and APIs, Reliability, and Security and Money. Each ticket says
+why it matters, lists one rule per line, and has a step-by-step starter, three
+hints, and an explained solution. Nine tickets are retired from the course index:
+04, 09, 12, 14, 15, 17, 21, 22, 23. Their problem files stay in the content
+directory. Problem IDs are unchanged. Source: `capital-one-prep` commits
+`e81d313`, `3f1ac96`, and `2b2f6b9`; see `cojudge/production/verification.md`.
+
+Checks: the live Submit API accepts every reference and rejects every prepared
+fault and every new starter. A browser check showed the four stages and the new
+ticket text, with progress writes blocked. The application image is unchanged,
+and no restart was needed. Learner progress was not changed.
+
+Backup: `/home/ubuntu/cojudge-backups/tickets-simple-20261103T210416Z/old.tgz`
+holds the 24 prior ticket folders and the prior course index. To roll back,
+extract it into the served content directory.
