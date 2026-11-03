@@ -398,3 +398,36 @@ container. Rename `cojudge-profiles-pre-first-steps-624f69f` to
 `cojudge-profiles`, then start it. That version cannot run script problems. Move
 `/data/courses/python-first-steps` out of the content directory first. Keep the
 data volume and all profile data.
+
+## Slow-network sync fix — November 3, 2026
+
+On a slow school network, the browser stopped waiting for a save reply after
+10 seconds. The server had already stored that save (revision 1680). The
+browser did not know that revision, so the next check reported a false
+conflict.
+
+- Commit `d389de4`: before each save, the browser stores the sent data under
+  `cojudge-vps-pending-v1`. If the next server revision holds exactly that data,
+  the browser accepts it as its own save. A different server change still
+  reports a conflict. A profile switch clears this key.
+- Commit `423cadd`: each progress reply has an `ETag` (revision and save time).
+  The 3-second check sends the last agreed tag in `If-None-Match`. An unchanged
+  server returns `304` with no body. Progress replies are gzipped. The musel
+  snapshot went from about 290 KB to 25 KB. Save requests still send the full
+  uncompressed browser copy.
+
+The application now runs `cojudge:sync-423cadd`. The previous container is kept,
+stopped, as `cojudge-profiles-pre-sync-423cadd`. Private backups are under
+`/home/ubuntu/cojudge-releases/sync-423cadd/backup/` (container settings,
+runtime environment, and progress before the change).
+
+Checks: 316 application tests, three browser tests and the production build
+passed. The type check stays at the baseline of 30 errors and 29 warnings. A
+read-only candidate container returned the tag, a 25 KB gzip reply, `304` with
+0 bytes for an unchanged poll, and the home page. After cutover, requests
+without a login returned 401. Through nginx, Chrome received the gzip reply in
+0.4 s and the `304` reply in 0.2 s.
+
+To roll back, stop and remove `cojudge-profiles`, rename
+`cojudge-profiles-pre-sync-423cadd` to `cojudge-profiles`, and start it. Keep
+the data volume. Old browser tabs work with either version.
