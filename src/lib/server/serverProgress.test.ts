@@ -2,7 +2,8 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { ProgressRepository, handleProgressRequest } from './serverProgress';
+import { gunzipSync } from 'node:zlib';
+import { ProgressRepository, handleProgressRequest, snapshotTag } from './serverProgress';
 
 const dirs: string[] = [];
 async function repository() {
@@ -90,5 +91,38 @@ describe('private server progress', () => {
     }
     expect((await handleProgressRequest(request({ baseRevision: 0, data: { solutions: { p: 'x'.repeat(4 * 1024 * 1024) } } }), repo, origin)).status).toBe(413);
     expect((await repo.read()).revision).toBe(0);
+  });
+  it('answers an unchanged poll with 304 and no body', async () => {
+    const { repo } = await repository();
+    const saved = await repo.save(0, data);
+    const get = (tag?: string) => handleProgressRequest(new Request(origin + '/api/server-progress',
+      { headers: tag ? { 'If-None-Match': tag } : {} }), repo, origin);
+    const first = await get();
+    expect(first.status).toBe(200);
+    expect(first.headers.get('etag')).toBe(snapshotTag(saved));
+    const unchanged = await get(snapshotTag(saved));
+    expect(unchanged.status).toBe(304);
+    expect(await unchanged.text()).toBe('');
+    expect(unchanged.headers.get('etag')).toBe(snapshotTag(saved));
+    const next = await repo.save(1, { solutions: { 'two-sum': 'print(43)' } });
+    const changed = await get(snapshotTag(saved));
+    expect(changed.status).toBe(200);
+    expect(changed.headers.get('etag')).toBe(snapshotTag(next));
+    expect((await changed.json()).revision).toBe(2);
+  });
+  it('gzips progress replies for clients that accept gzip', async () => {
+    const { repo } = await repository();
+    await repo.save(0, { solutions: { big: 'x'.repeat(20000) } });
+    const response = await handleProgressRequest(new Request(origin + '/api/server-progress',
+      { headers: { 'Accept-Encoding': 'gzip, deflate, br' } }), repo, origin);
+    expect(response.headers.get('content-encoding')).toBe('gzip');
+    expect(response.headers.get('vary')).toContain('Accept-Encoding');
+    const body = Buffer.from(await response.arrayBuffer());
+    expect(body.byteLength).toBeLessThan(2000);
+    expect(JSON.parse(gunzipSync(body).toString('utf8')).data.solutions.big).toHaveLength(20000);
+    const saved = await handleProgressRequest(request({ baseRevision: 1, data: { solutions: { big: 'y'.repeat(20000) } } },
+      { 'Accept-Encoding': 'gzip' }), repo, origin);
+    expect(saved.headers.get('content-encoding')).toBe('gzip');
+    expect(JSON.parse(gunzipSync(Buffer.from(await saved.arrayBuffer())).toString('utf8')).revision).toBe(2);
   });
 });

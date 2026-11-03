@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { ProgressSync, type SyncStatus } from '$lib/serverProgressClient';
-  import { validateSnapshot, PROGRESS_KEYS } from '$lib/serverProgressData';
+  import { validateSnapshot, snapshotTag, PROGRESS_KEYS } from '$lib/serverProgressData';
   import { applyProgressData } from '$lib/progressBackupClient';
   import { flushProgressStorageWrites } from '$lib/progressBackup';
   import { withServerRestore, serverRestorePending, reloadAfterServerRestore } from '$lib/serverProgressRestore';
@@ -59,9 +59,13 @@
     }
     sync = new ProgressSync({
       storage: localStorage,
-      get: async () => {
+      get: async known => {
         checkIdentity();
-        const snapshot = await responseData(await fetch('/api/server-progress', { headers: identityHeaders, cache: 'no-store', signal: AbortSignal.timeout(10000) }));
+        const headers = known ? { ...identityHeaders, 'If-None-Match': snapshotTag(known) } : identityHeaders;
+        const response = await fetch('/api/server-progress', { headers, cache: 'no-store', signal: AbortSignal.timeout(10000) });
+        // 304: the server still holds the agreed snapshot, so skip the download.
+        if (response.status === 304 && known) { checkIdentity(response.headers); return known; }
+        const snapshot = await responseData(response);
         checkIdentity();
         return snapshot;
       },

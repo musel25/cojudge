@@ -7,7 +7,9 @@ export const PENDING_KEY = 'cojudge-vps-pending-v1';
 export type SyncStatus = { state: 'connecting' | 'saving' | 'saved' | 'pending' | 'error' | 'conflict'; savedAt?: string | null; message?: string };
 type Options = {
   storage: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
-  get: () => Promise<ProgressSnapshot>;
+  // `known` is the last snapshot both sides agreed on. When the server still
+  // holds it, `get` may return it without downloading the data again.
+  get: (known: ProgressSnapshot | null) => Promise<ProgressSnapshot>;
   put: (baseRevision: number, data: ServerProgressData) => Promise<{ conflict: boolean; snapshot: ProgressSnapshot }>;
   apply: (data: ServerProgressData) => void;
   status: (state: SyncStatus) => void;
@@ -63,7 +65,7 @@ export class ProgressSync {
     if (this.busy || this.conflict) return;
     this.busy = true;
     try {
-      const remote = validateSnapshot(await this.options.get());
+      const remote = validateSnapshot(await this.options.get(this.baseline()));
       this.adoptPending(remote);
       // Read after the await, so typing or another tab's save during the
       // request cannot be mistaken for an empty or unchanged browser.
@@ -89,7 +91,7 @@ export class ProgressSync {
     if (this.busy) return;
     this.busy = true;
     try {
-      const remote = validateSnapshot(await this.options.get());
+      const remote = validateSnapshot(await this.options.get(this.baseline()));
       // A failed backup (for example quota exhaustion) aborts the restore.
       this.options.storage.setItem(`cojudge-vps-conflict-${Date.now()}`, JSON.stringify(this.local()));
       this.options.apply(remote.data);
@@ -104,7 +106,7 @@ export class ProgressSync {
     if (this.busy) return;
     this.busy = true;
     try {
-      const remote = validateSnapshot(await this.options.get());
+      const remote = validateSnapshot(await this.options.get(this.baseline()));
       this.adoptPending(remote);
       const base = this.baseline();
       const local = this.local();

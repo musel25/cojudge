@@ -16,9 +16,16 @@ function setup() {
   let beforeGet: (() => void) | undefined;
   let beforeSave: (() => void) | undefined;
   const states: string[] = [];
+  let unchangedReplies = 0;
   const sync = new ProgressSync({
     storage,
-    get: async () => { beforeGet?.(); if (!online) throw new Error('offline'); return structuredClone(remote); },
+    get: async known => {
+      beforeGet?.();
+      if (!online) throw new Error('offline');
+      // Simulates a 304 reply: the caller reuses the snapshot it already holds.
+      if (known && known.revision === remote.revision && known.savedAt === remote.savedAt) { unchangedReplies++; return known; }
+      return structuredClone(remote);
+    },
     put: async (baseRevision, data) => {
       beforeSave?.();
       if (!online) throw new Error('offline');
@@ -32,7 +39,7 @@ function setup() {
   });
   return { storage, sync, states, remote: () => remote, setRemote: (value: ProgressSnapshot) => remote = value,
     setOnline: (value: boolean) => online = value, setLostReply: (value: boolean) => lostReply = value,
-    onGet: (fn: () => void) => beforeGet = fn, onSave: (fn: () => void) => beforeSave = fn };
+    unchangedReplies: () => unchangedReplies, onGet: (fn: () => void) => beforeGet = fn, onSave: (fn: () => void) => beforeSave = fn };
 }
 const progress = normalizeProgress({ solutions: { a: 'my solution' }, 'user-checkboxes': { a: true } });
 
@@ -173,5 +180,18 @@ describe('VPS browser sync', () => {
     await h.sync.tick();
     expect(h.states.at(-1)).toBe('conflict');
     expect(h.storage.getItem('solutions')).toBe('{"a":"lost"}');
+  });
+  it('polls with the last agreed snapshot so an unchanged server sends no body', async () => {
+    const h = setup();
+    h.storage.setItem('solutions', '{"a":"first"}');
+    await h.sync.tick();
+    await h.sync.tick();
+    expect(h.unchangedReplies()).toBe(1);
+    expect(h.states.at(-1)).toBe('saved');
+    h.storage.setItem('solutions', '{"a":"second"}');
+    await h.sync.tick();
+    expect(h.unchangedReplies()).toBe(2);
+    expect(h.remote().data.solutions).toEqual({ a: 'second' });
+    expect(h.states.at(-1)).toBe('saved');
   });
 });

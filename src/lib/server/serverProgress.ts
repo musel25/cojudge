@@ -1,7 +1,10 @@
 import { mkdir, open, readFile, readdir, rename, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { MAX_PROGRESS_BYTES, normalizeProgress, sameProgress, validateSnapshot, type ProgressSnapshot } from '../serverProgressData';
+import { gzipSync } from 'node:zlib';
+import { MAX_PROGRESS_BYTES, normalizeProgress, sameProgress, snapshotTag, validateSnapshot, type ProgressSnapshot } from '../serverProgressData';
+
+export { snapshotTag };
 
 class Conflict extends Error {
   constructor(readonly snapshot: ProgressSnapshot) { super('Server progress changed.'); }
@@ -62,25 +65,39 @@ export class ProgressRepository {
   }
 }
 
-function json(body: unknown, status = 200): Response {
-  return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } });
+// Progress replies hold all saved code, so compress them for slow links.
+function reply(request: Request, body: unknown, status = 200, extra: Record<string, string> = {}): Response {
+  const text = JSON.stringify(body);
+  const headers = { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', Vary: 'Accept-Encoding', ...extra };
+  if (text.length > 1024 && /\bgzip\b/.test(request.headers.get('accept-encoding') ?? '')) {
+    return new Response(new Uint8Array(gzipSync(text)), { status, headers: { ...headers, 'Content-Encoding': 'gzip' } });
+  }
+  return new Response(text, { status, headers });
 }
 
 export async function handleProgressRequest(request: Request, repo: ProgressRepository, origin: string): Promise<Response> {
   try {
-    if (request.method === 'GET') return json(await repo.read());
-    if (request.method !== 'PUT') return json({ error: 'Method not allowed.' }, 405);
+    if (request.method === 'GET') {
+      const snapshot = await repo.read();
+      const tag = snapshotTag(snapshot);
+      // A poll that already holds this snapshot needs no body.
+      if (request.headers.get('if-none-match') === tag) {
+        return new Response(null, { status: 304, headers: { ETag: tag, 'Cache-Control': 'no-store' } });
+      }
+      return reply(request, snapshot, 200, { ETag: tag });
+    }
+    if (request.method !== 'PUT') return reply(request, { error: 'Method not allowed.' }, 405);
     if (request.headers.get('origin') !== origin || request.headers.get('x-cojudge-sync') !== '1' ||
-      request.headers.get('content-type')?.split(';')[0] !== 'application/json') return json({ error: 'Forbidden.' }, 403);
+      request.headers.get('content-type')?.split(';')[0] !== 'application/json') return reply(request, { error: 'Forbidden.' }, 403);
     const reader = request.body?.getReader();
-    if (!reader) return json({ error: 'Missing body.' }, 400);
+    if (!reader) return reply(request, { error: 'Missing body.' }, 400);
     const chunks: Uint8Array[] = [];
     let length = 0;
     while (true) {
       const { value, done } = await reader.read();
       if (done) break;
       length += value.byteLength;
-      if (length > MAX_PROGRESS_BYTES) { await reader.cancel(); return json({ error: 'Progress exceeds 4 MiB.' }, 413); }
+      if (length > MAX_PROGRESS_BYTES) { await reader.cancel(); return reply(request, { error: 'Progress exceeds 4 MiB.' }, 413); }
       chunks.push(value);
     }
     let body: { baseRevision: number; data: unknown };
@@ -88,11 +105,11 @@ export async function handleProgressRequest(request: Request, repo: ProgressRepo
       body = JSON.parse(Buffer.concat(chunks).toString('utf8'));
       if (!body || !Number.isSafeInteger(body.baseRevision) || body.baseRevision < 0) throw new Error();
       normalizeProgress(body.data);
-    } catch { return json({ error: 'Invalid progress data.' }, 400); }
-    return json(await repo.save(body.baseRevision, body.data));
+    } catch { return reply(request, { error: 'Invalid progress data.' }, 400); }
+    return reply(request, await repo.save(body.baseRevision, body.data));
   } catch (error) {
-    if (error instanceof Conflict) return json(error.snapshot, 409);
+    if (error instanceof Conflict) return reply(request, error.snapshot, 409);
     console.error('Server progress storage failed:', error instanceof Error ? error.message : 'unknown error');
-    return json({ error: 'Server save failed. Your browser copy is unchanged.' }, 500);
+    return reply(request, { error: 'Server save failed. Your browser copy is unchanged.' }, 500);
   }
 }

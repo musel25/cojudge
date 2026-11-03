@@ -41,3 +41,9 @@ export function validateSnapshot(value: unknown): ProgressSnapshot {
     !(snapshot.savedAt === null || typeof snapshot.savedAt === 'string')) throw new Error('Invalid server snapshot.');
   return { revision: snapshot.revision, savedAt: snapshot.savedAt, data: normalizeProgress(snapshot.data) };
 }
+
+// Identifies one stored snapshot. The save time keeps the tag distinct if a
+// store is ever reset and its revision numbers are reused.
+export function snapshotTag(snapshot: Pick<ProgressSnapshot, 'revision' | 'savedAt'>): string {
+  return `"${snapshot.revision}-${snapshot.savedAt ?? 'none'}"`;
+}
