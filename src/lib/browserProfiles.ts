@@ -1,5 +1,5 @@
 import { normalizeProgress, PROGRESS_KEYS, validateSnapshot } from './serverProgressData';
-import { BASELINE_KEY } from './serverProgressClient';
+import { BASELINE_KEY, PENDING_KEY } from './serverProgressClient';
 
 export const ACTIVE_PROFILE_KEY = 'cojudge-vps-active-profile';
 type ProfileStorage = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
@@ -30,11 +30,13 @@ export function switchBrowserProfile(storage: ProfileStorage, incomingId: string
   }
   // A quota failure here leaves all live data untouched.
   storage.setItem(cacheKey(outgoingId), JSON.stringify({ data: outgoing, baseline: oldBaseline }));
-  const keys = [...PROGRESS_KEYS, BASELINE_KEY, ACTIVE_PROFILE_KEY];
+  const keys = [...PROGRESS_KEYS, BASELINE_KEY, PENDING_KEY, ACTIVE_PROFILE_KEY];
   const previous = new Map(keys.map(key => [key, storage.getItem(key)]));
   try {
     if (cache.baseline === null) storage.removeItem(BASELINE_KEY);
     else storage.setItem(BASELINE_KEY, cache.baseline);
+    // An unconfirmed save belongs to the outgoing profile only.
+    storage.removeItem(PENDING_KEY);
     storage.setItem(ACTIVE_PROFILE_KEY, incomingId);
     for (const [key, value] of Object.entries(incoming)) storage.setItem(key, JSON.stringify(value));
   } catch (error) {

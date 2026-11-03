@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ACTIVE_PROFILE_KEY, switchBrowserProfile, assertCurrentProfile } from './browserProfiles';
-import { BASELINE_KEY } from './serverProgressClient';
+import { BASELINE_KEY, PENDING_KEY } from './serverProgressClient';
 
 function storage() {
   const values = new Map<string, string>();
@@ -48,5 +48,11 @@ describe('separate browser profiles', () => {
     s.setItem(ACTIVE_PROFILE_KEY, 'alessa');
     expect(() => assertCurrentProfile(s, 'musel', new Headers({ 'X-CoJudge-Profile': 'musel' }))).toThrow();
     expect(() => assertCurrentProfile(s, 'alessa', new Headers({ 'X-CoJudge-Profile': 'alessa' }))).not.toThrow();
+  });
+  it('does not carry an unconfirmed save into another profile', () => {
+    const s = storage();
+    s.setItem(PENDING_KEY, '{"baseRevision":0,"data":{}}');
+    switchBrowserProfile(s, 'alessa', 'musel');
+    expect(s.getItem(PENDING_KEY)).toBeNull();
   });
 });
