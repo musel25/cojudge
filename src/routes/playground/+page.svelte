@@ -1,4 +1,8 @@
 <script lang="ts">
+    import { highlightMatch, searchWorkspace, type WorkspaceSearchResult } from '$lib/playground/search';
+    import { createCodeSelection } from '$lib/playground/codeSelection';
+    import { createTaskListEditor, isZwspOnlyText } from '$lib/playground/taskLists';
+    import { buildExplorerTree, collectDescendantIds, flattenExplorer, isFolderEntry, isSpecialTabType, nextOrder, uniqueName, type TabMeta, type ExplorerNode, type FlatExplorerItem, type ExportNode } from '$lib/playground/workspace';
     import { page } from '$app/stores';
     import PlaygroundExecutionPanel from '$lib/components/PlaygroundExecutionPanel.svelte';
     import CloudSyncModal from '$lib/components/CloudSyncModal.svelte';
@@ -89,33 +93,9 @@ echo "hello\\n";`,
     const programmingLanguages: ProgrammingLanguage[] = ['java', 'cpp', 'python', 'typescript', 'php', 'csharp', 'rust', 'go', 'plaintext', 'markdown'];
 
     // Tabs are grouped by fileId (language-agnostic). Folders are not tabs.
-    type TabMeta = { fileId: string; fileName: string; isOpen: boolean; lastUpdated?: number; type?: 'editor' | 'preview' | 'whiteboard'; sourceFileId?: string };
-
-    function isSpecialTabType(type?: string): type is 'preview' | 'whiteboard' {
-        return type === 'preview' || type === 'whiteboard';
-    }
-
     function isWhiteboardTab(fileId: string): boolean {
         return tabs.some((tab) => tab.fileId === fileId && tab.type === 'whiteboard');
     }
-
-    type ExplorerNode = {
-        fileId: string;
-        fileName: string;
-        kind: 'file' | 'folder';
-        lastUpdated?: number;
-        order: number;
-        children: ExplorerNode[];
-    };
-
-    type FlatExplorerItem =
-        | (ExplorerNode & { depth: number; kind: 'file' | 'folder' })
-        | { kind: 'empty'; fileId: string; depth: number };
-
-    /** Portable folder/file tree for download/import. fileId is kept when possible. */
-    type ExportNode =
-        | { type: 'folder'; name: string; fileId?: string; children: ExportNode[] }
-        | { type: 'file'; name: string; fileId?: string; languages: Array<{ language: string; content: string; lastLanguage?: string }> };
 
     function getFiles(): FileEntry[] {
         try {
@@ -156,10 +136,6 @@ echo "hello\\n";`,
             return '/';
         }
         return '/' + pathSegments.join('/') + '/';
-    }
-
-    function isFolderEntry(f: FileEntry): boolean {
-        return f.type === 'folder';
     }
 
     function isProgrammingLanguage(value: string): value is ProgrammingLanguage {
@@ -435,36 +411,6 @@ echo "hello\\n";`,
         collapsedFolders = { ...collapsedFolders, [folderId]: !collapsedFolders[folderId] };
     }
 
-    function nextOrder(files: FileEntry[]): number {
-        let max = -1;
-        for (const f of files) {
-            if (typeof f.order === 'number' && f.order > max) max = f.order;
-        }
-        return max + 1;
-    }
-
-    function uniqueName(base: string, existing: string[]): string {
-        if (!existing.includes(base)) return base;
-        let n = 1;
-        while (existing.includes(`${base}-${n}`)) n++;
-        return `${base}-${n}`;
-    }
-
-    function collectDescendantIds(rootId: string, files: FileEntry[]): Set<string> {
-        const ids = new Set<string>([rootId]);
-        let changed = true;
-        while (changed) {
-            changed = false;
-            for (const f of files) {
-                if (f.parentId && ids.has(f.parentId) && !ids.has(f.fileId)) {
-                    ids.add(f.fileId);
-                    changed = true;
-                }
-            }
-        }
-        return ids;
-    }
-
     function isDescendantOf(ancestorId: string, maybeDescendantId: string): boolean {
         const files = getFiles();
         let current: string | null | undefined = maybeDescendantId;
@@ -479,128 +425,9 @@ echo "hello\\n";`,
     }
 
     $: explorerTree = (() => {
-        // Depend on fileStore + tabs so renames and moves refresh the tree
         void $fileStore;
-        const files = getFiles();
-        type Item = {
-            fileId: string;
-            fileName: string;
-            kind: 'file' | 'folder';
-            parentId: string | null;
-            order: number;
-            lastUpdated?: number;
-            firstIndex: number;
-        };
-        const items = new Map<string, Item>();
-
-        files.forEach((f, idx) => {
-            if (isSpecialTabType(f.type)) return;
-            if (isFolderEntry(f)) {
-                const orderVal = typeof f.order === 'number' ? f.order : idx;
-                items.set(f.fileId, {
-                    fileId: f.fileId,
-                    fileName: f.fileName || 'Folder',
-                    kind: 'folder',
-                    parentId: f.parentId ?? null,
-                    order: orderVal,
-                    lastUpdated: f.lastUpdated,
-                    firstIndex: idx
-                });
-                return;
-            }
-            const existing = items.get(f.fileId);
-            const orderVal = typeof f.order === 'number' ? f.order : idx;
-            const lv = f.lastUpdated || 0;
-            if (!existing) {
-                items.set(f.fileId, {
-                    fileId: f.fileId,
-                    fileName: f.fileName || 'Solution',
-                    kind: 'file',
-                    parentId: f.parentId ?? null,
-                    order: orderVal,
-                    lastUpdated: lv,
-                    firstIndex: idx
-                });
-            } else {
-                if (orderVal < existing.order) existing.order = orderVal;
-                if (lv > (existing.lastUpdated ?? 0)) existing.lastUpdated = lv;
-                if (f.parentId !== undefined) existing.parentId = f.parentId ?? null;
-                if (f.fileName) existing.fileName = f.fileName;
-            }
-        });
-
-        // Include pristine in-memory tabs not yet in the store
-        tabs.forEach((t, idx) => {
-            if (isSpecialTabType(t.type)) return;
-            if (items.has(t.fileId)) {
-                const it = items.get(t.fileId)!;
-                it.fileName = t.fileName;
-                if ((t.lastUpdated ?? 0) > (it.lastUpdated ?? 0)) it.lastUpdated = t.lastUpdated;
-                return;
-            }
-            items.set(t.fileId, {
-                fileId: t.fileId,
-                fileName: t.fileName,
-                kind: 'file',
-                parentId: null,
-                order: idx,
-                lastUpdated: t.lastUpdated,
-                firstIndex: 100000 + idx
-            });
-        });
-
-        const nodeMap = new Map<string, ExplorerNode>();
-        for (const it of items.values()) {
-            nodeMap.set(it.fileId, {
-                fileId: it.fileId,
-                fileName: it.fileName,
-                kind: it.kind,
-                lastUpdated: it.lastUpdated,
-                order: it.order,
-                children: []
-            });
-        }
-
-        const roots: ExplorerNode[] = [];
-        for (const it of items.values()) {
-            const node = nodeMap.get(it.fileId)!;
-            if (it.parentId && nodeMap.has(it.parentId) && nodeMap.get(it.parentId)!.kind === 'folder') {
-                nodeMap.get(it.parentId)!.children.push(node);
-            } else {
-                roots.push(node);
-            }
-        }
-
-        const sortRec = (nodes: ExplorerNode[]) => {
-            nodes.sort((a, b) => {
-                if (a.kind !== b.kind) return a.kind === 'folder' ? -1 : 1;
-                if (a.order !== b.order) return a.order - b.order;
-                return a.fileName.localeCompare(b.fileName);
-            });
-            for (const n of nodes) sortRec(n.children);
-        };
-        sortRec(roots);
-        return roots;
+        return buildExplorerTree(getFiles(), tabs);
     })();
-
-    function flattenExplorer(
-        nodes: ExplorerNode[],
-        collapsed: Record<string, boolean> = collapsedFolders,
-        depth = 0
-    ): FlatExplorerItem[] {
-        const result: FlatExplorerItem[] = [];
-        for (const n of nodes) {
-            result.push({ ...n, depth });
-            if (n.kind === 'folder' && !collapsed[n.fileId]) {
-                if (n.children.length === 0) {
-                    result.push({ kind: 'empty', fileId: `${n.fileId}__empty`, depth: depth + 1 });
-                } else {
-                    result.push(...flattenExplorer(n.children, collapsed, depth + 1));
-                }
-            }
-        }
-        return result;
-    }
 
     // Explicit collapsedFolders dep so expand/collapse always refreshes the tree
     $: flatExplorer = flattenExplorer(explorerTree, collapsedFolders);
@@ -626,11 +453,8 @@ echo "hello\\n";`,
 
     async function revealActiveExplorerFile(fileId: string | undefined) {
         if (!fileId) return;
-        // Let the tab/tree update finish before changing collapsedFolders.
-        // Otherwise flatExplorer may already have run in this reactive flush.
-        await tick();
-        if (!fileListEl || fileId !== activeExplorerFileId) return;
-        expandAncestorFolders(fileId);
+        // Scroll to a visible selection without changing saved folder choices.
+        // Explicit tab selection expands ancestors in activateTab.
         await tick();
         if (!fileListEl || fileId !== activeExplorerFileId) return;
         const item = fileListEl.querySelector<HTMLElement>('.file-item.active');
@@ -3851,7 +3675,7 @@ echo "hello\\n";`,
         // Only the visible text must be the fence: ignore inline formatting
         // wrappers (e.g. <strong>---</strong> when bold is still active after a
         // bold line). Never trigger inside inline code.
-        if (line.querySelector('pre, code')) return;
+        if (line.querySelector('pre, code, br')) return;
         if ((line.textContent || '').replace(/\u200B/g, '') !== '---') return;
 
         insertWysiwygHorizontalRule(line);
@@ -3973,209 +3797,19 @@ echo "hello\\n";`,
         return true;
     }
 
-    // The <pre> the caret is inside, if any (within the WYSIWYG editor).
-    function getPreFromSelection(): HTMLElement | null {
-        const selection = window.getSelection();
-        if (!selection || selection.rangeCount === 0 || !wysiwygEl) return null;
-        const range = selection.getRangeAt(0);
-        if (!wysiwygEl.contains(range.startContainer)) return null;
-        let node: Node | null = range.startContainer;
-        if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
-        if (!node || !(node instanceof HTMLElement)) return null;
-        const pre = node.closest('pre');
-        return pre && wysiwygEl.contains(pre) ? pre : null;
-    }
-
-    function getCaretTextOffset(root: HTMLElement): number | null {
-        const selection = window.getSelection();
-        if (!selection || selection.rangeCount === 0 || !selection.isCollapsed || !root.contains(selection.anchorNode)) return null;
-        const range = selection.getRangeAt(0).cloneRange();
-        const before = document.createRange();
-        before.selectNodeContents(root);
-        before.setEnd(range.startContainer, range.startOffset);
-        return before.toString().length;
-    }
-
-    function restoreCaretTextOffset(root: HTMLElement, offset: number) {
-        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-        let remaining = offset;
-        let node = walker.nextNode() as Text | null;
-        let lastText: Text | null = null;
-        while (node) {
-            lastText = node;
-            const length = node.textContent?.length ?? 0;
-            if (remaining <= length) {
-                const range = document.createRange();
-                range.setStart(node, remaining);
-                range.collapse(true);
-                const selection = window.getSelection();
-                selection?.removeAllRanges();
-                selection?.addRange(range);
-                return;
-            }
-            remaining -= length;
-            node = walker.nextNode() as Text | null;
-        }
-
-        const range = document.createRange();
-        if (lastText) range.setStart(lastText, lastText.length);
-        else range.setStart(root, 0);
-        range.collapse(true);
-        const selection = window.getSelection();
-        selection?.removeAllRanges();
-        selection?.addRange(range);
-    }
-
-    function rehighlightWysiwygCodeBlocks() {
-        if (!wysiwygEl) return;
-        const activePre = getPreFromSelection();
-        const caretOffset = activePre ? getCaretTextOffset(activePre) : null;
-        highlightCodeBlocks(wysiwygEl);
-        if (activePre?.isConnected && caretOffset !== null) {
-            restoreCaretTextOffset(activePre, caretOffset);
-        }
-    }
-
-    // The char range (in the ZWSP-stripped text) of the line the caret is on
-    // inside the pre, when that line is already empty. Returns null otherwise.
-    function emptyLineInPre(pre: HTMLElement): { start: number; end: number; total: number } | null {
-        const selection = window.getSelection();
-        if (!selection || selection.rangeCount === 0) return null;
-        const range = selection.getRangeAt(0);
-        const prefixRange = document.createRange();
-        prefixRange.selectNodeContents(pre);
-        prefixRange.setEnd(range.startContainer, range.startOffset);
-        const before = prefixRange.toString().replace(/\u200B/g, '');
-        const total = (pre.textContent || '').replace(/\u200B/g, '');
-        const after = total.slice(before.length);
-        const lastNewline = before.lastIndexOf('\n');
-        const start = lastNewline === -1 ? 0 : lastNewline + 1;
-        const nextNewline = after.indexOf('\n');
-        const end = nextNewline === -1 ? total.length : before.length + nextNewline;
-        if (total.slice(start, end).trim() !== '') return null;
-        return { start, end, total: total.length };
-    }
-
-    function selectAllInWysiwygCodeBlock(pre: HTMLElement) {
-        const selection = window.getSelection();
-        if (!selection) return;
-        const range = document.createRange();
-        const code = pre.firstElementChild?.tagName === 'CODE' ? pre.firstElementChild : pre;
-        range.selectNodeContents(code);
-        selection.removeAllRanges();
-        selection.addRange(range);
-    }
-
-    // Enter inside a code block: insert a real newline so the line stays part
-    // of the same code block.
-    function insertNewlineInPre() {
-        const selection = window.getSelection();
-        if (!selection || selection.rangeCount === 0) return;
-        const range = selection.getRangeAt(0);
-        if (!range.collapsed) range.deleteContents();
-        const nl = document.createTextNode('\n');
-        range.insertNode(nl);
-        range.setStartAfter(nl);
-        range.collapse(true);
-        selection.removeAllRanges();
-        selection.addRange(range);
-    }
-
-    // Notion-style exit from a code block: Enter on an empty last line. An
-    // empty code block is deleted; a non-empty one stays — with the empty
-    // line removed — and the caret moves to a fresh paragraph right after it.
-    function escapeWysiwygCodeBlock(pre: HTMLElement, line: { start: number; total: number }) {
-        const wrapper = pre.parentElement?.classList.contains(CODE_COPY_WRAPPER_CLASS) ? pre.parentElement : null;
-        const block = wrapper ?? pre;
-        const p = document.createElement('p');
-        p.innerHTML = '<br>';
-        const empty = !(pre.textContent || '').replace(/\u200B/g, '').trim();
-        if (!empty) {
-            // Drop the empty line the caret is on (the '\n' that starts it), so
-            // the code block does not keep a phantom empty last line.
-            if (line.start > 0) {
-                const text = (pre.textContent || '').replace(/\u200B/g, '');
-                pre.textContent = text.slice(0, line.start - 1) + text.slice(line.start);
-            }
-        }
-        if (empty || !(pre.textContent || '').replace(/\u200B/g, '').trim()) {
-            block.replaceWith(p);
-        } else {
-            block.after(p);
-        }
-        const selection = window.getSelection();
-        if (selection) {
-            const caret = document.createRange();
-            caret.selectNodeContents(p);
-            caret.collapse(false);
-            selection.removeAllRanges();
-            selection.addRange(caret);
-        }
-    }
-
-    // The browser sometimes deletes a code block on its own (e.g. Backspace
-    // emptying it and merging into the previous paragraph), leaving the copy
-    // button wrapper behind like a widow. Remove orphan wrappers, and empty
-    // ones the caret has moved out of.
-    function removeOrphanCodeWrappers() {
-        if (!wysiwygEl || applyingWysiwygHistory) return;
-        const selection = window.getSelection();
-        const caretNode = selection?.anchorNode ?? null;
-        const focusedLanguageInput = document.activeElement instanceof HTMLInputElement &&
-            document.activeElement.classList.contains(CODE_LANGUAGE_INPUT_CLASS)
-            ? document.activeElement
-            : null;
-        wysiwygEl.querySelectorAll(`.${CODE_COPY_WRAPPER_CLASS}`).forEach((wrapper) => {
-            const pres = wrapper.querySelectorAll('pre');
-            if (pres.length === 0) {
-                wrapper.remove();
-                return;
-            }
-            if (activeLangPicker && wrapper === activeLangPicker.wrapper) return;
-            if (focusedLanguageInput && wrapper.contains(focusedLanguageInput)) return;
-            if (caretNode && wrapper.contains(caretNode)) return;
-            const hasText = Array.from(pres).some((p) => (p.textContent || '').replace(/\u200B/g, '').trim() !== '');
-            if (!hasText) wrapper.remove();
-        });
-    }
-
-    // True when el is an inline code element: a toolbar-wrapped <code> or a
-    // marker span created by the backtick auto-close.
-    function isInlineCodeElement(el: Element | null): boolean {
-        if (!(el instanceof HTMLElement)) return false;
-        if (el.tagName === 'CODE') return el.parentElement?.tagName !== 'PRE';
-        return (el.getAttribute('style') || '').includes(INLINE_CODE_STYLE_MARKER);
-    }
-
-    // Breaks at the end of inline code must start outside its formatting;
-    // otherwise the browser clones empty code pills into the following lines.
-    function exitInlineCodeAtEnd() {
-        const selection = window.getSelection();
-        if (!wysiwygEl || !selection?.isCollapsed || !selection.rangeCount) return;
-        const range = selection.getRangeAt(0);
-        if (!wysiwygEl.contains(range.startContainer)) return;
-        let ancestor = range.startContainer instanceof Element
-            ? range.startContainer : range.startContainer.parentElement;
-        if (ancestor?.closest('pre')) return;
-        let code: Element | null = null;
-        while (ancestor && ancestor !== wysiwygEl) {
-            if (isInlineCodeElement(ancestor)) code = ancestor;
-            ancestor = ancestor.parentElement;
-        }
-        if (!code) return;
-        const remaining = range.cloneRange();
-        remaining.setEnd(code, code.childNodes.length);
-        if (remaining.toString().replace(/\u200B/g, '') !== '') return;
-
-        // A caret immediately after an inline element still inherits its style
-        // in Chrome. Place it after a plain-text anchor instead, as auto-close does.
-        const anchor = document.createTextNode('\u200B');
-        code.after(anchor);
-        range.setStart(anchor, 1);
-        range.collapse(true);
-        selection.removeAllRanges();
-        selection.addRange(range);
-    }
+    const {
+        getPreFromSelection,
+        rehighlightWysiwygCodeBlocks,
+        emptyLineInPre,
+        selectAllInWysiwygCodeBlock,
+        insertNewlineInPre,
+        escapeWysiwygCodeBlock,
+        removeOrphanCodeWrappers,
+        isInlineCodeElement,
+        exitInlineCodeAtEnd,
+    } = createCodeSelection(
+        () => wysiwygEl, () => applyingWysiwygHistory, () => activeLangPicker?.wrapper ?? null
+    );
 
     // When the user types a closing backtick, try to match it with a previous
     // backtick in the same text node and form an inline code element. Runs on
@@ -4436,513 +4070,16 @@ echo "hello\\n";`,
         finishWysiwygHistoryEntry(historyBefore);
     }
 
-    function getListItemFromSelection(): HTMLLIElement | null {
-        if (!wysiwygEl) return null;
-        const selection = window.getSelection();
-        if (!selection || selection.rangeCount === 0) return null;
-        let node: Node | null = selection.getRangeAt(0).startContainer;
-        if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
-        while (node && node !== wysiwygEl) {
-            if (node instanceof HTMLLIElement) return node;
-            node = node.parentElement;
-        }
-        return null;
-    }
-
-    function placeCaretInTaskItem(li: HTMLElement, atStart = true) {
-        const selection = window.getSelection();
-        if (!selection) return;
-        wysiwygEl?.focus();
-        const anchor = ensureTaskItemCaretAnchor(li);
-        const range = document.createRange();
-        if (atStart && anchor) {
-            // Offset 1 sits after the ZWSP, so the caret paints to the right of
-            // the checkbox instead of the left (browser default for <input>).
-            range.setStart(anchor, Math.min(1, anchor.length));
-            range.collapse(true);
-        } else if (!atStart) {
-            range.selectNodeContents(li);
-            range.collapse(false);
-        } else {
-            range.selectNodeContents(li);
-            range.collapse(false);
-        }
-        selection.removeAllRanges();
-        selection.addRange(range);
-    }
-
-    function breakOutOfListItem(li: HTMLLIElement) {
-        const list = li.parentElement;
-        if (!list || !/^(UL|OL)$/.test(list.tagName)) return;
-        const p = document.createElement('p');
-        p.innerHTML = '<br>';
-        const hasPrev = !!li.previousElementSibling;
-        const hasNext = !!li.nextElementSibling;
-        let nodeAfter = li.nextSibling;
-        li.remove();
-        if (!hasPrev && !hasNext) {
-            list.replaceWith(p);
-        } else if (!hasNext) {
-            list.after(p);
-        } else if (!hasPrev) {
-            list.before(p);
-        } else {
-            const newList = document.createElement(list.tagName);
-            while (nodeAfter) {
-                const nextNode = nodeAfter.nextSibling;
-                newList.appendChild(nodeAfter);
-                nodeAfter = nextNode;
-            }
-            list.after(p);
-            p.after(newList);
-        }
-        const selection = window.getSelection();
-        const range = document.createRange();
-        range.setStart(p, 0);
-        range.collapse(true);
-        selection?.removeAllRanges();
-        selection?.addRange(range);
-    }
-
-    // Enter in a checklist item continues the checklist; empty item breaks out.
-    function handleTaskListEnter(li: HTMLLIElement): boolean {
-        const selection = window.getSelection();
-        if (!selection || !selection.isCollapsed || selection.rangeCount === 0) return false;
-
-        if (isEmptyTaskListItem(li)) {
-            breakOutOfListItem(li);
-            return true;
-        }
-
-        const range = selection.getRangeAt(0);
-        const afterRange = document.createRange();
-        afterRange.selectNodeContents(li);
-        afterRange.setStart(range.startContainer, range.startOffset);
-        const fragment = afterRange.extractContents();
-
-        ensureTaskCheckbox(li);
-        if (isEmptyTaskListItem(li) && !li.querySelector('br')) {
-            li.appendChild(document.createElement('br'));
-        }
-
-        const newLi = document.createElement('li');
-        newLi.appendChild(createTaskCheckbox());
-        newLi.appendChild(document.createTextNode('\u200B'));
-        while (fragment.firstChild) {
-            const child = fragment.firstChild;
-            if (
-                child.nodeType === Node.ELEMENT_NODE &&
-                (child as HTMLElement).tagName === 'INPUT' &&
-                (child as HTMLInputElement).type === 'checkbox'
-            ) {
-                fragment.removeChild(child);
-                continue;
-            }
-            // Drop a leading ZWSP/space from the split fragment; the new item
-            // already has its own caret anchor.
-            if (
-                child.nodeType === Node.TEXT_NODE &&
-                newLi.childNodes.length === 2 &&
-                /^[\u200B\s]/.test(child.textContent || '')
-            ) {
-                child.textContent = (child.textContent || '').replace(/^[\u200B\s]+/, '');
-                if (!child.textContent) {
-                    fragment.removeChild(child);
-                    continue;
-                }
-            }
-            newLi.appendChild(child);
-        }
-        if (isEmptyTaskListItem(newLi)) {
-            // Keep a trailing <br> so the empty item has a line box, but the
-            // caret still lives in the ZWSP after the checkbox.
-            if (![...newLi.childNodes].some((n) => n.nodeType === Node.ELEMENT_NODE && (n as HTMLElement).tagName === 'BR')) {
-                newLi.appendChild(document.createElement('br'));
-            }
-        }
-        ensureTaskItemCaretAnchor(newLi);
-        li.after(newLi);
-        placeCaretInTaskItem(newLi, true);
-        return true;
-    }
-
-    function insertOrToggleTaskList() {
-        if (!wysiwygEl) return;
-        wysiwygEl.focus();
-        const li = getListItemFromSelection();
-        if (li && isTaskListItem(li)) {
-            removeTaskCheckbox(li);
-            handleWysiwygInput();
-            return;
-        }
-        if (li) {
-            ensureTaskCheckbox(li);
-            placeCaretInTaskItem(li, false);
-            handleWysiwygInput();
-            return;
-        }
-        document.execCommand(
-            'insertHTML',
-            false,
-            '<ul><li><input type="checkbox" contenteditable="false">\u200B<br></li></ul>'
-        );
-        prepareTaskListCheckboxes(wysiwygEl);
-        const created = getListItemFromSelection();
-        if (created) placeCaretInTaskItem(created, true);
-        handleWysiwygInput();
-    }
-
-    // True when the collapsed caret sits at the very start of a task item,
-    // i.e. nothing editable between the checkbox and the caret.
-    function isCaretAtTaskItemStart(li: HTMLElement): boolean {
-        const selection = window.getSelection();
-        if (!selection || selection.rangeCount === 0) return false;
-        const range = selection.getRangeAt(0);
-        if (!range.collapsed) return false;
-        const node = range.startContainer;
-        if (node === li) {
-            const offset = range.startOffset;
-            for (let i = 0; i < offset; i++) {
-                if (!isZwspOnlyText(li.childNodes[i])) return false;
-            }
-            return true;
-        }
-        if (node.nodeType === Node.TEXT_NODE) {
-            const before = (node.textContent || '').slice(0, range.startOffset);
-            if (before.replace(/\u200B/g, '').length > 0) return false;
-            let prev: Node | null = node.previousSibling;
-            while (prev && isZwspOnlyText(prev)) prev = prev.previousSibling;
-            return !!prev && prev instanceof HTMLInputElement && prev.type === 'checkbox';
-        }
-        return false;
-    }
-
-    // Backspace at the very start of a task item: with a previous item, merge
-    // (standard list behavior); otherwise remove the checkbox so the item
-    // becomes a plain bullet.
-    function handleTaskListBackspace(): boolean {
-        const li = getListItemFromSelection();
-        if (!li || !isTaskListItem(li)) return false;
-        if (!isCaretAtTaskItemStart(li)) return false;
-        const prev = li.previousElementSibling;
-        if (prev && prev.tagName === 'LI') {
-            appendListItemContent(prev as HTMLElement, li);
-            placeCaretAtLiEnd(prev as HTMLElement);
-            handleWysiwygInput();
-            return true;
-        }
-        removeTaskCheckbox(li);
-        const selection = window.getSelection();
-        const range = document.createRange();
-        range.selectNodeContents(li);
-        range.collapse(true);
-        selection?.removeAllRanges();
-        selection?.addRange(range);
-        handleWysiwygInput();
-        return true;
-    }
-
-    // True when the collapsed caret is at the very start of an li, with only
-    // whitespace/ZWSP/br between the li's beginning and the caret.
-    function isCaretAtLiStart(li: HTMLElement): boolean {
-        const selection = window.getSelection();
-        if (!selection || !selection.isCollapsed || selection.rangeCount === 0) return false;
-        const range = selection.getRangeAt(0);
-        const node = range.startContainer;
-        const beforeIsStructural = (n: Node | null): boolean =>
-            !!n && ((n.nodeType === Node.TEXT_NODE && /^[\u200B\s]*$/.test(n.textContent || '')) ||
-                (n.nodeType === Node.ELEMENT_NODE && n.nodeName === 'BR'));
-        if (node === li) {
-            for (let i = 0; i < range.startOffset; i++) {
-                if (!beforeIsStructural(li.childNodes[i])) return false;
-            }
-            return true;
-        }
-        if (node.nodeType === Node.TEXT_NODE) {
-            if (!/^[\u200B\s]*$/.test((node.textContent || '').slice(0, range.startOffset))) return false;
-            let prev: Node | null = node.previousSibling;
-            while (prev && beforeIsStructural(prev)) prev = prev.previousSibling;
-            return !prev;
-        }
-        return false;
-    }
-
-    // True when the collapsed caret is at the very end of an li, with only
-    // whitespace/ZWSP/br between the caret and the li's end.
-    function isCaretAtLiEnd(li: HTMLElement): boolean {
-        const selection = window.getSelection();
-        if (!selection || !selection.isCollapsed || selection.rangeCount === 0) return false;
-        const range = selection.getRangeAt(0);
-        const node = range.startContainer;
-        const afterIsStructural = (n: Node | null): boolean =>
-            !!n && ((n.nodeType === Node.TEXT_NODE && /^[\u200B\s]*$/.test(n.textContent || '')) ||
-                (n.nodeType === Node.ELEMENT_NODE && n.nodeName === 'BR'));
-        if (node === li) {
-            for (let i = range.startOffset; i < li.childNodes.length; i++) {
-                if (!afterIsStructural(li.childNodes[i])) return false;
-            }
-            return true;
-        }
-        if (node.nodeType === Node.TEXT_NODE) {
-            if (!/^[\u200B\s]*$/.test((node.textContent || '').slice(range.startOffset))) return false;
-            let next: Node | null = node.nextSibling;
-            while (next && afterIsStructural(next)) next = next.nextSibling;
-            return !next;
-        }
-        return false;
-    }
-
-    function placeCaretAtLiEnd(li: HTMLElement) {
-        const selection = window.getSelection();
-        if (!selection) return;
-        wysiwygEl?.focus();
-        const range = document.createRange();
-        if (isTaskListItem(li)) {
-            const anchor = ensureTaskItemCaretAnchor(li);
-            if (anchor) {
-                range.setStart(anchor, anchor.length);
-                range.collapse(true);
-            } else {
-                range.selectNodeContents(li);
-                range.collapse(false);
-            }
-        } else {
-            range.selectNodeContents(li);
-            range.collapse(false);
-        }
-        selection.removeAllRanges();
-        selection.addRange(range);
-    }
-
-    function placeCaretAtBlockStart(el: HTMLElement) {
-        const selection = window.getSelection();
-        if (!selection) return;
-        wysiwygEl?.focus();
-        const range = document.createRange();
-        range.selectNodeContents(el);
-        range.collapse(true);
-        selection.removeAllRanges();
-        selection.addRange(range);
-    }
-
-    // Merges the content of `source` li into the end of `target` li, dropping
-    // the source's checkbox and structural whitespace. Manual DOM merge so the
-    // browser never rebuilds the <li> (Chrome drops the checkbox inputs when
-    // it natively merges list items).
-    function appendListItemContent(target: HTMLElement, source: HTMLElement) {
-        const frag = document.createDocumentFragment();
-        for (const child of Array.from(source.childNodes)) {
-            if (
-                child.nodeType === Node.ELEMENT_NODE &&
-                (child as HTMLElement).tagName === 'INPUT' &&
-                (child as HTMLInputElement).type === 'checkbox'
-            ) {
-                continue;
-            }
-            frag.appendChild(child);
-        }
-        while (frag.firstChild && frag.firstChild.nodeType === Node.TEXT_NODE && /^[\u200B\s]*$/.test(frag.firstChild.textContent || '')) {
-            frag.removeChild(frag.firstChild);
-        }
-        while (frag.lastChild && frag.lastChild.nodeType === Node.ELEMENT_NODE && (frag.lastChild as HTMLElement).tagName === 'BR') {
-            frag.removeChild(frag.lastChild);
-        }
-        const lastTarget = target.lastChild;
-        if (
-            lastTarget && lastTarget.nodeType === Node.TEXT_NODE &&
-            frag.firstChild && frag.firstChild.nodeType === Node.TEXT_NODE
-        ) {
-            target.appendChild(document.createTextNode(' '));
-        }
-        if (frag.childNodes.length > 0) target.appendChild(frag);
-        const list = source.parentElement;
-        source.remove();
-        if (list && !list.querySelector('li')) list.remove();
-        if (![...target.childNodes].some((n) => n.nodeType === Node.ELEMENT_NODE && (n as HTMLElement).tagName === 'BR')) {
-            if (!target.textContent?.replace(/\u200B/g, '').trim()) target.appendChild(document.createElement('br'));
-        }
-        ensureTaskItemCaretAnchor(target);
-    }
-
-    // Delete at a task-list boundary: never let the browser natively merge
-    // list items, because Chrome rebuilds the <li> elements and drops the
-    // checkbox inputs (turning "- [ ] A" into "-  A" or corrupting the list).
-    function handleTaskBoundaryDelete(): boolean {
-        const li = getListItemFromSelection();
-        if (!li || !wysiwygEl?.contains(li)) return false;
-        const selection = window.getSelection();
-        if (!selection || !selection.isCollapsed || selection.rangeCount === 0) return false;
-        const isTask = isTaskListItem(li);
-        const next = li.nextElementSibling;
-        const prev = li.previousElementSibling;
-        const nextIsLi = !!next && next.tagName === 'LI';
-        const prevIsLi = !!prev && prev.tagName === 'LI';
-        const nextIsTask = nextIsLi && isTaskListItem(next as HTMLElement);
-        const prevIsTask = prevIsLi && isTaskListItem(prev as HTMLElement);
-
-        if (isCaretAtLiEnd(li)) {
-            // Delete at the end merges the following item into this one.
-            if (isTask || nextIsTask) {
-                if (nextIsLi) {
-                    appendListItemContent(li, next as HTMLElement);
-                    placeCaretAtLiEnd(li);
-                } else if (next) {
-                    // A block follows: move the caret into it instead of
-                    // letting Chrome absorb the list item into the block.
-                    placeCaretAtBlockStart(next as HTMLElement);
-                } else {
-                    return false;
-                }
-                handleWysiwygInput();
-                return true;
-            }
-            return false;
-        }
-
-        if (isCaretAtLiStart(li)) {
-            // Delete at the very start of an empty item merges the previous
-            // item into it.
-            if ((isTask || prevIsTask) && !li.textContent?.replace(/\u200B/g, '').trim()) {
-                if (prevIsLi) {
-                    const frag = document.createDocumentFragment();
-                    while (prev.firstChild) frag.appendChild(prev.firstChild);
-                    li.insertBefore(frag, li.firstChild);
-                    if (prevIsTask) ensureTaskItemCaretAnchor(li);
-                    placeCaretAtLiEnd(li);
-                    handleWysiwygInput();
-                    return true;
-                }
-                return false;
-            }
-            return false;
-        }
-        return false;
-    }
-
-    // Backspace at the start of a plain item whose previous item is a task
-    // item would let Chrome merge and rebuild the task <li>. Merge manually.
-    function handlePlainItemBackspaceIntoTask(): boolean {
-        const li = getListItemFromSelection();
-        if (!li || isTaskListItem(li) || !wysiwygEl?.contains(li)) return false;
-        if (!isCaretAtLiStart(li)) return false;
-        const prev = li.previousElementSibling;
-        if (!prev || prev.tagName !== 'LI' || !isTaskListItem(prev as HTMLElement)) return false;
-        appendListItemContent(prev as HTMLElement, li);
-        placeCaretAtLiEnd(prev as HTMLElement);
-        handleWysiwygInput();
-        return true;
-    }
-
-    // Tab/Shift+Tab inside a list item (bullet, ordered, or task list) indents
-    // and outdents. The <li> nodes are moved wholesale so checkboxes and any
-    // nested lists stay intact (the browser's native editing rebuilds items and
-    // drops checkbox inputs).
-    function handleWysiwygTab(e: KeyboardEvent): boolean {
-        const li = getListItemFromSelection();
-        if (!li || !wysiwygEl?.contains(li)) return false;
-        const list = li.parentElement;
-        if (!list || !/^(UL|OL)$/.test(list.tagName)) return false;
-        return e.shiftKey ? outdentListItem(li) : indentListItem(li);
-    }
-
-    // Remembers the caret position as (node, offset) plain values, so the
-    // position can be re-applied after a DOM move. (A cloned Range gets
-    // re-mapped by Chrome when list nodes are moved around in a
-    // contenteditable, silently dropping the caret into a neighboring text
-    // node.)
-    function saveWysiwygCaret(): { node: Node; offset: number } | null {
-        const selection = window.getSelection();
-        if (!selection || selection.rangeCount === 0) return null;
-        const range = selection.getRangeAt(0);
-        return { node: range.startContainer, offset: range.startOffset };
-    }
-
-    function restoreWysiwygCaret(caret: { node: Node; offset: number } | null) {
-        if (!caret) return;
-        const selection = window.getSelection();
-        const range = document.createRange();
-        try {
-            range.setStart(caret.node, caret.offset);
-        } catch {
-            return;
-        }
-        range.collapse(true);
-        selection?.removeAllRanges();
-        selection?.addRange(range);
-    }
-
-    // Nests the item (with its own nested lists) under the previous item.
-    function indentListItem(li: HTMLElement): boolean {
-        const list = li.parentElement;
-        if (!list || !/^(UL|OL)$/.test(list.tagName)) return false;
-        const prev = li.previousElementSibling;
-        if (!prev || prev.tagName !== 'LI') return false;
-
-        const savedCaret = saveWysiwygCaret();
-        let nested: HTMLElement | null = null;
-        for (let i = 0; i < prev.childNodes.length; i++) {
-            const child = prev.childNodes[i];
-            if (child instanceof HTMLElement && /^(UL|OL)$/.test(child.tagName)) {
-                nested = child;
-                break;
-            }
-        }
-        if (!nested) {
-            nested = document.createElement(list.tagName);
-            prev.appendChild(nested);
-        }
-        nested.appendChild(li);
-        restoreWysiwygCaret(savedCaret);
-        handleWysiwygInput();
-        return true;
-    }
-
-    // Moves the item out of its nested list, placing it after its parent item.
-    function outdentListItem(li: HTMLElement): boolean {
-        const list = li.parentElement;
-        if (!list || !/^(UL|OL)$/.test(list.tagName)) return false;
-        const parentLi = list.parentElement;
-        if (!parentLi || parentLi.tagName !== 'LI') return false;
-        const outerList = parentLi.parentElement;
-        if (!outerList || !/^(UL|OL)$/.test(outerList.tagName)) return false;
-
-        const savedCaret = saveWysiwygCaret();
-        li.remove();
-        if (!list.querySelector('li')) list.remove();
-        parentLi.after(li);
-        restoreWysiwygCaret(savedCaret);
-        handleWysiwygInput();
-        return true;
-    }
-
-    // Repairs DOMs the browser already corrupted (e.g. a native merge put
-    // several checkboxes into one <li>): split them back into separate items.
-    function healTaskListStructure() {
-        if (!wysiwygEl) return;
-        wysiwygEl.querySelectorAll('li').forEach((li) => {
-            const boxes = Array.from(li.children).filter(
-                (c): c is HTMLInputElement => c instanceof HTMLInputElement && c.type === 'checkbox'
-            );
-            for (let i = 1; i < boxes.length; i++) {
-                const box = boxes[i];
-                const newLi = document.createElement('li');
-                let node: Node | null = box;
-                while (node) {
-                    const nextNode: ChildNode | null = node.nextSibling;
-                    newLi.appendChild(node);
-                    node = nextNode;
-                }
-                if (
-                    ![...newLi.childNodes].some((n) => n.nodeType === Node.ELEMENT_NODE && (n as HTMLElement).tagName === 'BR') &&
-                    isEmptyTaskListItem(newLi)
-                ) {
-                    newLi.appendChild(document.createElement('br'));
-                }
-                li.after(newLi);
-            }
-        });
-        prepareTaskListCheckboxes(wysiwygEl);
-    }
+    const {
+        getListItemFromSelection,
+        handleTaskListEnter,
+        insertOrToggleTaskList,
+        handleTaskListBackspace,
+        handleTaskBoundaryDelete,
+        handlePlainItemBackspaceIntoTask,
+        handleWysiwygTab,
+        healTaskListStructure,
+    } = createTaskListEditor(() => wysiwygEl, () => handleWysiwygInput());
 
     // Click handling inside the WYSIWYG area: trash icon deletes the image,
     // clicking the thumbnail opens the full-size lightbox. Checkboxes toggle
@@ -5543,10 +4680,6 @@ echo "hello\\n";`,
 
     function isFileMentionEl(node: Node | null | undefined): node is HTMLElement {
         return !!node && node.nodeType === Node.ELEMENT_NODE && (node as HTMLElement).classList?.contains(FILE_MENTION_CLASS);
-    }
-
-    function isZwspOnlyText(node: Node | null | undefined): boolean {
-        return !!node && node.nodeType === Node.TEXT_NODE && /^[\u200B]*$/.test(node.textContent || '');
     }
 
     function removeFileMention(mention: HTMLElement) {
@@ -6353,7 +5486,7 @@ echo "hello\\n";`,
     let globalSearchCaseSensitive = false;
     let globalSearchRegex = false;
     let collapsedResults = new Set<string>();
-    let globalSearchResults: { fileId: string; fileName: string; language: ProgrammingLanguage; fileNameMatch: boolean; matches: { line: number; text: string; language: ProgrammingLanguage }[] }[] = [];
+    let globalSearchResults: WorkspaceSearchResult[] = [];
 
     function toggleResultCollapse(fileId: string) {
         if (collapsedResults.has(fileId)) {
@@ -6365,85 +5498,10 @@ echo "hello\\n";`,
     }
 
     function performGlobalSearch() {
-        if (!globalSearchQuery) {
-            globalSearchResults = [];
-            return;
-        }
-        const query = globalSearchQuery;
-        const caseSensitive = globalSearchCaseSensitive;
-        const useRegex = globalSearchRegex;
-
-        let pattern: RegExp;
-        let fileNamePattern: RegExp;
-        try {
-            const flags = caseSensitive ? 'g' : 'gi';
-            if (useRegex) {
-                pattern = new RegExp(query, flags);
-                fileNamePattern = new RegExp(query, flags);
-            } else {
-                const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                pattern = new RegExp(escaped, flags);
-                fileNamePattern = new RegExp(escaped, flags);
-            }
-        } catch {
-            globalSearchResults = [];
-            return;
-        }
-
-        const files = getFiles();
-        const resultsMap = new Map<string, { fileId: string; fileName: string; language: ProgrammingLanguage; fileNameMatch: boolean; matches: { line: number; text: string; language: ProgrammingLanguage }[] }>();
-
-        // First, check filenames from tabs
-        for (const t of tabs) {
-            fileNamePattern.lastIndex = 0;
-            if (fileNamePattern.test(t.fileName)) {
-                resultsMap.set(t.fileId, {
-                    fileId: t.fileId,
-                    fileName: t.fileName,
-                    language: getLanguageForTab(t.fileId),
-                    fileNameMatch: true,
-                    matches: []
-                });
-            }
-        }
-
-        // Then, check all contents in all FileEntries
-        for (const f of files) {
-            const content = f.content ?? '';
-            const lines = content.split('\n');
-            const fileMatches: { line: number; text: string; language: ProgrammingLanguage }[] = [];
-            for (let i = 0; i < lines.length; i++) {
-                const lineText = lines[i];
-                pattern.lastIndex = 0;
-                if (pattern.test(lineText)) {
-                    fileMatches.push({ line: i + 1, text: lineText, language: f.language as ProgrammingLanguage });
-                }
-            }
-
-            if (fileMatches.length > 0) {
-                let existing = resultsMap.get(f.fileId);
-                if (!existing) {
-                    const tab = tabs.find(t => t.fileId === f.fileId);
-                    const fname = tab ? tab.fileName : (f.fileName || 'Solution');
-                    existing = {
-                        fileId: f.fileId,
-                        fileName: fname,
-                        language: f.language as ProgrammingLanguage,
-                        fileNameMatch: false,
-                        matches: []
-                    };
-                    resultsMap.set(f.fileId, existing);
-                }
-                // Only add matches if they aren't already added (avoid duplicates across languages if content is identical)
-                for (const m of fileMatches) {
-                    if (!existing.matches.find(exm => exm.line === m.line && exm.text === m.text && exm.language === m.language)) {
-                        existing.matches.push(m);
-                    }
-                }
-            }
-        }
-
-        globalSearchResults = Array.from(resultsMap.values());
+        globalSearchResults = searchWorkspace(
+            getFiles(), tabs, globalSearchQuery, globalSearchCaseSensitive, globalSearchRegex,
+            Object.fromEntries(tabs.map(tab => [tab.fileId, getLanguageForTab(tab.fileId)]))
+        );
     }
 
     function activatePanel(panel: ActivePanel) {
@@ -6456,21 +5514,6 @@ echo "hello\\n";`,
             }
         }
         persistPanel();
-    }
-
-    function highlightMatch(text: string, query: string, caseSensitive: boolean, useRegex: boolean): string {
-        if (!query) return escapeHtml(text);
-        try {
-            const flags = caseSensitive ? 'g' : 'gi';
-            const regex = useRegex ? new RegExp(query, flags) : new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), flags);
-            return escapeHtml(text).replace(regex, '<mark>$&</mark>');
-        } catch {
-            return escapeHtml(text);
-        }
-    }
-
-    function escapeHtml(s: string): string {
-        return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
     $: {
