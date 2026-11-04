@@ -5,6 +5,16 @@
     import { browser } from '$app/environment';
     import { goto } from '$app/navigation';
     import { navigating, page } from '$app/stores';
+    import FirebaseSettingsModal from '$lib/components/home/FirebaseSettingsModal.svelte';
+    import SharedCodeModal from '$lib/components/home/SharedCodeModal.svelte';
+    import ManageProblemsModal from '$lib/components/home/ManageProblemsModal.svelte';
+    import CoursePicker from '$lib/components/home/CoursePicker.svelte';
+    import {
+        GROUP_SORT_KEY, displayTitle, filterProblems, groupProblems, groupStatistics,
+        orderedCategories, pretty, readGroupSort, sortProblems, sourceLabel, sourceTitle, toggleGroupSort,
+        type CourseSummary, type GroupSort, type Problem, type SortKey
+    } from '$lib/home/catalog';
+    import { COURSE_STORAGE_KEY } from '$lib/home/courseVisibility';
     import Tooltip from "$lib/components/Tooltip.svelte";
     import DemoBanner from "$lib/components/DemoBanner.svelte";
     import SortIcon from "$lib/components/SortIcon.svelte";
@@ -33,8 +43,7 @@
     } from '$lib/appUpdate';
     import {
         cloudSyncState,
-        refreshCloudLocalState,
-        restartCloudSync
+        refreshCloudLocalState
     } from '$lib/cloudSync';
     import { activeDialog, showConfirm } from '$lib/dialogs';
     import { collectProgressData, writeProgressStorageItem, clearProgressStorage } from '$lib/progressBackup';
@@ -48,14 +57,9 @@
         clearPastedImages
     } from '$lib/utils/imageStore';
     import {
-        clearFirebaseSettings,
-        emptyFirebaseSettings,
-        getFirebaseSettings,
         hasSavedFirebaseSettings,
         isFirebaseConfigured,
-        isDesktopRuntime,
-        saveFirebaseSettings,
-        type FirebaseSettings
+        isDesktopRuntime
     } from '$lib/firebaseSettings';
     let fileInputEl: HTMLInputElement | null = null;
     let dropdownToggleButton: HTMLButtonElement | null = null;
@@ -63,14 +67,11 @@
     let importModalCard: HTMLElement | null = null;
     let clearConfirmCard: HTMLElement | null = null;
     let firebaseModalCard: HTMLElement | null = null;
-    let firebaseApiKeyInput: HTMLInputElement | null = null;
     let loadModalCard: HTMLElement | null = null;
-    let loadCodeInputs: HTMLInputElement[] = [];
     let pendingImport: Record<string, unknown> | null = null;
     let showClearConfirm = false;
     let showManageProblems = false;
     let manageProblemsCard: HTMLElement | null = null;
-    let manageProblemsError = '';
     let showCliSettings = false;
     let showDockerSettings = false;
     let dockerConnected = false;
@@ -95,30 +96,13 @@
         needsNewTerminal: false,
         message: null
     };
-    let revealingFolder = false;
-    let pathCopied = false;
-    let pathCopiedTimer: ReturnType<typeof setTimeout> | undefined;
-    let resettingContentKey: string | null = null;
-    let resettingAllContent = false;
-    type ModifiedItem = { id: string; title: string };
-    // Full modified inventory is fetched lazily when the dialog opens (see
-    // openManageProblems) so course-tab navigations don't pay for comparing
-    // every problem against its bundled copy.
-    let modifiedProblems: ModifiedItem[] = [];
-    let modifiedCourses: ModifiedItem[] = [];
-    let modifiedInventoryLoading = false;
-    $: modifiedItemCount = modifiedProblems.length + modifiedCourses.length;
     let importNotice: { message: string; error: boolean; filePath?: string } | null = null;
     let importNoticeTimer: ReturnType<typeof setTimeout> | undefined;
     let showFirebaseSettings = false;
     let showCloudSettings = false;
     let showLoadCode = false;
-    let firebaseForm: FirebaseSettings = emptyFirebaseSettings();
-    let firebaseSettingsError = '';
     let firebaseSettingsSaved = browser && hasSavedFirebaseSettings();
     let firebaseConfigured = browser && isFirebaseConfigured();
-    let loadCodeCharacters = ['', '', '', ''];
-    let loadCodeNavigating = false;
     let checkMap: Record<string, boolean> = {};
     let showGamePopup = false;
     let isDesktopMode = browser && isDesktopRuntime();
@@ -205,20 +189,7 @@
         }
     }
     $: if (browser && searchQuery.trim() && selectedCourseId) void ensureStatementIndex(selectedCourseId);
-    $: {
-        if (!searchQuery.trim()) {
-            filteredProblems = baseProblems;
-        } else {
-            const query = searchQuery.toLowerCase().trim();
-            const statementIndex = statementIndexByCourse[selectedCourseId ?? ''] ?? {};
-            filteredProblems = baseProblems.filter((p) => {
-                const titleMatch = (p.title || "").toLowerCase().includes(query);
-                const slugMatch = (p.id || "").toLowerCase().includes(query);
-                const statementMatch = ((p.statement || statementIndex[p.id] || "").toLowerCase().includes(query));
-                return titleMatch || slugMatch || statementMatch;
-            });
-        }
-    }
+    $: filteredProblems = filterProblems(baseProblems, searchQuery, statementIndexByCourse[selectedCourseId ?? ''] ?? {});
 
     let isGroupOpenMap: Record<string, boolean> = {};
     $: {
@@ -273,9 +244,6 @@
         if (showDropdown && dropdownRef && !dropdownRef.contains(event.target as Node)) {
             showDropdown = false;
         }
-        if (showListsMenu && listsMenuRef && !event.composedPath().includes(listsMenuRef)) {
-            showListsMenu = false;
-        }
     }
 
     function dropdownItems(): HTMLElement[] {
@@ -328,22 +296,9 @@
     }
 
     onMount(() => {
-        listsReady = true;
         window.addEventListener("click", handleClickOutside);
         if (isDesktopMode) void refreshCliStatus();
         void initializeAppUpdatePreference();
-
-        courseVisibility = readCourseVisibility();
-
-        // Restore last selected course from localStorage if no course param in URL
-        const url = new URL(window.location.href);
-        if (!url.searchParams.has('course')) {
-            const saved = localStorage.getItem(COURSE_STORAGE_KEY);
-            const target = saved && visibleCourses.some(c => c.id === saved)
-                ? saved
-                : !visibleCourses.some(c => c.id === selectedCourseId) ? visibleCourses[0]?.id : null;
-            if (target) goto(`/?course=${encodeURIComponent(target)}`, { replaceState: true });
-        }
 
         // Automatic update detection on startup (desktop only), same as openduck.
         if (isDesktopMode) {
@@ -362,40 +317,6 @@
         };
     });
 
-    // Types for problems from the loader
-    type ContentSource = 'custom' | 'modified' | 'bundled';
-    type Problem = {
-        id: string;
-        title: string;
-        difficulty: string;
-        link?: string;
-        category?: string;
-        statement?: string;
-        source?: ContentSource;
-        courseNumber?: number;
-    };
-
-    type CourseSummary = {
-        id: string;
-        title: string;
-        source?: ContentSource;
-        /** Default visibility from courseinfo.json; the viewer can override it. */
-        hidden?: boolean;
-        problemIds?: string[];
-    };
-
-    function sourceLabel(source?: ContentSource): string {
-        return source === 'custom' ? 'Custom' : source === 'modified' ? 'Modified' : '';
-    }
-
-    function sourceTitle(source?: ContentSource): string {
-        return source === 'custom'
-            ? 'Custom content — only exists in your Cojudge folder'
-            : source === 'modified'
-                ? 'Modified — edited in your Cojudge folder, differs from the bundled copy'
-                : '';
-    }
-
     // Group problems by category
     let grouped: Record<string, Problem[]> = {};
     let groupStats: Record<string, { done: number; total: number }> = {};
@@ -407,54 +328,8 @@
     );
     $: if (browser) writeProgressStorageItem(localStorage, OPEN_GROUPS_KEY, JSON.stringify([...openGroups]));
 
-    // Per-group sort state (persisted to localStorage only, not cloud-synced)
-    type SortKey = "title" | "difficulty" | "status";
-    type SortDir = "asc" | "desc";
-    const GROUP_SORT_KEY = 'group-sort';
-    function loadGroupSort(): Record<string, { key: SortKey; dir: SortDir }> {
-        if (!browser) return {};
-        try {
-            const raw = localStorage.getItem(GROUP_SORT_KEY);
-            if (!raw) return {};
-            const parsed = JSON.parse(raw) as Record<string, { key: unknown; dir: unknown }>;
-            if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {};
-            const validKeys: SortKey[] = ["title", "difficulty", "status"];
-            const cleaned: Record<string, { key: SortKey; dir: SortDir }> = {};
-            for (const [group, conf] of Object.entries(parsed)) {
-                if (!conf || typeof conf !== 'object') continue;
-                if (!validKeys.includes(conf.key as SortKey)) continue;
-                if (conf.dir !== 'asc' && conf.dir !== 'desc') continue;
-                cleaned[group] = { key: conf.key as SortKey, dir: conf.dir as SortDir };
-            }
-            return cleaned;
-        } catch {
-            return {};
-        }
-    }
-    let groupSort: Record<string, { key: SortKey; dir: SortDir }> = loadGroupSort();
+    let groupSort: GroupSort = readGroupSort(browser ? localStorage : undefined);
     $: if (browser) writeProgressStorageItem(localStorage, GROUP_SORT_KEY, JSON.stringify(groupSort));
-
-    // Nicely format category labels (e.g., "two-pointers" -> "Two Pointers").
-    // Keep digit-digit ranges intact (e.g., "1-100" stays "1-100").
-    const pretty = (s?: string) => {
-        const raw = s && s.trim().length > 0 ? s : "uncategorized";
-        const label = raw.replace(/[-_]+/g, (m, offset: number, full: string) => {
-            const before = full[offset - 1] ?? "";
-            const after = full[offset + (m as string).length] ?? "";
-            return /\d/.test(before) && /\d/.test(after) ? m : " ";
-        });
-        return label.replace(/\b\w/g, (c) => c.toUpperCase());
-    };
-
-    // Display title: courses may override the leading number via
-    // courseinfo.json "problem-numbers" (e.g. LeetCode IDs in LeetCode 1000).
-    const displayTitle = (p?: { title?: string | null; courseNumber?: number | null } | null) => {
-        const title = p?.title || "";
-        if (p?.courseNumber != null) {
-            return title.replace(/^\d+\.\s*/, `${p.courseNumber}. `);
-        }
-        return title;
-    };
 
     // Render markdown safely from trusted source (local JSON)
     marked.use({ gfm: true });
@@ -466,104 +341,15 @@
         return '';
     }
 
-    const COURSE_STORAGE_KEY = 'selected-course';
-    const COURSE_VISIBILITY_KEY = 'course-visibility';
-
-    // Which courses this viewer shows in the picker: courseId -> visible. Courses without
-    // an entry follow their courseinfo.json default ("hidden": true hides them).
-    let courseVisibility: Record<string, boolean> = {};
     let showListsMenu = false;
-    let listsReady = false;
-    let manageLists = false;
-    let listSearch = '';
-    let listsMenuRef: HTMLElement | null = null;
+    let coursePicker: CoursePicker;
     let showLearningPath = false;
     let learningPathToggle: HTMLButtonElement | null = null;
 
     function selectLearningCourse(courseId: string) {
-        const course = courses.find((item) => item.id === courseId);
-        if (course && !isCourseVisible(course, courseVisibility)) setCourseVisible(courseId, true);
+        coursePicker?.ensureCourseVisible(courseId);
         searchQuery = '';
         selectCourse(courseId);
-    }
-
-    let listsToggleButton: HTMLButtonElement | null = null;
-    let listSearchInput: HTMLInputElement | null = null;
-
-    async function toggleListsMenu() {
-        showListsMenu = !showListsMenu;
-        manageLists = false;
-        listSearch = '';
-        if (showListsMenu) {
-            await tick();
-            listSearchInput?.focus();
-        }
-    }
-
-    function closeListsMenu(returnFocus = false) {
-        showListsMenu = false;
-        if (returnFocus) listsToggleButton?.focus();
-    }
-
-    function handleListsKeydown(event: KeyboardEvent) {
-        if (event.key === 'Escape') {
-            event.preventDefault();
-            event.stopPropagation();
-            closeListsMenu(true);
-        } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-            const items = Array.from(listsMenuRef?.querySelectorAll<HTMLElement>('.list-link') ?? []);
-            if (!items.length) return;
-            event.preventDefault();
-            const index = items.indexOf(document.activeElement as HTMLElement);
-            const next = event.key === 'ArrowDown'
-                ? (index + 1) % items.length
-                : (index < 0 ? items.length - 1 : (index - 1 + items.length) % items.length);
-            items[next]?.focus();
-        }
-    }
-
-    function readCourseVisibility(): Record<string, boolean> {
-        try {
-            const parsed = JSON.parse(localStorage.getItem(COURSE_VISIBILITY_KEY) || '{}');
-            return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
-        } catch {
-            return {};
-        }
-    }
-
-    const isCourseVisible = (course: CourseSummary, prefs: Record<string, boolean>) =>
-        prefs[course.id] ?? !course.hidden;
-    $: visibleCourses = courses.filter((course) => isCourseVisible(course, courseVisibility));
-    $: filteredListCourses = (manageLists ? courses : visibleCourses).filter((course) =>
-        course.title.toLowerCase().includes(listSearch.trim().toLowerCase())
-    );
-    $: pickerCourse = courses.find((course) => course.id === (pendingCourseId ?? selectedCourseId));
-
-
-    function setCourseVisible(courseId: string, visible: boolean) {
-        courseVisibility = { ...courseVisibility, [courseId]: visible };
-        try {
-            localStorage.setItem(COURSE_VISIBILITY_KEY, JSON.stringify(courseVisibility));
-        } catch {
-            // Storage can be unavailable (private mode); the choice then lasts for this page only.
-        }
-        // Hiding the open course moves to the first list that is still shown.
-        if (!visible && courseId === selectedCourseId && !showBookmarks) {
-            const next = courses.find((course) => isCourseVisible(course, courseVisibility));
-            if (next) {
-                selectCourse(next.id);
-                goto(`/?course=${encodeURIComponent(next.id)}`);
-            }
-        }
-    }
-
-    function resetCourseVisibility() {
-        courseVisibility = {};
-        try {
-            localStorage.removeItem(COURSE_VISIBILITY_KEY);
-        } catch {
-            // ignore
-        }
     }
 
     // Persist course selection to localStorage
@@ -592,40 +378,9 @@
     $: selectedCourseProblems = (data?.problems ?? []) as Problem[];
     $: courseDescription = data?.selectedCourseInfo?.description ?? "";
     $: categoryOrder = data?.selectedCourseInfo?.["category-order"] ?? [];
-    // Map for fast lookup of category rank
-    let orderMap: Record<string, number> = {};
-    $: (function buildOrderMap() {
-        const m: Record<string, number> = {};
-        categoryOrder.forEach((c, i) => {
-            if (c) m[c] = i;
-        });
-        orderMap = m;
-    })();
-
-    // Build groups reactively when data/checkMap changes
-    $: (function buildGroups() {
-        const map: Record<string, Problem[]> = {};
-        for (const p of filteredProblems) {
-            const key =
-                p.category && p.category.trim() ? p.category : "uncategorized";
-            if (!map[key]) map[key] = [];
-            map[key].push(p);
-        }
-
-        grouped = map;
-
-        // stats per group
-        const stats: Record<string, { done: number; total: number }> = {};
-        for (const [key, arr] of Object.entries(map)) {
-            const total = arr.length;
-            const done = arr.reduce(
-                (acc, p) => acc + (checkMap[p.id] ? 1 : 0),
-                0,
-            );
-            stats[key] = { done, total };
-        }
-        groupStats = stats;
-    })();
+    $: grouped = groupProblems(filteredProblems);
+    $: groupStats = groupStatistics(grouped, checkMap);
+    $: categoryKeys = orderedCategories(grouped, categoryOrder);
 
     function toggleGroup(key: string) {
         if (searchQuery.trim()) {
@@ -639,85 +394,16 @@
         }
     }
 
-    // Sorting helpers
-    const difficultyRank: Record<string, number> = {
-        easy: 0,
-        medium: 1,
-        hard: 2,
-    };
-
     function toggleSort(key: string, column: SortKey) {
-        const current = groupSort[key];
-        if (!current || current.key !== column) {
-            groupSort = { ...groupSort, [key]: { key: column, dir: "asc" } };
-            return;
-        }
-        const nextDir: SortDir = current.dir === "asc" ? "desc" : "asc";
-        groupSort = { ...groupSort, [key]: { key: column, dir: nextDir } };
+        groupSort = toggleGroupSort(groupSort, key, column);
     }
 
-    function getSortedGroup(arr: Problem[], key: string): Problem[] {
-        const conf = groupSort[key];
-        if (!conf) {
-            // default: keep insertion order (already grouped) but fall back to numeric prefix if present
-            return arr.slice().toSorted((a, b) => {
-                // Prefer course-specific numbers (e.g. LeetCode IDs) when both sides have them
-                if (a?.courseNumber != null && b?.courseNumber != null) return a.courseNumber - b.courseNumber;
-                // Try numeric prefix like "63. Title"
-                const na = Number.parseInt(a?.title?.split(".")?.[0] ?? "NaN");
-                const nb = Number.parseInt(b?.title?.split(".")?.[0] ?? "NaN");
-                if (!Number.isNaN(na) && !Number.isNaN(nb)) return na - nb;
-                return (a?.title || "").localeCompare(b?.title || "");
-            });
-        }
-
-        const dirMul = conf.dir === "asc" ? 1 : -1;
-        if (conf.key === "title") {
-            return arr
-                .slice()
-                .toSorted(
-                    (a, b) =>
-                        dirMul *
-                        displayTitle(a).localeCompare(
-                            displayTitle(b),
-                            undefined,
-                            { sensitivity: "base" },
-                        ),
-                );
-        }
-        // status (solved vs unsolved; asc = unsolved first, desc = solved first)
-        if (conf.key === "status") {
-            return arr.slice().toSorted((a, b) => {
-                const sa = checkMap[a.id] ? 1 : 0;
-                const sb = checkMap[b.id] ? 1 : 0;
-                const cmp = sa - sb;
-                if (cmp !== 0) return dirMul * cmp;
-                // tie-breaker by title
-                return dirMul * displayTitle(a).localeCompare(displayTitle(b));
-            });
-        }
-        // difficulty
-        return arr.slice().toSorted((a, b) => {
-            const da = difficultyRank[(a.difficulty || "").toLowerCase()] ?? 99;
-            const db = difficultyRank[(b.difficulty || "").toLowerCase()] ?? 99;
-            const cmp = da - db;
-            if (cmp !== 0) return dirMul * cmp;
-            // tie-breaker by title
-            return dirMul * displayTitle(a).localeCompare(displayTitle(b));
-        });
+    function getSortedGroup(problems: Problem[], key: string): Problem[] {
+        return sortProblems(problems, groupSort[key], checkMap);
     }
 
-    let totalProblems = 0;
-    let solvedCount = 0;
-    $: (function computeOverall() {
-        const source = (typeof baseProblems !== 'undefined' ? baseProblems : selectedCourseProblems) as Problem[];
-        totalProblems = source.length;
-        let done = 0;
-        for (const p of source) {
-            if (checkMap[p.id]) done++;
-        }
-        solvedCount = done;
-    })();
+    $: totalProblems = baseProblems.length;
+    $: solvedCount = baseProblems.reduce((count, problem) => count + (checkMap[problem.id] ? 1 : 0), 0);
 
     function downloadProgressBackup(data: Record<string, unknown>) {
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -863,126 +549,26 @@
         void tick().then(() => dropdownToggleButton?.focus());
     }
 
-    async function openFirebaseSettings() {
-        firebaseForm = getFirebaseSettings();
-        firebaseSettingsSaved = hasSavedFirebaseSettings();
-        firebaseSettingsError = '';
+    function openFirebaseSettings() {
         showDropdown = false;
         showFirebaseSettings = true;
-        await tick();
-        firebaseApiKeyInput?.focus();
     }
 
     async function closeFirebaseSettings() {
         showFirebaseSettings = false;
-        firebaseSettingsError = '';
         await tick();
         dropdownToggleButton?.focus();
     }
 
-    function submitFirebaseSettings(event: SubmitEvent) {
-        event.preventDefault();
-        const settings: FirebaseSettings = {
-            apiKey: firebaseForm.apiKey.trim(),
-            authDomain: firebaseForm.authDomain.trim(),
-            projectId: firebaseForm.projectId.trim(),
-            storageBucket: firebaseForm.storageBucket.trim(),
-            messagingSenderId: firebaseForm.messagingSenderId.trim(),
-            appId: firebaseForm.appId.trim(),
-            googleDesktopClientId: firebaseForm.googleDesktopClientId.trim(),
-            googleDesktopClientSecret: firebaseForm.googleDesktopClientSecret.trim()
-        };
-        if (!isFirebaseConfigured(settings)) {
-            firebaseSettingsError = 'Complete all required Firebase fields.';
-            return;
-        }
-
-        try {
-            saveFirebaseSettings(settings);
-            firebaseConfigured = true;
-            firebaseSettingsSaved = true;
-            showImportNotice('Firebase settings saved.', false);
-            void restartCloudSync();
-            void closeFirebaseSettings();
-        } catch (err: any) {
-            firebaseSettingsError = err?.message || String(err);
-        }
-    }
-
-    function removeFirebaseSettings() {
-        try {
-            clearFirebaseSettings();
-            firebaseForm = getFirebaseSettings();
-            firebaseConfigured = isFirebaseConfigured();
-            firebaseSettingsSaved = false;
-            firebaseSettingsError = '';
-            showImportNotice('Saved Firebase settings removed.', false);
-            void restartCloudSync();
-        } catch (err: any) {
-            firebaseSettingsError = err?.message || String(err);
-        }
-    }
-
-    async function openLoadCode() {
-        loadCodeCharacters = ['', '', '', ''];
-        loadCodeNavigating = false;
+    function openLoadCode() {
         showDropdown = false;
         showLoadCode = true;
-        await tick();
-        loadCodeInputs[0]?.focus();
     }
 
     async function closeLoadCode() {
         showLoadCode = false;
         await tick();
         dropdownToggleButton?.focus();
-    }
-
-    function updateLoadCode(index: number, event: Event) {
-        const input = event.currentTarget as HTMLInputElement;
-        const character = input.value.replace(/[^A-Za-z0-9]/g, '').slice(-1);
-        loadCodeCharacters[index] = character;
-        loadCodeCharacters = [...loadCodeCharacters];
-        input.value = character;
-        if (character && index < loadCodeInputs.length - 1) {
-            loadCodeInputs[index + 1]?.focus();
-        }
-        navigateToSharedCodeIfComplete();
-    }
-
-    function handleLoadCodeKeydown(index: number, event: KeyboardEvent) {
-        if (event.key === 'Backspace' && !loadCodeCharacters[index] && index > 0) {
-            loadCodeCharacters[index - 1] = '';
-            loadCodeCharacters = [...loadCodeCharacters];
-            loadCodeInputs[index - 1]?.focus();
-        } else if (event.key === 'ArrowLeft' && index > 0) {
-            event.preventDefault();
-            loadCodeInputs[index - 1]?.focus();
-        } else if (event.key === 'ArrowRight' && index < loadCodeInputs.length - 1) {
-            event.preventDefault();
-            loadCodeInputs[index + 1]?.focus();
-        }
-    }
-
-    async function handleLoadCodePaste(event: ClipboardEvent) {
-        const characters = event.clipboardData?.getData('text').replace(/[^A-Za-z0-9]/g, '').slice(0, 4);
-        if (!characters) return;
-        event.preventDefault();
-        loadCodeCharacters = Array.from({ length: 4 }, (_, index) => characters[index] ?? '');
-        if (characters.length === 4) {
-            navigateToSharedCodeIfComplete();
-            return;
-        }
-        await tick();
-        loadCodeInputs[Math.min(characters.length, 4) - 1]?.focus();
-    }
-
-    function navigateToSharedCodeIfComplete() {
-        const code = loadCodeCharacters.join('');
-        if (loadCodeNavigating || !/^[A-Za-z0-9]{4}$/.test(code)) return;
-        loadCodeNavigating = true;
-        showLoadCode = false;
-        void goto(`/p/${encodeURIComponent(code)}`);
     }
 
     function showImportNotice(message: string, error: boolean, filePath?: string) {
@@ -1082,33 +668,14 @@
         showClearConfirm = true;
     }
 
-    async function openManageProblems() {
+    function openManageProblems() {
         if ($page.data.isDemoSite) return;
         showDropdown = false;
-        manageProblemsError = '';
-        pathCopied = false;
-        if (pathCopiedTimer) clearTimeout(pathCopiedTimer);
         showManageProblems = true;
-        modifiedInventoryLoading = true;
-        try {
-            const response = await fetch('/api/content/modified');
-            const result = await response.json().catch(() => ({}));
-            if (!response.ok) throw new Error(result?.error || 'Could not load modified content');
-            modifiedProblems = Array.isArray(result.modifiedProblems) ? result.modifiedProblems : [];
-            modifiedCourses = Array.isArray(result.modifiedCourses) ? result.modifiedCourses : [];
-        } catch (err: any) {
-            manageProblemsError = err?.message
-                ? `Could not load modified content: ${err.message}`
-                : 'Could not load modified content';
-        } finally {
-            modifiedInventoryLoading = false;
-        }
     }
 
     async function closeManageProblems() {
         showManageProblems = false;
-        pathCopied = false;
-        if (pathCopiedTimer) clearTimeout(pathCopiedTimer);
         await tick();
         dropdownToggleButton?.focus();
     }
@@ -1445,88 +1012,6 @@
             cliError = error instanceof Error ? error.message : String(error);
         } finally {
             cliBusy = false;
-        }
-    }
-
-    async function copyContentDir() {
-        manageProblemsError = '';
-        try {
-            await navigator.clipboard.writeText(contentDir);
-            pathCopied = true;
-            if (pathCopiedTimer) clearTimeout(pathCopiedTimer);
-            pathCopiedTimer = setTimeout(() => {
-                pathCopied = false;
-            }, 1500);
-        } catch {
-            manageProblemsError = `Could not copy. Path: ${contentDir}`;
-        }
-    }
-
-    async function revealContentFolder() {
-        manageProblemsError = '';
-        revealingFolder = true;
-        try {
-            const response = await fetch('/api/reveal-file', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ filePath: contentDir })
-            });
-            const result = await response.json().catch(() => ({}));
-            if (!response.ok) {
-                throw new Error(result?.error || 'Could not open the folder');
-            }
-        } catch (err: any) {
-            manageProblemsError = err?.message
-                ? `Could not open the folder automatically. Please open it manually: ${contentDir}`
-                : `Please open this folder manually: ${contentDir}`;
-        } finally {
-            revealingFolder = false;
-        }
-    }
-
-    async function resetContentToBundled(type: 'problem' | 'course', id: string) {
-        manageProblemsError = '';
-        resettingContentKey = `${type}:${id}`;
-        try {
-            const response = await fetch('/api/content/reset', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ type, id })
-            });
-            const result = await response.json().catch(() => ({}));
-            if (!response.ok) {
-                throw new Error(result?.error || 'Could not reset content');
-            }
-            window.location.reload();
-        } catch (err: any) {
-            manageProblemsError = err?.message
-                ? `Could not reset ${id}: ${err.message}`
-                : `Could not reset ${id}`;
-        } finally {
-            resettingContentKey = null;
-        }
-    }
-
-    async function resetAllModifiedToBundled() {
-        manageProblemsError = '';
-        resettingAllContent = true;
-        try {
-            const response = await fetch('/api/content/reset', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ all: true })
-            });
-            const result = await response.json().catch(() => ({}));
-            if (!response.ok) {
-                throw new Error(result?.error || 'Could not reset content');
-            }
-            window.location.reload();
-        } catch (err: any) {
-            manageProblemsError = err?.message
-                ? `Could not reset all: ${err.message}`
-                : 'Could not reset all';
-        } finally {
-            resettingAllContent = false;
         }
     }
 
@@ -1925,107 +1410,8 @@
             </div>
         </div>
     {/if}
-    {#if showManageProblems && !$page.data.isDemoSite}
-        <div class="home-modal-shell">
-            <button class="home-modal-backdrop" aria-label="Close manage problems" tabindex="-1" onclick={() => void closeManageProblems()}></button>
-            <div bind:this={manageProblemsCard} class="home-modal-card manage-problems-card" role="dialog" aria-modal="true" aria-labelledby="manage-problems-title">
-                <span class="modal-eyebrow">Local content</span>
-                <h2 id="manage-problems-title">Manage Problems</h2>
-                <p class="manage-intro">Problems and courses live in your Cojudge folder. Edit files directly — changes apply on refresh.</p>
-
-                <div class="manage-path-row">
-                    <code class="manage-path-text">{contentDir}</code>
-                    <button
-                        class="manage-path-copy"
-                        type="button"
-                        onclick={copyContentDir}
-                        title={pathCopied ? 'Copied' : 'Copy path'}
-                        aria-label={pathCopied ? 'Path copied' : 'Copy path'}
-                    >
-                        {#if pathCopied}
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <polyline points="20 6 9 17 4 12"></polyline>
-                            </svg>
-                        {:else}
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <rect x="9" y="9" width="13" height="13" rx="2"></rect>
-                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                            </svg>
-                        {/if}
-                    </button>
-                </div>
-
-                <div class="manage-sections">
-                    <div class="manage-section">
-                        <h3>Problems</h3>
-                        <code class="manage-section-path">problems/&lt;slug&gt;/</code>
-                        <p>statement.md · metadata.json · official-tests.json · Marker.java · solution.md (optional)</p>
-                    </div>
-                    <div class="manage-section">
-                        <h3>Courses</h3>
-                        <code class="manage-section-path">courses/&lt;id&gt;/courseinfo.json</code>
-                        <p>Category order and problem list for each course tab.</p>
-                    </div>
-                </div>
-
-                <p class="manage-note">Duplicate a problem folder, edit it, then register the slug in a <code>courseinfo.json</code>. Unedited copies auto-update when Cojudge ships fixes; your edits are never overwritten.</p>
-
-                {#if modifiedInventoryLoading}
-                    <div class="manage-section manage-modified" aria-live="polite">
-                        <h3>Modified — differs from bundled</h3>
-                        <p>Checking your Cojudge folder for edits…</p>
-                    </div>
-                {:else if modifiedItemCount > 0}
-                    <div class="manage-section manage-modified">
-                        <h3>Modified — differs from bundled ({modifiedItemCount})</h3>
-                        <p>If you did not edit these, they are stale copies from an older version — reset them to receive the latest fixes. Resetting discards your edits to that item.</p>
-                        <ul class="manage-modified-list">
-                            {#each modifiedProblems as item}
-                                <li>
-                                    <span class="manage-modified-id" title={item.title}>{item.id}</span>
-                                    <span class="manage-modified-kind">problem</span>
-                                    <button
-                                        class="btn manage-reset-btn"
-                                        type="button"
-                                        disabled={resettingContentKey !== null || resettingAllContent}
-                                        onclick={() => void resetContentToBundled('problem', item.id)}
-                                    >{resettingContentKey === `problem:${item.id}` ? 'Resetting…' : 'Reset'}</button>
-                                </li>
-                            {/each}
-                            {#each modifiedCourses as item}
-                                <li>
-                                    <span class="manage-modified-id" title={item.title}>{item.id}</span>
-                                    <span class="manage-modified-kind">course</span>
-                                    <button
-                                        class="btn manage-reset-btn"
-                                        type="button"
-                                        disabled={resettingContentKey !== null || resettingAllContent}
-                                        onclick={() => void resetContentToBundled('course', item.id)}
-                                    >{resettingContentKey === `course:${item.id}` ? 'Resetting…' : 'Reset'}</button>
-                                </li>
-                            {/each}
-                        </ul>
-                        {#if modifiedItemCount > 1}
-                            <button
-                                class="btn"
-                                type="button"
-                                disabled={resettingContentKey !== null || resettingAllContent}
-                                onclick={() => void resetAllModifiedToBundled()}
-                            >{resettingAllContent ? 'Resetting…' : `Reset all (${modifiedItemCount})`}</button>
-                        {/if}
-                    </div>
-                {/if}
-
-                {#if manageProblemsError}
-                    <p class="modal-error" role="alert">{manageProblemsError}</p>
-                {/if}
-                <div class="home-modal-actions">
-                    <button class="btn" type="button" onclick={revealContentFolder} disabled={revealingFolder}>{revealingFolder ? 'Opening…' : 'Open folder'}</button>
-                    <span class="modal-action-spacer"></span>
-                    <button class="btn modal-primary-btn" type="button" onclick={() => void closeManageProblems()}>Done</button>
-                </div>
-            </div>
-        </div>
+    {#if !$page.data.isDemoSite}
+        <ManageProblemsModal open={showManageProblems} {contentDir} bind:card={manageProblemsCard} onClose={closeManageProblems} />
     {/if}
     {#if showDockerSettings && isDesktopMode && !$page.data.isDemoSite}
         <DockerSettingsModal open={showDockerSettings} onClose={closeDockerSettings} onSaved={handleDockerSaved} />
@@ -2124,107 +1510,15 @@
             onClose={remindAboutAppUpdateLater}
         />
     {/if}
-    {#if showFirebaseSettings}
-        <div class="home-modal-shell">
-            <button class="home-modal-backdrop" aria-label="Close Firebase settings" tabindex="-1" onclick={closeFirebaseSettings}></button>
-            <div
-                bind:this={firebaseModalCard}
-                class="home-modal-card firebase-settings-card"
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="firebase-settings-title"
-            >
-                <form onsubmit={submitFirebaseSettings}>
-                <div class="modal-heading-row">
-                    <div>
-                        <span class="modal-eyebrow">Desktop connection</span>
-                        <h2 id="firebase-settings-title">Firebase settings</h2>
-                    </div>
-                    <span class:configured={firebaseConfigured} class="firebase-status-pill">
-                        <span></span>{firebaseConfigured ? 'Configured' : 'Not configured'}
-                    </span>
-                </div>
-                <p>Connect this desktop app to the Firebase project used for shared solutions and Cojudge Cloud.</p>
-                <div class="firebase-fields">
-                    <label>
-                        <span>API key <code>VITE_FIREBASE_API_KEY</code></span>
-                        <input bind:this={firebaseApiKeyInput} bind:value={firebaseForm.apiKey} required autocomplete="off" spellcheck="false" />
-                    </label>
-                    <label>
-                        <span>Auth domain <code>VITE_FIREBASE_AUTH_DOMAIN</code></span>
-                        <input bind:value={firebaseForm.authDomain} required autocomplete="off" spellcheck="false" placeholder="project.firebaseapp.com" />
-                    </label>
-                    <label>
-                        <span>Project ID <code>VITE_FIREBASE_PROJECT_ID</code></span>
-                        <input bind:value={firebaseForm.projectId} required autocomplete="off" spellcheck="false" />
-                    </label>
-                    <label>
-                        <span>Messaging sender ID <code>VITE_FIREBASE_MESSAGING_SENDER_ID</code></span>
-                        <input bind:value={firebaseForm.messagingSenderId} required autocomplete="off" spellcheck="false" inputmode="numeric" />
-                    </label>
-                    <label class="firebase-field-wide">
-                        <span>App ID <code>VITE_FIREBASE_APP_ID</code></span>
-                        <input bind:value={firebaseForm.appId} required autocomplete="off" spellcheck="false" />
-                    </label>
-                    <label class="firebase-field-wide">
-                        <span>Storage bucket <small>optional</small> <code>VITE_FIREBASE_STORAGE_BUCKET</code></span>
-                        <input bind:value={firebaseForm.storageBucket} autocomplete="off" spellcheck="false" placeholder="project.firebasestorage.app" />
-                    </label>
-                    <label class="firebase-field-wide">
-                        <span>Google desktop client ID <small>required for Cloud sign-in</small> <code>VITE_GOOGLE_DESKTOP_CLIENT_ID</code></span>
-                        <input bind:value={firebaseForm.googleDesktopClientId} autocomplete="off" spellcheck="false" placeholder="000000000000-example.apps.googleusercontent.com" />
-                    </label>
-                    <label class="firebase-field-wide">
-                        <span>Google desktop client secret <small>required for local/custom builds</small> <code>VITE_GOOGLE_DESKTOP_CLIENT_SECRET</code></span>
-                        <input type="password" bind:value={firebaseForm.googleDesktopClientSecret} autocomplete="off" spellcheck="false" placeholder="GOCSPX-…" />
-                    </label>
-                </div>
-                <p class="firebase-settings-note">Stored only on this device. Desktop OAuth credentials cannot be confidential in an installed app; PKCE protects each sign-in exchange.</p>
-                {#if firebaseSettingsError}
-                    <p class="modal-error" role="alert">{firebaseSettingsError}</p>
-                {/if}
-                    <div class="home-modal-actions settings-actions">
-                        {#if firebaseSettingsSaved}
-                            <button class="btn remove-settings-btn" type="button" onclick={removeFirebaseSettings}>Remove saved</button>
-                        {/if}
-                        <span class="modal-action-spacer"></span>
-                        <button class="btn" type="button" onclick={closeFirebaseSettings}>Cancel</button>
-                        <button class="btn modal-primary-btn" type="submit">Save settings</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    {/if}
-    {#if showLoadCode}
-        <div class="home-modal-shell">
-            <button class="home-modal-backdrop" aria-label="Close shared code loader" tabindex="-1" onclick={closeLoadCode}></button>
-            <div bind:this={loadModalCard} class="home-modal-card load-code-card" role="dialog" aria-modal="true" aria-labelledby="load-code-title">
-                <span class="modal-eyebrow">Shared solution</span>
-                <h2 id="load-code-title">Enter code</h2>
-                <p>Type or paste the four-character code from a Cojudge share link.</p>
-                <div class="load-code-inputs" aria-label="Four-character share code" onpaste={handleLoadCodePaste}>
-                    {#each loadCodeCharacters as character, index}
-                        <input
-                            bind:this={loadCodeInputs[index]}
-                            value={character}
-                            aria-label={`Code character ${index + 1}`}
-                            maxlength="1"
-                            autocomplete="off"
-                            autocapitalize="none"
-                            spellcheck="false"
-                            inputmode="text"
-                            oninput={(event) => updateLoadCode(index, event)}
-                            onkeydown={(event) => handleLoadCodeKeydown(index, event)}
-                        />
-                    {/each}
-                </div>
-                <p class="load-code-hint">Codes are case-sensitive and open automatically.</p>
-                <div class="home-modal-actions load-code-actions">
-                    <button class="btn" type="button" onclick={closeLoadCode}>Cancel</button>
-                </div>
-            </div>
-        </div>
-    {/if}
+    <FirebaseSettingsModal
+        open={showFirebaseSettings}
+        bind:card={firebaseModalCard}
+        bind:configured={firebaseConfigured}
+        bind:saved={firebaseSettingsSaved}
+        onClose={closeFirebaseSettings}
+        onNotice={showImportNotice}
+    />
+    <SharedCodeModal bind:open={showLoadCode} bind:card={loadModalCard} onClose={closeLoadCode} />
     {#if importNotice}
         <div class:error={importNotice.error} class="import-toast" role={importNotice.error ? 'alert' : 'status'}>
             <span>{importNotice.message}</span>
@@ -2236,96 +1530,16 @@
         </div>
     {/if}
     <div class="course-navigation">
-        <div class="lists-menu" bind:this={listsMenuRef}>
-            <button
-                bind:this={listsToggleButton}
-                type="button"
-                class="lists-toggle"
-                class:pending={isCourseNavigating}
-                disabled={!listsReady}
-                aria-haspopup="dialog"
-                aria-expanded={showListsMenu}
-                aria-controls="course-picker-panel"
-                aria-label={`Choose a list. Current list: ${pickerCourse?.title ?? 'None'}`}
-                aria-busy={isCourseNavigating || undefined}
-                onclick={toggleListsMenu}
-            >
-                <svg class="list-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="4" y="3" width="16" height="18" rx="3" />
-                    <path d="M9 8h6M9 12h6M9 16h3" />
-                </svg>
-                <span class="selected-course-title">{pickerCourse?.title ?? 'Choose a list'}</span>
-                {#if isCourseNavigating}<span class="tab-spinner" aria-hidden="true"></span>{/if}
-                <span class="lists-count">{visibleCourses.length} {visibleCourses.length === 1 ? 'list' : 'lists'}</span>
-                <svg class="lists-chevron" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="m6 8 4 4 4-4" />
-                </svg>
-            </button>
-            {#if showListsMenu}
-                <div id="course-picker-panel" class="lists-panel" role="dialog" aria-label={manageLists ? 'Manage lists' : 'Choose a list'} tabindex="-1" onkeydown={handleListsKeydown}>
-                    {#if manageLists}
-                        <button class="lists-back" type="button" onclick={() => { manageLists = false; listSearch = ''; listSearchInput?.focus(); }}>
-                            <span aria-hidden="true">←</span> Back to lists
-                        </button>
-                    {/if}
-                    <div class="lists-search">
-                        <svg viewBox="0 0 20 20" width="17" height="17" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
-                            <circle cx="8.5" cy="8.5" r="5.5" /><path d="m13 13 4 4" />
-                        </svg>
-                        <input bind:this={listSearchInput} bind:value={listSearch} type="search" placeholder="Find a list…" aria-label="Find a list" autocomplete="off" />
-                    </div>
-                    <div class="lists-results">
-                        {#if manageLists}
-                            <p class="lists-help">Choose the lists you want in your menu.</p>
-                            <div role="group" aria-label="Lists shown in the main menu">
-                                {#each filteredListCourses as course}
-                                    {@const checked = isCourseVisible(course, courseVisibility)}
-                                    <label class="lists-option">
-                                        <input type="checkbox" {checked} disabled={checked && visibleCourses.length === 1} onchange={(event) => setCourseVisible(course.id, event.currentTarget.checked)} />
-                                        <span>{course.title}</span>
-                                    </label>
-                                {/each}
-                            </div>
-                        {:else}
-                            <nav aria-label="Course">
-                                {#each filteredListCourses as course}
-                                    <a
-                                        class="list-link"
-                                        class:active={!showBookmarks && course.id === selectedCourseId}
-                                        href={`/?course=${encodeURIComponent(course.id)}`}
-                                        aria-current={!showBookmarks && course.id === selectedCourseId ? 'page' : undefined}
-                                        onclick={(event) => {
-                                            if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-                                            event.preventDefault();
-                                            selectCourse(course.id);
-                                            closeListsMenu();
-                                            void goto(`/?course=${encodeURIComponent(course.id)}`);
-                                        }}
-                                    >
-                                        <span>{course.title}</span>
-                                        {#if !showBookmarks && course.id === selectedCourseId}
-                                            <svg viewBox="0 0 20 20" width="17" height="17" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m4 10 4 4 8-8" /></svg>
-                                        {/if}
-                                    </a>
-                                {/each}
-                            </nav>
-                        {/if}
-                        {#if filteredListCourses.length === 0}<p class="lists-empty">No lists match “{listSearch}”.</p>{/if}
-                    </div>
-                    <div class="lists-footer">
-                        {#if manageLists}
-                            <button type="button" onclick={resetCourseVisibility}>Reset to default</button>
-                        {:else}
-                            <button type="button" onclick={() => { manageLists = true; listSearch = ''; listSearchInput?.focus(); }}>
-                                <svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 6h14M3 14h14" /><circle cx="7" cy="6" r="2" fill="var(--color-bg)" /><circle cx="13" cy="14" r="2" fill="var(--color-bg)" /></svg>
-                                Manage lists
-                            </button>
-                            <span>{visibleCourses.length} {visibleCourses.length === 1 ? 'list' : 'lists'}</span>
-                        {/if}
-                    </div>
-                </div>
-            {/if}
-        </div>
+        <CoursePicker
+            bind:this={coursePicker}
+            bind:open={showListsMenu}
+            {courses}
+            {selectedCourseId}
+            {pendingCourseId}
+            {isCourseNavigating}
+            {showBookmarks}
+            onSelect={selectCourse}
+        />
         {#if bookmarkCount > 0}
             <button type="button" class="bookmarks-toggle" class:active={showBookmarks} aria-pressed={showBookmarks} onclick={() => { showBookmarks = !showBookmarks; }}>
                 <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M5 3h10v14l-5-3-5 3z" /></svg>
@@ -2425,13 +1639,7 @@
         />
     {/if}
 
-    {#each Object.keys(grouped).toSorted((a, b) => {
-        const ra = orderMap[a] ?? Number.POSITIVE_INFINITY;
-        const rb = orderMap[b] ?? Number.POSITIVE_INFINITY;
-        if (ra !== rb) return ra - rb;
-        // fallback stable sort by pretty name
-        return pretty(a).localeCompare(pretty(b));
-    }) as key}
+    {#each categoryKeys as key}
         <div class="group" class:stale={isCourseNavigating}>
             <button
                 class="group-header {isGroupOpenMap[key] ? 'open' : ''}"
@@ -2652,71 +1860,15 @@
         gap: 0.75rem;
         margin-bottom: 1.25rem;
     }
-    .lists-menu { position: relative; flex: 0 1 620px; min-width: 0; }
-    .lists-toggle {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        width: 100%;
-        min-height: 54px;
-        padding: 0.85rem 1rem;
-        border: 1px solid var(--color-border);
-        border-radius: 12px;
-        background: var(--color-surface);
-        color: var(--color-text);
-        font: inherit;
-        text-align: left;
-        cursor: pointer;
-        transition: border-color 0.15s ease, background-color 0.15s ease;
-    }
-    .lists-toggle:hover, .lists-toggle[aria-expanded="true"] { border-color: var(--color-text-secondary); }
-    .lists-toggle:focus-visible, .list-link:focus-visible, .lists-footer button:focus-visible, .bookmarks-toggle:focus-visible {
+    .bookmarks-toggle:focus-visible {
         outline: 2px solid var(--color-primary);
         outline-offset: 3px;
     }
-    .list-icon { flex: 0 0 auto; color: var(--color-text-secondary); }
-    .selected-course-title { flex: 1; min-width: 0; overflow-wrap: anywhere; font-size: 1rem; font-weight: 600; line-height: 1.45; }
-    .lists-count { margin-left: 0.5rem; color: var(--color-text-secondary); font-size: 0.75rem; white-space: nowrap; }
-    .lists-chevron { flex: 0 0 auto; color: var(--color-text-secondary); transition: transform 0.15s ease; }
-    .lists-toggle[aria-expanded="true"] .lists-chevron { transform: rotate(180deg); }
-    .lists-panel {
-        position: absolute;
-        left: 0;
-        top: calc(100% + 8px);
-        z-index: 50;
-        width: 100%;
-        min-width: min(360px, calc(100vw - 48px));
-        overflow: hidden;
-        border: 1px solid var(--color-border);
-        border-radius: 12px;
-        background: var(--color-bg);
-        box-shadow: 0 12px 32px #0002;
-    }
-    .lists-search { display: flex; align-items: center; gap: 0.65rem; padding: 0.9rem 1rem; border-bottom: 1px solid var(--color-border); color: var(--color-text-secondary); }
-    .lists-search svg { flex: 0 0 auto; }
-    .lists-search input { width: 100%; min-width: 0; padding: 0; border: 0; outline: 0; background: transparent; color: var(--color-text); font: inherit; font-size: 0.9rem; }
-    .lists-results { max-height: min(420px, 50dvh); overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; padding: 0.35rem; }
-    .lists-results nav { display: block; }
-    .list-link, .lists-option { display: flex; align-items: center; gap: 0.75rem; min-height: 42px; padding: 0.65rem 0.7rem; border-radius: 7px; color: var(--color-text-secondary); font-size: 0.9rem; line-height: 1.4; cursor: pointer; text-decoration: none; }
-    .list-link span, .lists-option span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
-    .list-link svg { flex: 0 0 auto; color: var(--color-primary); }
-    .list-link:hover, .lists-option:hover { background: var(--color-surface-hover); color: var(--color-text); }
-    .list-link.active { background: color-mix(in srgb, var(--color-primary) 10%, transparent); color: var(--color-text); font-weight: 600; }
-    .lists-option input { width: 16px; height: 16px; flex: 0 0 auto; accent-color: var(--color-primary); }
-    .lists-footer { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.65rem 1rem; border-top: 1px solid var(--color-border); color: var(--color-text-secondary); font-size: 0.75rem; }
-    .lists-footer button, .lists-back { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.3rem 0; border: 0; background: transparent; color: var(--color-text-secondary); font: inherit; cursor: pointer; }
-    .lists-footer button:hover, .lists-back:hover { color: var(--color-text); }
-    .lists-back { margin: 0.6rem 1rem 0; font-size: 0.8rem; }
-    .lists-help, .lists-empty { margin: 0; padding: 0.75rem; color: var(--color-text-secondary); font-size: 0.8rem; }
     .bookmarks-toggle { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; flex: 0 0 auto; min-height: 44px; padding: 0.65rem 0.9rem; border: 1px solid var(--color-border); border-radius: 10px; background: transparent; color: var(--color-text-secondary); font: inherit; font-size: 0.85rem; cursor: pointer; }
     .bookmarks-toggle.active { background: var(--color-surface); color: var(--color-text); }
     .bookmarks-toggle span { font-size: 0.75rem; }
     @media (max-width: 640px) {
         .course-navigation { flex-wrap: wrap; gap: 0.65rem; }
-        .lists-menu { flex-basis: 100%; }
-        .lists-toggle { padding: 0.75rem; gap: 0.6rem; }
-        .lists-count { display: none; }
-        .lists-panel { min-width: 0; }
         .bookmarks-toggle { min-height: 36px; padding: 0.45rem 0.7rem; }
     }
     /* Intro card */
@@ -3057,14 +2209,6 @@
         text-transform: uppercase;
         color: var(--color-text-secondary);
     }
-    .manage-section-path {
-        display: block;
-        margin: 0 0 0.25rem;
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-        font-size: 0.82rem;
-        color: var(--color-text);
-        word-break: break-all;
-    }
     .manage-section p {
         margin: 0 !important;
         font-size: 0.82rem;
@@ -3073,45 +2217,6 @@
     }
     .manage-section .btn {
         margin-top: 0.55rem;
-    }
-    .manage-modified p {
-        margin-bottom: 0.55rem !important;
-    }
-    .manage-modified-list {
-        list-style: none;
-        display: grid;
-        gap: 0.35rem;
-        max-height: 12rem;
-        overflow-y: auto;
-        margin: 0 0 0.1rem;
-        padding: 0;
-    }
-    .manage-modified-list li {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        min-width: 0;
-    }
-    .manage-modified-id {
-        flex: 1 1 auto;
-        min-width: 0;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-        font-size: 0.82rem;
-        color: var(--color-text);
-    }
-    .manage-modified-kind {
-        flex: 0 0 auto;
-        font-size: 0.72rem;
-        color: var(--color-text-secondary);
-    }
-    .manage-modified-list .manage-reset-btn {
-        flex: 0 0 auto;
-        margin-top: 0;
-        padding: 0.3rem 0.7rem;
-        font-size: 0.8rem;
     }
     .manage-note {
         margin: 0 0 0.65rem !important;
@@ -3155,9 +2260,6 @@
     .manage-problems-card .home-modal-actions {
         margin-top: 1.15rem;
     }
-    .firebase-settings-card {
-        width: min(720px, 100%);
-    }
     .firebase-status-pill {
         display: inline-flex;
         align-items: center;
@@ -3183,75 +2285,11 @@
         background: var(--color-easy);
         box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-easy) 16%, transparent);
     }
-    .firebase-fields {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 0.9rem 1rem;
-        margin-top: 1.25rem;
-    }
-    .firebase-fields label {
-        display: grid;
-        gap: 0.4rem;
-        min-width: 0;
-        color: var(--color-text);
-        font-size: 0.82rem;
-        font-weight: 650;
-    }
-    .firebase-fields label > span {
-        display: flex;
-        align-items: baseline;
-        justify-content: space-between;
-        gap: 0.5rem;
-    }
-    .firebase-fields code {
-        overflow: hidden;
-        color: var(--color-text-secondary);
-        font-size: 0.62rem;
-        font-weight: 500;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-    .firebase-fields small {
-        color: var(--color-text-secondary);
-        font-size: 0.7rem;
-        font-weight: 500;
-    }
-    .firebase-fields input {
-        width: 100%;
-        min-width: 0;
-        box-sizing: border-box;
-        padding: 0.65rem 0.7rem;
-        border: 1px solid var(--color-border);
-        border-radius: 0.5rem;
-        outline: none;
-        background: var(--color-surface);
-        color: var(--color-text);
-        font-family: var(--font-mono);
-        font-size: 0.8rem;
-    }
-    .firebase-fields input:focus {
-        border-color: var(--color-highlight);
-        box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-highlight) 18%, transparent);
-    }
-    .firebase-field-wide {
-        grid-column: 1 / -1;
-    }
-    .home-modal-card .firebase-settings-note {
-        margin-top: 1rem;
-        padding: 0.75rem;
-        border-radius: 0.5rem;
-        background: var(--color-second-bg);
-        font-size: 0.76rem;
-    }
     .modal-error {
         margin-top: 0.75rem !important;
         color: var(--color-hard) !important;
         font-size: 0.8rem;
         font-weight: 600;
-    }
-    .settings-actions {
-        border-top: 1px solid var(--color-border);
-        padding-top: 1rem;
     }
     .modal-action-spacer {
         flex: 1;
@@ -3267,52 +2305,6 @@
     }
     .clear-progress-danger-btn:hover {
         filter: brightness(1.1);
-    }
-    .load-code-card {
-        width: min(560px, 100%);
-        padding: 2.25rem;
-        text-align: center;
-    }
-    .load-code-card h2 {
-        margin-bottom: 0.5rem;
-        font-size: clamp(1.7rem, 5vw, 2.25rem);
-    }
-    .load-code-inputs {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: clamp(0.55rem, 2vw, 1rem);
-        width: min(410px, 100%);
-        margin: 2rem auto 0;
-    }
-    .load-code-inputs input {
-        width: 100%;
-        aspect-ratio: 0.9;
-        min-width: 0;
-        box-sizing: border-box;
-        border: 2px solid var(--color-border);
-        border-radius: 0.75rem;
-        outline: none;
-        background: var(--color-surface);
-        color: var(--color-text);
-        font-family: var(--font-mono);
-        font-size: clamp(1.55rem, 7vw, 2.25rem);
-        font-weight: 750;
-        text-align: center;
-        caret-color: var(--color-highlight);
-        transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
-    }
-    .load-code-inputs input:focus {
-        border-color: var(--color-highlight);
-        box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-highlight) 18%, transparent);
-        transform: translateY(-2px);
-    }
-    .home-modal-card .load-code-hint {
-        margin-top: 0.75rem;
-        font-size: 0.76rem;
-    }
-    .load-code-actions {
-        justify-content: center;
-        margin-top: 1.75rem;
     }
     .import-toast {
         position: fixed;
@@ -3349,21 +2341,6 @@
     }
     .import-toast.error {
         border-left-color: var(--color-hard);
-    }
-    /* Loading indicator for course changes. */
-    .tab-spinner {
-        width: 0.8rem;
-        height: 0.8rem;
-        flex: 0 0 auto;
-        border-radius: 50%;
-        border: 2px solid color-mix(in srgb, currentColor 30%, transparent);
-        border-top-color: currentColor;
-        animation: tab-spin 0.7s linear infinite;
-    }
-    @keyframes tab-spin {
-        to {
-            transform: rotate(360deg);
-        }
     }
     /* Dim stale course content while the next course loads (not blocked). */
     .stale {
@@ -3728,33 +2705,14 @@
             padding: 1.25rem;
             border-radius: 1rem;
         }
-        .firebase-fields {
-            grid-template-columns: 1fr;
-        }
-        .firebase-field-wide {
-            grid-column: auto;
-        }
-        .firebase-fields label > span {
-            display: grid;
-            gap: 0.15rem;
-        }
         .modal-heading-row {
             display: grid;
         }
         .firebase-status-pill {
             width: fit-content;
         }
-        .settings-actions .remove-settings-btn {
-            width: 100%;
-        }
         .modal-action-spacer {
             display: none;
-        }
-        .load-code-card {
-            padding: 1.75rem 1.25rem;
-        }
-        .load-code-inputs {
-            margin-top: 1.5rem;
         }
     }
 </style>
