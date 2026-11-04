@@ -6,7 +6,6 @@ async function expectProgressReady(page: Page) {
 }
 
 test('restores before opening the editor and synchronizes real browser changes', async ({ page, browser, request }) => {
-  test.skip(!process.env.COJUDGE_SYNC_E2E, 'Run with the isolated server-progress config.');
   const data = {
     solutions: { 'two-sum:python': '# saved solution from server' },
     files: { 'two-sum': JSON.stringify([{ fileId: 'persisted-file', fileName: 'solution.py', language: 'python', content: '# saved solution from server', isActive: true, isOpen: true }]) },
@@ -61,7 +60,6 @@ test('restores before opening the editor and synchronizes real browser changes',
 });
 
 test('keeps two authenticated profiles separate and preserves offline work when switching accounts', async ({ browser, request }) => {
-  test.skip(!process.env.COJUDGE_SYNC_E2E, 'Run with the isolated server-progress config.');
   const ownerBefore = await (await request.get('/api/server-progress')).json();
   const ownerHeaders = { 'X-CoJudge-User': 'musel', 'X-CoJudge-Profile': 'musel' };
   const sisterHeaders = { 'X-CoJudge-User': 'alessa', 'X-CoJudge-Profile': 'alessa' };
@@ -103,7 +101,6 @@ test('keeps two authenticated profiles separate and preserves offline work when 
 });
 
 test('waits for another tab before changing the active browser profile', async ({ browser }) => {
-  test.skip(!process.env.COJUDGE_SYNC_E2E, 'Run with the isolated server-progress config.');
   const context = await browser.newContext({ extraHTTPHeaders: { 'X-CoJudge-User': 'musel' } });
   const original = await context.newPage();
   await original.goto('http://localhost:4175/');

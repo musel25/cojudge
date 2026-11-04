@@ -1,6 +1,5 @@
 import { expect, test } from '@playwright/test';
 
-test.use({ baseURL: 'http://127.0.0.1:5375' });
 
 test('leetcode-1000 shows Cojudge numbers, pattern groups, last tab', async ({ page }) => {
   await page.goto('/?course=leetcode-1000');
@@ -17,7 +16,7 @@ test('leetcode-1000 shows Cojudge numbers, pattern groups, last tab', async ({ p
   await expect(page.getByText('Simulation', { exact: false }).first()).toBeVisible();
   // Expand the arrays-hashing group, then check Cojudge numbers in rows
   await page.locator('button.group-header', { hasText: 'Arrays Hashing' }).click();
-  await expect(page.getByRole('link', { name: /1\. Two Sum/ })).toBeVisible();
-  await expect(page.getByRole('link', { name: /6\. Majority Element/ })).toBeVisible();
+  await expect(page.getByRole('link', { name: '1. Two Sum', exact: true })).toBeVisible();
+  await expect(page.getByRole('link', { name: '6. Majority Element', exact: true })).toBeVisible();
   await page.screenshot({ path: '/tmp/lc1000-check.png' });
 });

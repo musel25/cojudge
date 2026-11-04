@@ -27,32 +27,28 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     const validActions = ['continue', 'step', 'stop', 'setBreakpoints', 'eval'];
-    if (!validActions.includes(action)) {
-        return json({ error: `Invalid action '${action}'. Must be one of: ${validActions.join(', ')}` }, { status: 400 });
-    }
-
     try {
-        if (action === 'continue') {
-            const state = await debugContinue(jobId);
-            return json(state);
-        } else if (action === 'step') {
-            const state = await debugStep(jobId);
-            return json(state);
-        } else if (action === 'stop') {
-            await debugStop(jobId);
-            return json({ status: 'stopped' });
-        } else if (action === 'setBreakpoints') {
-            if (!Array.isArray(breakpoints)) {
-                return json({ error: 'breakpoints must be an array of line numbers' }, { status: 400 });
-            }
-            await debugSetBreakpoints(jobId, breakpoints);
-            return json({ status: 'ok' });
-        } else if (action === 'eval') {
-            if (!variable || typeof variable !== 'string') {
-                return json({ error: 'Missing expression for eval action' }, { status: 400 });
-            }
-            const result = await debugEval(jobId, variable.trim());
-            return json(result);
+        switch (action) {
+            case 'continue':
+                return json(await debugContinue(jobId));
+            case 'step':
+                return json(await debugStep(jobId));
+            case 'stop':
+                await debugStop(jobId);
+                return json({ status: 'stopped' });
+            case 'setBreakpoints':
+                if (!Array.isArray(breakpoints)) {
+                    return json({ error: 'breakpoints must be an array of line numbers' }, { status: 400 });
+                }
+                await debugSetBreakpoints(jobId, breakpoints);
+                return json({ status: 'ok' });
+            case 'eval':
+                if (!variable || typeof variable !== 'string') {
+                    return json({ error: 'Missing expression for eval action' }, { status: 400 });
+                }
+                return json(await debugEval(jobId, variable.trim()));
+            default:
+                return json({ error: `Invalid action '${action}'. Must be one of: ${validActions.join(', ')}` }, { status: 400 });
         }
     } catch (e: any) {
         return json({ error: e.message || 'Debug action failed' }, { status: 400 });

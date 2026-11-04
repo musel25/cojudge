@@ -150,7 +150,7 @@ test('discarding an active WYSIWYG file reloads the restored content', async ({ 
       ])
     });
     localStorage.setItem('files', restoredFiles);
-    window.dispatchEvent(new StorageEvent('storage', { key: 'files', newValue: restoredFiles }));
+    window.dispatchEvent(new StorageEvent('storage', { key: 'files', newValue: restoredFiles, storageArea: localStorage }));
     window.dispatchEvent(new CustomEvent('cojudge:cloud-file-discarded', { detail: { fileId: 'active-file' } }));
     window.dispatchEvent(new Event('cojudge:cloud-flush'));
   });
@@ -393,8 +393,10 @@ test('pasted images render as thumbnails with lightbox and delete in the preview
   // The thumbnail is constrained, not the original 800x600 size
   const thumbBox = await thumbnail.locator('img').boundingBox();
   expect(thumbBox).not.toBeNull();
-  expect(thumbBox!.width).toBeLessThanOrEqual(240);
-  expect(thumbBox!.height).toBeLessThanOrEqual(160);
+  // Measure the image content, excluding its decorative border.
+  const thumbSize = await thumbnail.locator('img').evaluate(image => ({ width: image.clientWidth, height: image.clientHeight }));
+  expect(thumbSize.width).toBeLessThanOrEqual(240);
+  expect(thumbSize.height).toBeLessThanOrEqual(160);
 
   // Clicking the thumbnail opens a full-screen lightbox
   await thumbnail.locator('img').click();
@@ -1323,7 +1325,7 @@ test('WYSIWYG @ mention inserts a playground file link and click switches tab', 
   // Clicking the in-app link switches tab without leaving playground
   await link.click();
   await expect(page).toHaveURL(/\/playground/);
-  await expect(page.locator('.tab.active')).toContainText('TargetDoc');
+  await expect(page.getByRole('tab', { selected: true })).toContainText('TargetDoc');
 });
 
 test('WYSIWYG checklists toggle, continue on Enter, and break out when empty', async ({ page }) => {

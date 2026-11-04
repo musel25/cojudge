@@ -31,7 +31,7 @@ function initCollapseState(wrapper: HTMLElement) {
     if (!codeEl) return;
     const codeText = codeEl.textContent || '';
     const preEl = wrapper.querySelector('pre');
-    const expandLabel = wrapper.querySelector('.code-block-lang-label');
+    const expandLabel = wrapper.querySelector<HTMLElement>('.code-block-lang-label');
     const collapseBtn = wrapper.querySelector('.collapse-code-button');
     if (!preEl || !collapseBtn) return;
 
@@ -43,7 +43,7 @@ function initCollapseState(wrapper: HTMLElement) {
     }
 }
 
-function applyCollapsedState(wrapper: HTMLElement, preEl: Element, expandLabel: Element | null, collapseBtn: Element) {
+function applyCollapsedState(wrapper: HTMLElement, preEl: HTMLPreElement, expandLabel: HTMLElement | null, collapseBtn: Element) {
     preEl.style.display = 'none';
     wrapper.classList.add('collapsed');
     collapseBtn.setAttribute('aria-label', 'Expand code');
@@ -52,7 +52,7 @@ function applyCollapsedState(wrapper: HTMLElement, preEl: Element, expandLabel: 
     if (expandLabel) expandLabel.style.display = '';
 }
 
-function applyExpandedState(wrapper: HTMLElement, preEl: Element, expandLabel: Element | null, collapseBtn: Element) {
+function applyExpandedState(wrapper: HTMLElement, preEl: HTMLPreElement, expandLabel: HTMLElement | null, collapseBtn: Element) {
     preEl.style.display = '';
     wrapper.classList.remove('collapsed');
     collapseBtn.setAttribute('aria-label', 'Collapse code');
@@ -98,7 +98,7 @@ if (typeof document !== 'undefined') {
         if (!codeEl) return;
         const codeText = codeEl.textContent || '';
         const preEl = wrapper.querySelector('pre');
-        const expandLabel = wrapper.querySelector('.code-block-lang-label');
+        const expandLabel = wrapper.querySelector<HTMLElement>('.code-block-lang-label');
         if (!preEl) return;
 
         const isCurrentlyCollapsed = wrapper.classList.contains('collapsed');

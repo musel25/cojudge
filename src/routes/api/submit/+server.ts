@@ -6,14 +6,7 @@ import { ensureUserContentSeeded, resolveProblemFile } from '$lib/server/content
 import { getMarkerResponses } from '../../../lib/markerRunner';
 import { presentAssertionResult } from '$lib/utils/assertionResult';
 import { ProgramRunner } from '$lib/runners/ProgramRunner';
-import { JavaRunner } from '$lib/runners/JavaRunner';
-import { PythonRunner } from '$lib/runners/PythonRunner';
-import { CppRunner } from '$lib/runners/CppRunner';
-import { CSharpRunner } from '$lib/runners/CSharpRunner';
-import { RustRunner } from '$lib/runners/RustRunner';
-import { GoRunner } from '$lib/runners/GoRunner';
-import { PhpRunner } from '$lib/runners/PhpRunner';
-import { TypeScriptRunner } from '$lib/runners/TypeScriptRunner';
+import { createProblemRunner } from '$lib/runners/createProblemRunner';
 import { TIMEOUT_MESSAGE, annotateCrashSignal, type JobStatus } from '$lib/utils/util';
 
 type SubmitResult = {
@@ -50,97 +43,77 @@ function isJavaLanguage(language: string): boolean {
     return language === 'java';
 }
 
-async function executeSubmit(problemId: string, language: string, code: string, startTcNo: number, job: SubmitJob) {
+async function executeSubmit(problemId: string, language: string, code: string, startTcNo: unknown, job: SubmitJob) {
+    let batchStart = 0;
     let timeoutTestcase: any = null;
     let batchTestCases: any[] = [];
     try {
         job.status = 'running';
+        const offset = startTcNo === undefined ? 0 : startTcNo;
+        if ((typeof offset !== 'number' && typeof offset !== 'string') ||
+            (typeof offset === 'string' && offset.trim() === '') ||
+            !Number.isSafeInteger(Number(offset)) || Number(offset) < 0) {
+            throw new Error('startTcNo must be a non-negative integer');
+        }
+        batchStart = Number(offset);
         await ensureUserContentSeeded();
 
         const problemPath = await resolveProblemFile(problemId, 'metadata.json');
         const problemContent = await fs.readFile(problemPath, 'utf-8');
         const problemData = JSON.parse(problemContent);
 
-        let officialTestsPath = await resolveProblemFile(problemId, 'official-tests.json');
-        let testCases: any[] = [];
-        let totalTc = 0;
-        let passedTc = 0;
+        const officialTestsPath = await resolveProblemFile(problemId, 'official-tests.json');
+        let officialTests: any[];
         try {
-            const officialContent = await fs.readFile(officialTestsPath, 'utf-8');
-            testCases = JSON.parse(officialContent);
-            totalTc = testCases.length;
-            if (startTcNo >= totalTc) {
-                job.result = { allAccepted: true, totalTc, passedTc: totalTc, results: [] };
-                job.status = 'completed';
-                return;
+            officialTests = JSON.parse(await fs.readFile(officialTestsPath, 'utf-8'));
+            if (!Array.isArray(officialTests) || officialTests.length === 0) {
+                throw new Error('Expected a non-empty array of test case objects');
             }
-            let tcNo = startTcNo;
-            const newTestCases = [testCases[tcNo]];
-            timeoutTestcase = newTestCases[0];
-            while (!testCases[tcNo]._isLargeTest && tcNo + 1 < testCases.length && !testCases[tcNo + 1]._isLargeTest) {
-                newTestCases.push(testCases[tcNo + 1]);
-                tcNo++;
-            }
-            testCases = newTestCases;
-            passedTc = newTestCases.length;
-            batchTestCases = newTestCases;
-            const JAVASCRIPT_PREFIX = '@javascript:';
-            for (let i = 0; i < testCases.length; i++) {
-                const tc = testCases[i];
-                if (tc && typeof tc === 'object') {
-                    for (const k of Object.keys(tc)) {
-                        const v = tc[k];
-                        if (typeof v === 'string' && v.startsWith(JAVASCRIPT_PREFIX)) {
-                            const expr = v.slice(JAVASCRIPT_PREFIX.length);
-                            try {
-                                const evaluated = vm.runInNewContext(expr, {}, { timeout: 2000 });
-                                if (typeof evaluated === 'string') {
-                                    tc[k] = evaluated;
-                                } else if (typeof evaluated === 'object') {
-                                    tc[k] = JSON.stringify(evaluated);
-                                } else {
-                                    tc[k] = String(evaluated);
-                                }
-                            } catch (e) {
-                                try { tc[k] = v.replace(JAVASCRIPT_PREFIX, ''); } catch {}
-                            }
-                        }
-                    }
+            for (const [index, tc] of officialTests.entries()) {
+                if (!tc || typeof tc !== 'object' || Array.isArray(tc) ||
+                    ('_isLargeTest' in tc && typeof tc._isLargeTest !== 'boolean') ||
+                    (problemData.scriptMode !== true && (problemData.params ?? []).some(
+                        (param: { name: string }) => !Object.hasOwn(tc, param.name)
+                    ))) {
+                    throw new Error(`Invalid test case at index ${index}`);
                 }
             }
-        } catch (err) {
-            testCases = problemData.testCases || [];
-            totalTc = testCases.length;
-            passedTc = testCases.length;
-            if (startTcNo >= totalTc) {
-                job.result = { allAccepted: true, totalTc, passedTc: 0, results: [] };
-                job.status = 'completed';
-                return;
+        } catch (error) {
+            throw new Error(`Cannot load official-tests.json: ${error instanceof Error ? error.message : String(error)}`);
+        }
+        const totalTc = officialTests.length;
+        if (batchStart > totalTc) {
+            throw new Error('startTcNo exceeds the official test count');
+        }
+        // The client requests this exact offset after every batch passes.
+        if (batchStart === totalTc) {
+            job.result = { allAccepted: true, totalTc, passedTc: totalTc, results: [] };
+            job.status = 'completed';
+            return;
+        }
+        let tcNo = batchStart;
+        const testCases = [officialTests[tcNo]];
+        timeoutTestcase = testCases[0];
+        while (!officialTests[tcNo]._isLargeTest && tcNo + 1 < totalTc && !officialTests[tcNo + 1]._isLargeTest) {
+            testCases.push(officialTests[++tcNo]);
+        }
+        batchTestCases = testCases;
+        const JAVASCRIPT_PREFIX = '@javascript:';
+        for (const [index, tc] of testCases.entries()) {
+            for (const key of Object.keys(tc)) {
+                const value = tc[key];
+                if (typeof value !== 'string' || !value.startsWith(JAVASCRIPT_PREFIX)) continue;
+                try {
+                    const evaluated = vm.runInNewContext(value.slice(JAVASCRIPT_PREFIX.length), {}, { timeout: 2000 });
+                    tc[key] = typeof evaluated === 'string' ? evaluated
+                        : typeof evaluated === 'object' ? JSON.stringify(evaluated) : String(evaluated);
+                } catch (error) {
+                    throw new Error(`Cannot process official-tests.json test ${batchStart + index}, field ${key}: ${error instanceof Error ? error.message : String(error)}`);
+                }
             }
         }
-        if (batchTestCases.length === 0) batchTestCases = testCases;
 
-        let programRunner: ProgramRunner | null = null;
-        if (language === 'java') {
-            programRunner = new JavaRunner(problemId, testCases, code);
-        } else if (language === 'python') {
-            programRunner = new PythonRunner(problemId, testCases, code);
-        } else if (language === 'cpp') {
-            programRunner = new CppRunner(problemId, testCases, code);
-        } else if (language === 'csharp') {
-            programRunner = new CSharpRunner(problemId, testCases, code);
-        } else if (language === 'rust') {
-            programRunner = new RustRunner(problemId, testCases, code);
-        } else if (language === 'go') {
-            programRunner = new GoRunner(problemId, testCases, code);
-        } else if (language === 'typescript') {
-            programRunner = new TypeScriptRunner(problemId, testCases, code);
-        } else if (language === 'php') {
-            programRunner = new PhpRunner(problemId, testCases, code);
-        }
-        if (!programRunner) {
-            throw new Error(`${language} is not supported yet`);
-        }
+        const programRunner = createProblemRunner(language, problemId, testCases, code);
         await programRunner.compile();
         const rawResults = await programRunner.run();
         if (programRunner.lastRunMetrics) {
@@ -238,7 +211,7 @@ async function executeSubmit(problemId: string, language: string, code: string, 
                     actualAnswer: parsed[i]?.output ?? '',
                     correctAnswer: parsed[i]?.output ?? '',
                     isCorrect: false,
-                    logs: String(e?.message || e)
+                    logs: e instanceof Error ? e.message : String(e)
                 }));
             }
             markerResponses = markerResponses.map((mr, i) => ({
@@ -279,7 +252,7 @@ async function executeSubmit(problemId: string, language: string, code: string, 
             }
             job.error = `Submission failed: details: ${annotateCrashSignal(error.message || error)}`;
             job.errorTestCase = batchTestCases[crashIndex];
-            job.errorTestIndex = startTcNo + crashIndex;
+            job.errorTestIndex = batchStart + crashIndex;
             job.status = 'error';
         }
     }
@@ -290,7 +263,7 @@ export const POST: RequestHandler = async ({ request }) => {
     const id = genId();
     const job: SubmitJob = { id, status: 'pending', createdAt: Date.now() };
     jobs.set(id, job);
-    executeSubmit(problemId, language, code, Number(startTcNo) || 0, job);
+    executeSubmit(problemId, language, code, startTcNo, job);
     return json({ jobId: id });
 };
 

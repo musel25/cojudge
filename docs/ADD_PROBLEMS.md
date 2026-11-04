@@ -2,6 +2,8 @@
 
 This guide explains how to add a new problem to Cojudge, with examples for both standard function-based problems and class-based design problems.
 
+For a repository contribution, create `problems/<slug>/` in the repository. Update `courses/<course-id>/courseinfo.json` for the target course. Use `npm run verify:problems -- <slug>` to verify repository content with isolated storage. Do not edit a learner's `~/cojudge` directory during a repository task.
+
 ## Where content lives (`~/cojudge`)
 
 For local use, Cojudge keeps all editable content in your home folder:
@@ -21,7 +23,7 @@ On first start, Cojudge copies (seeds) the repo's bundled `problems/` and `cours
 
 Only `statement.md`, `metadata.json`, `official-tests.json`, and `Marker.java` are required. `solution.md` is optional — if present, a "Reference Solution" button appears in the UI.
 
-After creating the problem files, register it in `~/cojudge/courses/blind75/courseinfo.json`.
+After creating personal problem files, register them in `~/cojudge/courses/<course-id>/courseinfo.json`. Use the requested course. Blind 75 is one example, not the default for every problem.
 
 > Contributing to the repo itself? Edit `problems/` / `courses/` in the repo — those are the seed contents that get copied to `~/cojudge` on first start.
 
@@ -523,7 +525,7 @@ whole program, not a function. The editor contains only the learner's code.
 
 ## 8. Registering in a Course
 
-Add the problem slug to `~/cojudge/courses/blind75/courseinfo.json` under the appropriate category:
+Add the problem slug to `courses/<course-id>/courseinfo.json` under the appropriate category. For a personal-content task, use that file under the selected user content directory instead:
 
 ```json
 {
@@ -547,6 +549,10 @@ You can also add problems to categories that don't exist yet:
 ---
 
 ## 9. Verification
+
+For repository changes, run `npm run verify:problems -- <slug>`. This command uses repository content, its own server, and temporary CLI progress. Official tests must be valid and non-empty. Submission reports an error when they cannot load. See [DEVELOPMENT.md](DEVELOPMENT.md) for the full check matrix.
+
+The manual CLI examples below use the CLI's configured content and progress. Use a temporary content directory and `COJUDGE_PROGRESS_FILE` for repository smoke tests. Do not attach them to a live learner server.
 
 ### 9.1 Initialize starter code
 
@@ -574,7 +580,7 @@ All sample tests should pass.
 
 Create an intentionally wrong solution to ensure the judge correctly rejects it.
 
-### 9.4 Run submission tests (optional)
+### 9.4 Run submission tests
 
 ```bash
 cojudge submit <slug> /tmp/solution.java
@@ -588,8 +594,8 @@ cojudge submit <slug> /tmp/solution.java
 
 ### Verification Checklist
 
-- [ ] `cojudge init` produces correct starter code for all 7 languages
-- [ ] `cojudge run` passes for a correct solution in all 7 languages
+- [ ] `cojudge init` produces correct starter code for each supported language
+- [ ] `cojudge run` passes for a correct solution in each supported language
 - [ ] `cojudge run` fails for an incorrect solution
 - [ ] `cojudge submit` passes (official tests)
 - [ ] Problem appears in the web UI under the correct category

@@ -47,7 +47,7 @@
 
 ## Requirements
 
-- Node.js (v18+) and npm for CLI or source installs; desktop releases bundle Node.js
+- Node.js 22.21.0 (see `.nvmrc`) and npm for CLI or source installs; desktop releases bundle Node.js
 - Docker (installed and running, only required while judging)
 
 ## Quickstart
@@ -165,15 +165,17 @@ See [`docs/DESKTOP.md`](docs/DESKTOP.md) for development, DMG, signing, and nota
 
 ## Development
 
+See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for the full setup, isolated test data, and verification commands. Run `npm run verify` before submitting a change.
+
 1) Add $USER to docker group (if using Docker)
 ```bash
 sudo usermod -aG docker "$USER"
 newgrp docker
 ```
 
-2) Install dependencies
+2) Install locked dependencies with the Node.js version from `.nvmrc`
 ```bash
-npm install
+npm ci
 ```
 3) Start the app (dev)
 ```bash
@@ -191,7 +193,7 @@ See [`docs/ADD_PROBLEMS.md`](docs/ADD_PROBLEMS.md) for a comprehensive guide cov
 - Supported parameter/output types
 - Starter code conventions for all languages
 - How to write `Marker.java` with the reference solution and `isCorrect` validator
-- Registration in `~/cojudge/courses/blind75/courseinfo.json`
+- Registration in the requested course (`courses/<course-id>/courseinfo.json` for repository changes)
 - Verification checklist (`cojudge init`/`run`/`submit`)
 
 Refer to `~/cojudge/problems/two-sum` (seeded from `problems/two-sum`) for a minimal example.
@@ -202,23 +204,7 @@ Some test cases and reference marker solutions were AI‑assisted and human‑re
 
 ## Add a programming language
 
-This is a more complicated process but it is definitely doable.
-
-1. For starter you need to create a new class that extends class `ProgramRunner.ts` (e.g. `JavascriptRunner.ts`) and implement your own `abstract compile()` and `abstract run()`. It's expected that all runtimes will be executed via [Dockerode](https://github.com/apocas/dockerode)
-
-2. Implement all the `displayOutput({inputType})` and `to_{inputType}()` methods on your custom utilitiy class (e.g. `javascriptUtil.ts`)
-
-3. Add your new languages on `api/image/pull` and `api/image/status`
-
-4. Add `starterCode` to the problem you like to solve in your language. Just the starter code is needed for existing problems. No need for solution in the new language. Our codebase will handle the rest.
-
-5. Update `type ProgrammingLanguage = 'java' | 'python' | 'cpp' | 'your_new_lang'` on `util.ts`;
-
-6. Add a new `<option>` on the UI for the new language in `#language-select`
-
-7. Create a new class that extends `PlaygroundRunner` (e.g. `PlaygroundJavascriptRunner`) in `src/lib/runners/PlaygroundRunners.ts` and add the instantiation logic in `src/routes/api/playground/run/+server.ts`.
-
-Refer to `javaUtil.ts`, `JavaRunner.ts` and `problems/two-sum` (runtime copy: `~/cojudge/problems/two-sum`) for a detailed example.
+Follow [docs/ADD_LANGUAGE.md](docs/ADD_LANGUAGE.md). The guide covers the shared problem runner factory, language utilities, Docker images, playground, debugger, starter code, and verification.
 
 ## Troubleshooting
 
