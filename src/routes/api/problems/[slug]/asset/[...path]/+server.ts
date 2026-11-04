@@ -28,7 +28,7 @@ export const GET: RequestHandler = async ({ params }) => {
         const data = await fs.readFile(assetPath);
         const ext = path.extname(assetPath).toLowerCase();
         const mimeType = MIME_TYPES[ext] || 'application/octet-stream';
-        return new Response(data, {
+        return new Response(new Uint8Array(data), {
             headers: { 'Content-Type': mimeType },
         });
     } catch {
