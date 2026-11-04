@@ -1479,11 +1479,6 @@
         border-color: var(--color-border);
         color: var(--color-text-secondary);
     }
-    .btn-debug.active {
-        background-color: rgba(229, 62, 62, 0.15);
-        border-color: #e53e3e;
-        color: #e53e3e;
-    }
     .debug-view {
         display: flex;
         flex-direction: column;

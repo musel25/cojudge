@@ -4928,7 +4928,7 @@ echo "hello\\n";`,
                 const newLi = document.createElement('li');
                 let node: Node | null = box;
                 while (node) {
-                    const nextNode = node.nextSibling;
+                    const nextNode: ChildNode | null = node.nextSibling;
                     newLi.appendChild(node);
                     node = nextNode;
                 }
@@ -6780,6 +6780,8 @@ echo "hello\\n";`,
     {#if isSidebarOpen}
     <div
         class="sidebar {explorerDragOverRoot ? 'drag-over-root' : ''}"
+        role="region"
+        aria-label={activePanel === 'explorer' ? 'File explorer' : 'File search'}
         on:dragenter|preventDefault={handleExplorerDragEnter}
         on:dragover|preventDefault={handleExplorerDragOver}
         on:dragleave={handleExplorerDragLeave}
@@ -6866,6 +6868,7 @@ echo "hello\\n";`,
                         on:pointerdown={(e) => handleExplorerPointerDown(e, t.fileId)}
                         on:contextmenu={(e) => openExplorerContextMenu(e, t)}
                         role="treeitem"
+                        aria-selected={t.kind === 'file' && hasOpenTabs && t.fileId === activeExplorerFileId}
                         aria-expanded={t.kind === 'folder' ? isFolderExpanded(t.fileId) : undefined}
                         tabindex="0"
                         on:keydown={(e) => {
@@ -8632,17 +8635,17 @@ echo "hello\\n";`,
         text-align: left;
     }
 
-    .markdown-preview img {
+    .markdown-preview :global(img) {
         max-width: 100%;
         box-sizing: content-box;
     }
 
-    .markdown-preview a {
+    .markdown-preview :global(a) {
         color: var(--color-highlight);
         text-decoration: none;
     }
 
-    .markdown-preview a:hover {
+    .markdown-preview :global(a:hover) {
         text-decoration: underline;
     }
 
@@ -8869,10 +8872,6 @@ echo "hello\\n";`,
         outline: 1px solid #eab308;
     }
 
-    .icon-button.active {
-        color: var(--color-highlight);
-        background: color-mix(in srgb, var(--color-highlight) 15%, transparent);
-    }
 
     .markdown-mode-switch {
         display: inline-flex;
@@ -9154,18 +9153,6 @@ echo "hello\\n";`,
         font-family: inherit;
     }
 
-    .file-group-header {
-        padding: 4px var(--spacing-2);
-        font-size: 0.75rem;
-        font-weight: 600;
-        color: var(--color-text-secondary);
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        margin-top: 8px;
-    }
-    .file-group:first-child .file-group-header {
-        margin-top: 0;
-    }
 
     /* Empty State */
     .empty-state {
