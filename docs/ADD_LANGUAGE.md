@@ -105,21 +105,19 @@ export function generateYourRunner(functionName: string, params: Param[], testCa
 - **Disable nullable warnings** with `#nullable disable` for simpler parsing code
 - **Use safe character literals** (`\0` not `\\0`, `'` not `\\'`)
 
-### 3. Update API Endpoints
+### 3. Register the Problem Runner and Images
 
-Add to both run endpoints:
+Register the language once in `src/lib/runners/createProblemRunner.ts`. Both Run and Submit use this factory:
 
-**`src/routes/api/run/+server.ts`:**
+**`src/lib/runners/createProblemRunner.ts`:**
 ```typescript
 import { YourLanguageRunner } from '$lib/runners/YourLanguageRunner';
 
-// Add in executeRun function:
-else if (language === 'yourlang') {
-    programRunner = new YourLanguageRunner(problemId, testCases, code);
-}
+// Add this entry to the problemRunners map:
+['yourlang', YourLanguageRunner],
 ```
 
-**`src/routes/api/submit/+server.ts`:** - Same pattern as above
+Do not add separate language-selection branches to the Run and Submit routes.
 
 **`src/routes/api/image/pull/+server.ts` and `src/routes/api/image/status/+server.ts`:**
 ```typescript
