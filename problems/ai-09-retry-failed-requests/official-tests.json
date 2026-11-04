@@ -1,0 +1,77 @@
+[
+  {
+    "payload": "{\"requests\":[{\"id\":\"a\",\"outcomes\":[\"timeout\",\"ok\"]}],\"max_attempts\":3}"
+  },
+  {
+    "payload": "{\"requests\":[],\"max_attempts\":3}"
+  },
+  {
+    "payload": "{\"requests\":[{\"id\":\"a\",\"outcomes\":[\"ok\"]}],\"max_attempts\":3}"
+  },
+  {
+    "payload": "{\"requests\":[{\"id\":\"a\",\"outcomes\":[\"bad_request\",\"ok\"]}],\"max_attempts\":3}"
+  },
+  {
+    "payload": "{\"requests\":[{\"id\":\"a\",\"outcomes\":[\"unauthorized\",\"ok\"]}],\"max_attempts\":3}"
+  },
+  {
+    "payload": "{\"requests\":[{\"id\":\"a\",\"outcomes\":[\"timeout\",\"ok\"]}],\"max_attempts\":1}"
+  },
+  {
+    "payload": "{\"requests\":[{\"id\":\"a\",\"outcomes\":[\"timeout\",\"server_error\",\"ok\"]}],\"max_attempts\":2}"
+  },
+  {
+    "payload": "{\"requests\":[{\"id\":\"a\",\"outcomes\":[\"timeout\",\"rate_limit\",\"ok\"]}],\"max_attempts\":3}"
+  },
+  {
+    "payload": "{\"requests\":[{\"id\":\"a\",\"outcomes\":[\"timeout\"]}],\"max_attempts\":5}"
+  },
+  {
+    "payload": "{\"requests\":[{\"id\":\"a\",\"outcomes\":[\"rate_limit\",\"ok\"]}],\"max_attempts\":2}"
+  },
+  {
+    "payload": "{\"requests\":[{\"id\":\"a\",\"outcomes\":[\"server_error\",\"ok\"]}],\"max_attempts\":2}"
+  },
+  {
+    "payload": "{\"requests\":[{\"id\":\"a\",\"outcomes\":[\"ok\",\"bad_request\"]}],\"max_attempts\":3}"
+  },
+  {
+    "payload": "{\"requests\":[{\"id\":\"a\",\"outcomes\":[\"timeout\",\"bad_request\",\"ok\"]}],\"max_attempts\":3}"
+  },
+  {
+    "payload": "{\"requests\":[{\"id\":\"a\",\"outcomes\":[\"timeout\",\"rate_limit\",\"server_error\"]}],\"max_attempts\":3}"
+  },
+  {
+    "payload": "{\"requests\":[{\"id\":\"a\",\"outcomes\":[\"timeout\",\"ok\"]},{\"id\":\"b\",\"outcomes\":[\"ok\"]}],\"max_attempts\":2}"
+  },
+  {
+    "payload": "{\"requests\":[{\"id\":\"z\",\"outcomes\":[\"ok\"]},{\"id\":\"a\",\"outcomes\":[\"bad_request\"]}],\"max_attempts\":2}"
+  },
+  {
+    "payload": "{\"requests\":[{\"id\":\"a\",\"outcomes\":[\"rate_limit\",\"unauthorized\",\"ok\"]}],\"max_attempts\":4}"
+  },
+  {
+    "payload": "{\"requests\":[{\"id\":\"a\",\"outcomes\":[\"bad_request\"]}],\"max_attempts\":1}"
+  },
+  {
+    "payload": "{\"requests\":[{\"id\":\"a\",\"outcomes\":[\"unauthorized\"]}],\"max_attempts\":1}"
+  },
+  {
+    "payload": "{\"requests\":[{\"id\":\"a\",\"outcomes\":[\"rate_limit\"]}],\"max_attempts\":1}"
+  },
+  {
+    "payload": "{\"requests\":[{\"id\":\"a\",\"outcomes\":[\"server_error\"]}],\"max_attempts\":1}"
+  },
+  {
+    "payload": "{\"requests\":[{\"id\":\"a\",\"outcomes\":[\"server_error\",\"timeout\"]}],\"max_attempts\":4}"
+  },
+  {
+    "payload": "{\"requests\":[{\"id\":\"a\",\"outcomes\":[\"server_error\",\"ok\",\"ok\"]}],\"max_attempts\":5}"
+  },
+  {
+    "payload": "{\"requests\":[{\"id\":\"a\",\"outcomes\":[\"bad_request\"]},{\"id\":\"b\",\"outcomes\":[\"timeout\",\"ok\"]}],\"max_attempts\":1}"
+  },
+  {
+    "payload": "{\"requests\":[{\"id\":\"a\",\"outcomes\":[\"timeout\",\"timeout\",\"rate_limit\",\"ok\"]}],\"max_attempts\":4}"
+  }
+]

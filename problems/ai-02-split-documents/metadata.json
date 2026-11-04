@@ -1,0 +1,48 @@
+{
+  "id": "ai-02-split-documents",
+  "title": "02. Split Documents",
+  "difficulty": "Easy",
+  "studyMinutes": 20,
+  "link": "",
+  "category": "applied-ai",
+  "examples": [
+    {
+      "input": "{\"documents\": [{\"id\": \"a\", \"text\": \"one two three four five\"}], \"chunk_size\": 3, \"overlap\": 1}",
+      "output": "{\"chunks\": [{\"id\": \"a:0\", \"document_id\": \"a\", \"text\": \"one two three\"}, {\"id\": \"a:1\", \"document_id\": \"a\", \"text\": \"three four five\"}]}"
+    },
+    {
+      "input": "{\"documents\": [], \"chunk_size\": 3, \"overlap\": 1}",
+      "output": "{\"chunks\": []}"
+    },
+    {
+      "input": "{\"documents\": [{\"id\": \"a\", \"text\": \"\"}], \"chunk_size\": 2, \"overlap\": 0}",
+      "output": "{\"chunks\": []}"
+    }
+  ],
+  "starterCode": {
+    "python": "def solve(data: dict) -> dict:\n    raise NotImplementedError\n\n# Supplied Cojudge adapter. Implement solve(data) above.\nimport json\n\nclass Solution:\n    def run(self, payload: str) -> str:\n        return json.dumps(solve(json.loads(payload)), ensure_ascii=True, allow_nan=False)\n"
+  },
+  "testCases": [
+    {
+      "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"one two three four five\"}],\"chunk_size\":3,\"overlap\":1}"
+    },
+    {
+      "payload": "{\"documents\":[],\"chunk_size\":3,\"overlap\":1}"
+    },
+    {
+      "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"\"}],\"chunk_size\":2,\"overlap\":0}"
+    }
+  ],
+  "functionName": "run",
+  "params": [
+    {
+      "name": "payload",
+      "type": "string"
+    }
+  ],
+  "outputType": "string",
+  "hints": [
+    "The step is chunk_size - overlap.",
+    "Stop when the current chunk includes the final word."
+  ]
+}

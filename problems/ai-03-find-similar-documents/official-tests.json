@@ -1,0 +1,80 @@
+[
+  {
+    "payload": "{\"query\":[1,0],\"documents\":[{\"id\":\"b\",\"vector\":[10,10]},{\"id\":\"a\",\"vector\":[1,0]},{\"id\":\"c\",\"vector\":[-1,0]}],\"k\":2}"
+  },
+  {
+    "payload": "{\"query\":[1],\"documents\":[],\"k\":2}"
+  },
+  {
+    "payload": "{\"query\":[1],\"documents\":[{\"id\":\"a\",\"vector\":[1]}],\"k\":0}"
+  },
+  {
+    "payload": "{\"query\":[1],\"documents\":[{\"id\":\"a\",\"vector\":[1]}],\"k\":5}"
+  },
+  {
+    "payload": "{\"query\":[1,0],\"documents\":[{\"id\":\"z\",\"vector\":[2,0]},{\"id\":\"a\",\"vector\":[1,0]}],\"k\":2}"
+  },
+  {
+    "payload": "{\"query\":[0,0],\"documents\":[{\"id\":\"z\",\"vector\":[1,2]},{\"id\":\"a\",\"vector\":[-1,0]},{\"id\":\"m\",\"vector\":[0,0]}],\"k\":3}"
+  },
+  {
+    "payload": "{\"query\":[1,0],\"documents\":[{\"id\":\"a\",\"vector\":[-1,0]},{\"id\":\"z\",\"vector\":[0,0]}],\"k\":2}"
+  },
+  {
+    "payload": "{\"query\":[1,0],\"documents\":[{\"id\":\"a\",\"vector\":[-1,0]},{\"id\":\"b\",\"vector\":[-1,1]}],\"k\":2}"
+  },
+  {
+    "payload": "{\"query\":[1,0],\"documents\":[{\"id\":\"b\",\"vector\":[0,1]},{\"id\":\"a\",\"vector\":[0,-1]}],\"k\":2}"
+  },
+  {
+    "payload": "{\"query\":[1],\"documents\":[{\"id\":\"a\",\"vector\":[-5]}],\"k\":1}"
+  },
+  {
+    "payload": "{\"query\":[-1,0],\"documents\":[{\"id\":\"a\",\"vector\":[1,0]},{\"id\":\"b\",\"vector\":[-1,0]}],\"k\":2}"
+  },
+  {
+    "payload": "{\"query\":[2,2],\"documents\":[{\"id\":\"b\",\"vector\":[1,1]},{\"id\":\"a\",\"vector\":[5,5]}],\"k\":2}"
+  },
+  {
+    "payload": "{\"query\":[1,2,3],\"documents\":[{\"id\":\"a\",\"vector\":[3,2,1]},{\"id\":\"b\",\"vector\":[1,2,3]}],\"k\":1}"
+  },
+  {
+    "payload": "{\"query\":[1,-1],\"documents\":[{\"id\":\"a\",\"vector\":[1,1]},{\"id\":\"b\",\"vector\":[1,-1]},{\"id\":\"c\",\"vector\":[-1,1]}],\"k\":3}"
+  },
+  {
+    "payload": "{\"query\":[1,2],\"documents\":[{\"id\":\"c\",\"vector\":[0,0]},{\"id\":\"a\",\"vector\":[0,0]},{\"id\":\"b\",\"vector\":[0,0]}],\"k\":2}"
+  },
+  {
+    "payload": "{\"query\":[0],\"documents\":[{\"id\":\"d2\",\"vector\":[1]},{\"id\":\"d10\",\"vector\":[1]},{\"id\":\"d1\",\"vector\":[1]}],\"k\":3}"
+  },
+  {
+    "payload": "{\"query\":[100,0],\"documents\":[{\"id\":\"a\",\"vector\":[100,100]},{\"id\":\"b\",\"vector\":[1,0]}],\"k\":2}"
+  },
+  {
+    "payload": "{\"query\":[1],\"documents\":[{\"id\":\"z\",\"vector\":[-1]},{\"id\":\"a\",\"vector\":[-100]}],\"k\":2}"
+  },
+  {
+    "payload": "{\"query\":[1],\"documents\":[{\"id\":\"a\",\"vector\":[-1]},{\"id\":\"b\",\"vector\":[0]},{\"id\":\"c\",\"vector\":[1]}],\"k\":3}"
+  },
+  {
+    "payload": "{\"query\":[1,0],\"documents\":[{\"id\":\"c\",\"vector\":[1,0]},{\"id\":\"a\",\"vector\":[1,0]},{\"id\":\"b\",\"vector\":[1,0]}],\"k\":1}"
+  },
+  {
+    "payload": "{\"query\":[100,100],\"documents\":[{\"id\":\"x\",\"vector\":[1,0]},{\"id\":\"y\",\"vector\":[1,1]}],\"k\":2}"
+  },
+  {
+    "payload": "{\"query\":[0,0,0],\"documents\":[{\"id\":\"z\",\"vector\":[0,0,1]},{\"id\":\"A\",\"vector\":[1,0,0]}],\"k\":1}"
+  },
+  {
+    "payload": "{\"query\":[1,0],\"documents\":[{\"id\":\"a\",\"vector\":[1,1]},{\"id\":\"b\",\"vector\":[100,0]}],\"k\":1}"
+  },
+  {
+    "payload": "{\"query\":[-1,-1],\"documents\":[{\"id\":\"a\",\"vector\":[1,-1]},{\"id\":\"b\",\"vector\":[-1,-1]},{\"id\":\"c\",\"vector\":[1,1]}],\"k\":3}"
+  },
+  {
+    "payload": "{\"query\":[0],\"documents\":[],\"k\":0}"
+  },
+  {
+    "payload": "{\"query\":[79,34],\"documents\":[{\"id\":\"a\",\"vector\":[16,-11]},{\"id\":\"z\",\"vector\":[48,-33]}],\"k\":2}"
+  }
+]

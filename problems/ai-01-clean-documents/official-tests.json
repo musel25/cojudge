@@ -1,0 +1,77 @@
+[
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"  A\\tB \"},{\"id\":\"b\",\"text\":\"A B\"},{\"id\":\"c\",\"text\":\"\\n\"}]}"
+  },
+  {
+    "payload": "{\"documents\":[]}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"Hello\"}]}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"\"}]}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"   \"}]}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"\\t\\t\"}]}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"\\n\\r\"}]}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"A\\fB\"}]}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"A\\u000bB\"}]}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"\\t A B\\r\"}]}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"AI\"},{\"id\":\"b\",\"text\":\"ai\"}]}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"AI,  yes!\"}]}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"z\",\"text\":\"same\"},{\"id\":\"a\",\"text\":\"same\"}]}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"z\",\"text\":\"Z\"},{\"id\":\"a\",\"text\":\"A\"}]}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"x\"},{\"id\":\"b\",\"text\":\"y\"},{\"id\":\"c\",\"text\":\"x\"}]}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"x\"},{\"id\":\"b\",\"text\":\" x \"},{\"id\":\"c\",\"text\":\"\\tx\"}]}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"caf\\u00e9  \\u6771\\u4eac\"}]}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"say  \\\"yes\\\"\"}]}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"a\\\\b  c\"}]}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"  42  007\"}]}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"x\"},{\"id\":\"b\",\"text\":\"x y\"}]}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"a \\t\\r\\n b\"}]}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"\"},{\"id\":\"b\",\"text\":\"ok\"}]}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"ok\"},{\"id\":\"b\",\"text\":\" \"},{\"id\":\"c\",\"text\":\"ok\"}]}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"x!\"},{\"id\":\"b\",\"text\":\"x?\"}]}"
+  }
+]
