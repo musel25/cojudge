@@ -156,3 +156,7 @@ build/**/*
 /src-tauri/resources/backend/
 /src-tauri/binaries/node-*
 /src-tauri/binaries/cojudge-node-*
+
+# Browser automation output
+playwright-report/
+.playwright-mcp/

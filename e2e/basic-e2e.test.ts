@@ -73,7 +73,7 @@ test('desktop Firebase settings enable loading a shared code', async ({ page }) 
 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole('button', { name: 'Toggle menu' }).click();
-  await page.getByRole('menuitem', { name: 'Load', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'Load File', exact: true }).click();
   const loadDialog = page.getByRole('dialog', { name: 'Enter code' });
   await expect(loadDialog).toBeVisible();
   const loadDialogBox = await loadDialog.boundingBox();

@@ -29,7 +29,7 @@
 	},
 	"scripts": {
 		"test": "vitest",
-		"test:e2e": "playwright test",
+		"test:e2e": "node scripts/test-e2e.mjs",
 		"dev": "vite dev",
 		"build": "vite build",
 		"desktop:build": "tauri build",
@@ -38,9 +38,12 @@
 		"desktop:prepare": "npm run build && node scripts/stage-desktop-backend.mjs && node scripts/prepare-desktop-node.mjs",
 		"preview": "vite preview",
 		"postinstall": "node -e \"const fs = require('fs'); const path = 'node_modules/@firebase/util/dist/postinstall.mjs'; if (fs.existsSync('node_modules/@firebase/util/dist') && !fs.existsSync(path)) fs.writeFileSync(path, 'export const getDefaultsFromPostinstall = () => undefined;');\"",
-		"prepare": "svelte-kit sync || echo ''",
+		"prepare": "svelte-kit sync",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+		"test:unit": "vitest run",
+		"verify": "npm run check && npm run test:unit && npm run test:e2e",
+		"verify:problems": "node scripts/verify-problems.mjs"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.57.0",
@@ -50,6 +53,7 @@
 		"@tauri-apps/cli": "2.11.4",
 		"@types/dockerode": "^3.3.44",
 		"@types/marked": "^5.0.2",
+		"@types/qrcode": "^1.5.6",
 		"@types/turndown": "^5.0.6",
 		"autoprefixer": "^10.4.21",
 		"firebase": "^12.6.0",
@@ -74,5 +78,8 @@
 		"tar-stream": "^3.1.7",
 		"turndown": "^7.2.4",
 		"turndown-plugin-gfm": "^1.0.2"
+	},
+	"engines": {
+		"node": ">=22.12.0"
 	}
 }
