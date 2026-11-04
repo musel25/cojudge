@@ -5,14 +5,7 @@ import { getMarkerResponses } from '../../../lib/markerRunner';
 import { presentAssertionResult } from '$lib/utils/assertionResult';
 import { ensureUserContentSeeded, resolveProblemFile } from '$lib/server/contentPaths';
 import { ProgramRunner } from '$lib/runners/ProgramRunner';
-import { JavaRunner } from '$lib/runners/JavaRunner';
-import { PythonRunner } from '$lib/runners/PythonRunner';
-import { CppRunner } from '$lib/runners/CppRunner';
-import { CSharpRunner } from '$lib/runners/CSharpRunner';
-import { RustRunner } from '$lib/runners/RustRunner';
-import { GoRunner } from '$lib/runners/GoRunner';
-import { PhpRunner } from '$lib/runners/PhpRunner';
-import { TypeScriptRunner } from '$lib/runners/TypeScriptRunner';
+import { createProblemRunner } from '$lib/runners/createProblemRunner';
 import { startProblemDebugSession, getDebugState } from '$lib/runners/DebugRunner';
 import { TIMEOUT_MESSAGE, annotateCrashSignal, type JobStatus } from '$lib/utils/util';
 
@@ -192,27 +185,7 @@ async function executeRun(problemId: string, language: string, code: string, tes
         const problemContent = await fs.readFile(problemPath, 'utf-8');
         problemData = JSON.parse(problemContent);
 
-        let programRunner: ProgramRunner | null = null;
-        if (language === 'java') {
-            programRunner = new JavaRunner(problemId, testCases, code);
-        } else if (language === 'python') {
-            programRunner = new PythonRunner(problemId, testCases, code);
-        } else if (language === 'cpp') {
-            programRunner = new CppRunner(problemId, testCases, code);
-        } else if (language === 'csharp') {
-            programRunner = new CSharpRunner(problemId, testCases, code);
-        } else if (language === 'rust') {
-            programRunner = new RustRunner(problemId, testCases, code);
-        } else if (language === 'go') {
-            programRunner = new GoRunner(problemId, testCases, code);
-        } else if (language === 'typescript') {
-            programRunner = new TypeScriptRunner(problemId, testCases, code);
-        } else if (language === 'php') {
-            programRunner = new PhpRunner(problemId, testCases, code);
-        }
-        if (!programRunner) {
-            throw new Error(`${language} is not supported yet`);
-        }
+        const programRunner = createProblemRunner(language, problemId, testCases, code);
 
         job.status = 'preparing';
         await programRunner.compile();
