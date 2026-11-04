@@ -37,10 +37,8 @@ try {
 	if (countStatus !== 0) {
 		process.exitCode = countStatus;
 	} else {
-		if (!existsSync(scriptPath('../build/index.js'))) {
-			const buildStatus = await runNode(scriptPath('../node_modules/vite/bin/vite.js'), ['build']);
-			if (buildStatus !== 0) throw new Error(`Application build failed: ${buildStatus}`);
-		}
+		const buildStatus = await runNode(scriptPath('../node_modules/vite/bin/vite.js'), ['build']);
+		if (buildStatus !== 0) throw new Error(`Application build failed: ${buildStatus}`);
 		// Reserve an unused local port. Never attach the CLI to a learner server.
 		const reservation = createServer();
 		reservation.listen(0, '127.0.0.1');
