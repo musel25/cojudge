@@ -40,14 +40,13 @@ Back up the entire progress directory with the existing VPS backup process. Do n
 ## Verification
 
 ```
-npm test -- --run
-npm run build
-COJUDGE_SYNC_E2E=1 npx playwright test --config playwright.server-progress.config.ts
+npm run verify
+npm run verify:problems
 ```
 
-The browser test starts a separate local Node server and a temporary data directory. It uses installed Google Chrome in headless mode. It does not use the live VPS or the learner's browser profile.
+The browser projects start separate local Node servers with temporary content and progress directories. They use Playwright Chromium. They do not use the live VPS or the learner's browser profile. See [DEVELOPMENT.md](DEVELOPMENT.md) for setup and focused commands.
 
-Upstream v0.8.7 has 30 pre-existing Svelte/type errors and 29 warnings. Compare `npm run check` with that baseline; this feature must add none.
+The current check requires zero errors and zero warnings. The dated deployment records below retain their historical diagnostic counts.
 
 ## Initial deployment record — October 26, 2026
 
@@ -450,3 +449,48 @@ and no restart was needed. Learner progress was not changed.
 Backup: `/home/ubuntu/cojudge-backups/tickets-simple-20261103T210416Z/old.tgz`
 holds the 24 prior ticket folders and the prior course index. To roll back,
 extract it into the served content directory.
+
+## Code quality and verification deployment — November 4, 2026
+
+Pull request [#1](https://github.com/musel25/cojudge/pull/1) was merged into
+`feat/separate-profiles` as `192dc801fb200d27d84845c4fd0520cb2570c632`.
+The application now runs `cojudge:review-cleanup-192dc80` in `cojudge-profiles`,
+on the existing loopback port 5379. The image uses Node.js 22.21.0. It was built
+on the VPS from a checksum-verified archive of the merged commit.
+
+Submissions now stop when official tests cannot load or are invalid. Run and
+Submit use one runner factory. Home dialogs, cloud storage, playground helpers,
+and the visual Markdown editor have separate modules. The new development
+workflow checks types, unit tests, production builds, browser tests, and
+reference submissions with isolated storage.
+
+The data volume, application environment, restart policy, port binding, nginx
+configuration, and login helper are preserved. A candidate with copied content
+passed the home, playground, and problem-page checks. It had no Docker socket,
+so it could not clean up another application's judge containers. The old app
+was stopped before the final data backup and the new app started.
+
+Verification: `npm run verify` passed with zero diagnostics, 422 unit tests,
+and 113 browser tests. `npm run verify:problems` passed all 1,031 test-count
+checks and seven Java reference submissions. All 1,031 bundled official test
+files satisfy the new submission validation. Independent review found no
+remaining actionable issue.
+
+Live checks accepted a correct Python Two Sum submission, rejected an incorrect
+submission, and ran a Python playground program. All three profile files matched
+the cutover backup. Profile requests and unchanged-snapshot `304` responses
+worked. Cross-profile reads and cross-origin writes returned 403. Public
+requests without a login returned 401, including requests with a forged profile
+header. The login helper remained healthy. The candidate and its temporary
+data copy were removed.
+
+Private configuration and the complete cutover data backup are under
+`/home/ubuntu/cojudge-releases/review-cleanup-192dc80/backup/`. The verification
+record is `verification.json` in that release directory. No learner data or
+credentials are stored in Git.
+
+The prior application is retained, stopped, as
+`cojudge-profiles-pre-review-192dc80`. To roll back, stop and rename the current
+`cojudge-profiles` container, rename the retained container to `cojudge-profiles`,
+and start it. Keep the data volume. No nginx change or data restore is required
+for an application rollback.
