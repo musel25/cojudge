@@ -78,7 +78,7 @@ The previous `playwright.*.config.ts` entry points remain available. Prefer the 
 
 ## Structure and style
 
-See [AGENTS.md](../AGENTS.md) for the ownership map. Home behavior belongs in `src/lib/home/` and `src/lib/components/home/`. Playground helpers belong in `src/lib/playground/`. Cloud storage belongs in `src/lib/cloudSync/`; the top-level controller coordinates authentication and synchronization.
+See [AGENTS.md](../AGENTS.md) for the ownership map. Home behavior belongs in `src/lib/home/` and `src/lib/components/home/`. Playground helpers belong in `src/lib/playground/`. The visual Markdown editor belongs in `src/lib/components/playground/MarkdownEditor.svelte`. Cloud storage belongs in `src/lib/cloudSync/`; the top-level controller coordinates authentication and synchronization.
 
 Follow the syntax and formatting of the file being changed. Do not mix a runes migration with a behavior fix. Prefer explicit interfaces and small modules to new branches inside large pages.
 

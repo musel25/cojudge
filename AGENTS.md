@@ -38,6 +38,7 @@ Cojudge is an offline-first code judge. It uses SvelteKit, TypeScript, Docker, a
 | --- | --- |
 | Home catalog and course visibility | `src/lib/home/`, `src/lib/components/home/` |
 | Playground explorer and editor operations | `src/lib/playground/`, `src/routes/playground/+page.svelte` |
+| Visual Markdown editor | `src/lib/components/playground/MarkdownEditor.svelte` |
 | Problem runs and submissions | `src/routes/api/run/`, `src/routes/api/submit/`, `src/lib/runners/createProblemRunner.ts` |
 | Language execution and debugging | `src/lib/runners/`, `src/lib/utils/*Util.ts`, `docker/` |
 | Cloud synchronization policy and control | `src/lib/cloudSyncPolicy.ts`, `src/lib/cloudSync.ts` |
