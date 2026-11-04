@@ -1,0 +1,77 @@
+[
+  {
+    "payload": "{\"questions\":[{\"id\":\"q1\",\"retrieved\":[\"x\",\"a\"],\"relevant\":[\"a\"]},{\"id\":\"q2\",\"retrieved\":[\"y\"],\"relevant\":[\"b\"]}],\"k\":2}"
+  },
+  {
+    "payload": "{\"questions\":[],\"k\":3}"
+  },
+  {
+    "payload": "{\"questions\":[{\"id\":\"q\",\"retrieved\":[\"a\"],\"relevant\":[\"a\"]}],\"k\":1}"
+  },
+  {
+    "payload": "{\"questions\":[{\"id\":\"q\",\"retrieved\":[\"x\"],\"relevant\":[\"a\"]}],\"k\":1}"
+  },
+  {
+    "payload": "{\"questions\":[{\"id\":\"q\",\"retrieved\":[],\"relevant\":[\"a\"]}],\"k\":3}"
+  },
+  {
+    "payload": "{\"questions\":[{\"id\":\"q\",\"retrieved\":[\"a\"],\"relevant\":[]}],\"k\":3}"
+  },
+  {
+    "payload": "{\"questions\":[{\"id\":\"q\",\"retrieved\":[],\"relevant\":[]}],\"k\":3}"
+  },
+  {
+    "payload": "{\"questions\":[{\"id\":\"q\",\"retrieved\":[\"a\"],\"relevant\":[\"a\"]}],\"k\":0}"
+  },
+  {
+    "payload": "{\"questions\":[{\"id\":\"q\",\"retrieved\":[\"x\",\"a\"],\"relevant\":[\"a\"]}],\"k\":1}"
+  },
+  {
+    "payload": "{\"questions\":[{\"id\":\"q\",\"retrieved\":[\"a\"],\"relevant\":[\"a\",\"b\"]}],\"k\":5}"
+  },
+  {
+    "payload": "{\"questions\":[{\"id\":\"q\",\"retrieved\":[\"a\",\"a\"],\"relevant\":[\"a\"]}],\"k\":2}"
+  },
+  {
+    "payload": "{\"questions\":[{\"id\":\"q\",\"retrieved\":[\"a\"],\"relevant\":[\"a\",\"a\"]}],\"k\":1}"
+  },
+  {
+    "payload": "{\"questions\":[{\"id\":\"q\",\"retrieved\":[\"x\",\"y\",\"a\"],\"relevant\":[\"a\"]}],\"k\":3}"
+  },
+  {
+    "payload": "{\"questions\":[{\"id\":\"a\",\"retrieved\":[\"x\"],\"relevant\":[\"x\"]},{\"id\":\"b\",\"retrieved\":[\"y\"],\"relevant\":[\"y\"]},{\"id\":\"c\",\"retrieved\":[\"z\"],\"relevant\":[\"other\"]}],\"k\":1}"
+  },
+  {
+    "payload": "{\"questions\":[{\"id\":\"a\",\"retrieved\":[\"x\"],\"relevant\":[\"x\"]},{\"id\":\"b\",\"retrieved\":[],\"relevant\":[]}],\"k\":2}"
+  },
+  {
+    "payload": "{\"questions\":[{\"id\":\"q\",\"retrieved\":[\"b\"],\"relevant\":[\"a\",\"b\",\"c\"]}],\"k\":1}"
+  },
+  {
+    "payload": "{\"questions\":[{\"id\":\"q\",\"retrieved\":[\"a\",\"b\"],\"relevant\":[\"a\",\"b\"]}],\"k\":2}"
+  },
+  {
+    "payload": "{\"questions\":[{\"id\":\"q\",\"retrieved\":[\"A\"],\"relevant\":[\"a\"]}],\"k\":1}"
+  },
+  {
+    "payload": "{\"questions\":[{\"id\":\"q\",\"retrieved\":[\" a\"],\"relevant\":[\"a\"]}],\"k\":1}"
+  },
+  {
+    "payload": "{\"questions\":[{\"id\":\"q\",\"retrieved\":[\"x\",\"x\",\"a\"],\"relevant\":[\"a\"]}],\"k\":2}"
+  },
+  {
+    "payload": "{\"questions\":[{\"id\":\"z\",\"retrieved\":[],\"relevant\":[\"a\"]},{\"id\":\"a\",\"retrieved\":[],\"relevant\":[\"a\"]}],\"k\":2}"
+  },
+  {
+    "payload": "{\"questions\":[{\"id\":\"a\",\"retrieved\":[\"a\"],\"relevant\":[\"a\"]},{\"id\":\"b\",\"retrieved\":[\"x\"],\"relevant\":[\"b\"]},{\"id\":\"c\",\"retrieved\":[\"x\"],\"relevant\":[\"c\"]}],\"k\":1}"
+  },
+  {
+    "payload": "{\"questions\":[{\"id\":\"q\",\"retrieved\":[\"w\",\"x\",\"y\",\"a\"],\"relevant\":[\"a\"]}],\"k\":4}"
+  },
+  {
+    "payload": "{\"questions\":[{\"id\":\"a\",\"retrieved\":[\"x\"],\"relevant\":[\"a\"]},{\"id\":\"b\",\"retrieved\":[\"x\"],\"relevant\":[\"b\"]},{\"id\":\"c\",\"retrieved\":[\"x\"],\"relevant\":[\"c\"]}],\"k\":3}"
+  },
+  {
+    "payload": "{\"questions\":[{\"id\":\"a\",\"retrieved\":[\"a\"],\"relevant\":[\"a\"]},{\"id\":\"b\",\"retrieved\":[\"b\"],\"relevant\":[\"b\"]}],\"k\":1}"
+  }
+]

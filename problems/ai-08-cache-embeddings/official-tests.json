@@ -1,0 +1,77 @@
+[
+  {
+    "payload": "{\"cache\":[],\"requests\":[{\"model\":\"m\",\"text\":\"x\",\"fresh_embedding\":[1]},{\"model\":\"m\",\"text\":\"x\",\"fresh_embedding\":[9]}]}"
+  },
+  {
+    "payload": "{\"cache\":[],\"requests\":[]}"
+  },
+  {
+    "payload": "{\"cache\":[{\"model\":\"m\",\"text\":\"x\",\"embedding\":[1]}],\"requests\":[]}"
+  },
+  {
+    "payload": "{\"cache\":[{\"model\":\"m\",\"text\":\"x\",\"embedding\":[1]}],\"requests\":[{\"model\":\"m\",\"text\":\"x\",\"fresh_embedding\":[9]}]}"
+  },
+  {
+    "payload": "{\"cache\":[],\"requests\":[{\"model\":\"m\",\"text\":\"x\",\"fresh_embedding\":[2,3]}]}"
+  },
+  {
+    "payload": "{\"cache\":[],\"requests\":[{\"model\":\"a\",\"text\":\"x\",\"fresh_embedding\":[1]},{\"model\":\"b\",\"text\":\"x\",\"fresh_embedding\":[2]}]}"
+  },
+  {
+    "payload": "{\"cache\":[],\"requests\":[{\"model\":\"m\",\"text\":\"x\",\"fresh_embedding\":[1]},{\"model\":\"m\",\"text\":\"y\",\"fresh_embedding\":[2]}]}"
+  },
+  {
+    "payload": "{\"cache\":[],\"requests\":[{\"model\":\"m\",\"text\":\"A\",\"fresh_embedding\":[1]},{\"model\":\"m\",\"text\":\"a\",\"fresh_embedding\":[2]}]}"
+  },
+  {
+    "payload": "{\"cache\":[],\"requests\":[{\"model\":\"M\",\"text\":\"x\",\"fresh_embedding\":[1]},{\"model\":\"m\",\"text\":\"x\",\"fresh_embedding\":[2]}]}"
+  },
+  {
+    "payload": "{\"cache\":[],\"requests\":[{\"model\":\"m\",\"text\":\" x\",\"fresh_embedding\":[1]},{\"model\":\"m\",\"text\":\"x\",\"fresh_embedding\":[2]}]}"
+  },
+  {
+    "payload": "{\"cache\":[],\"requests\":[{\"model\":\"m\",\"text\":\"\",\"fresh_embedding\":[0]}]}"
+  },
+  {
+    "payload": "{\"cache\":[{\"model\":\"m\",\"text\":\"x\",\"embedding\":[0,0]}],\"requests\":[{\"model\":\"m\",\"text\":\"x\",\"fresh_embedding\":[1,1]}]}"
+  },
+  {
+    "payload": "{\"cache\":[],\"requests\":[{\"model\":\"m\",\"text\":\"x\",\"fresh_embedding\":[-1,2]}]}"
+  },
+  {
+    "payload": "{\"cache\":[{\"model\":\"z\",\"text\":\"z\",\"embedding\":[9]},{\"model\":\"a\",\"text\":\"a\",\"embedding\":[1]}],\"requests\":[{\"model\":\"a\",\"text\":\"a\",\"fresh_embedding\":[8]}]}"
+  },
+  {
+    "payload": "{\"cache\":[{\"model\":\"m\",\"text\":\"x\",\"embedding\":[1]}],\"requests\":[{\"model\":\"m\",\"text\":\"y\",\"fresh_embedding\":[2]}]}"
+  },
+  {
+    "payload": "{\"cache\":[],\"requests\":[{\"model\":\"m\",\"text\":\"x\",\"fresh_embedding\":[1]},{\"model\":\"m\",\"text\":\"y\",\"fresh_embedding\":[2]},{\"model\":\"m\",\"text\":\"x\",\"fresh_embedding\":[3]}]}"
+  },
+  {
+    "payload": "{\"cache\":[],\"requests\":[{\"model\":\"a:b\",\"text\":\"c\",\"fresh_embedding\":[1]},{\"model\":\"a\",\"text\":\"b:c\",\"fresh_embedding\":[2]}]}"
+  },
+  {
+    "payload": "{\"cache\":[],\"requests\":[{\"model\":\"m\",\"text\":\"\\u6771\\u4eac\",\"fresh_embedding\":[1]},{\"model\":\"m\",\"text\":\"\\u6771\\u4eac\",\"fresh_embedding\":[2]}]}"
+  },
+  {
+    "payload": "{\"cache\":[{\"model\":\"v1\",\"text\":\"x\",\"embedding\":[1]}],\"requests\":[{\"model\":\"v2\",\"text\":\"x\",\"fresh_embedding\":[2]}]}"
+  },
+  {
+    "payload": "{\"cache\":[{\"model\":\"m\",\"text\":\"x\",\"embedding\":[1,2]}],\"requests\":[{\"model\":\"m\",\"text\":\"x\",\"fresh_embedding\":[3]}]}"
+  },
+  {
+    "payload": "{\"cache\":[{\"model\":\"m\",\"text\":\"x\",\"embedding\":[1]},{\"model\":\"m\",\"text\":\"y\",\"embedding\":[2]}],\"requests\":[{\"model\":\"m\",\"text\":\"y\",\"fresh_embedding\":[9]},{\"model\":\"m\",\"text\":\"x\",\"fresh_embedding\":[8]}]}"
+  },
+  {
+    "payload": "{\"cache\":[],\"requests\":[{\"model\":\"m\",\"text\":\"x\",\"fresh_embedding\":[]}]}"
+  },
+  {
+    "payload": "{\"cache\":[],\"requests\":[{\"model\":\"m\",\"text\":\"a\\nb\",\"fresh_embedding\":[1]},{\"model\":\"m\",\"text\":\"a b\",\"fresh_embedding\":[2]}]}"
+  },
+  {
+    "payload": "{\"cache\":[],\"requests\":[{\"model\":\"\",\"text\":\"x\",\"fresh_embedding\":[1]}]}"
+  },
+  {
+    "payload": "{\"cache\":[],\"requests\":[{\"model\":\"m\",\"text\":\"x\",\"fresh_embedding\":[1]},{\"model\":\"m\",\"text\":\"x\",\"fresh_embedding\":[2]},{\"model\":\"m\",\"text\":\"x\",\"fresh_embedding\":[3]}]}"
+  }
+]

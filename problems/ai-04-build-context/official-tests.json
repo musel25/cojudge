@@ -1,0 +1,86 @@
+[
+  {
+    "payload": "{\"chunks\":[{\"id\":\"a\",\"text\":\"large\",\"tokens\":8},{\"id\":\"b\",\"text\":\"small\",\"tokens\":2},{\"id\":\"c\",\"text\":\"last\",\"tokens\":3}],\"budget\":5}"
+  },
+  {
+    "payload": "{\"chunks\":[],\"budget\":10}"
+  },
+  {
+    "payload": "{\"chunks\":[{\"id\":\"a\",\"text\":\"x\",\"tokens\":1}],\"budget\":0}"
+  },
+  {
+    "payload": "{\"chunks\":[{\"id\":\"a\",\"text\":\"x\",\"tokens\":3}],\"budget\":3}"
+  },
+  {
+    "payload": "{\"chunks\":[{\"id\":\"a\",\"text\":\"x\",\"tokens\":2}],\"budget\":3}"
+  },
+  {
+    "payload": "{\"chunks\":[{\"id\":\"a\",\"text\":\"x\",\"tokens\":4}],\"budget\":3}"
+  },
+  {
+    "payload": "{\"chunks\":[{\"id\":\"z\",\"text\":\"Z\",\"tokens\":1},{\"id\":\"a\",\"text\":\"A\",\"tokens\":1}],\"budget\":2}"
+  },
+  {
+    "payload": "{\"chunks\":[{\"id\":\"a\",\"text\":\"a\",\"tokens\":1},{\"id\":\"b\",\"text\":\"b\",\"tokens\":1}],\"budget\":2}"
+  },
+  {
+    "payload": "{\"chunks\":[{\"id\":\"a\",\"text\":\"x\",\"tokens\":1}],\"budget\":1}"
+  },
+  {
+    "payload": "{\"chunks\":[{\"id\":\"a\",\"text\":\"a\",\"tokens\":4},{\"id\":\"b\",\"text\":\"b\",\"tokens\":3},{\"id\":\"c\",\"text\":\"c\",\"tokens\":3}],\"budget\":6}"
+  },
+  {
+    "payload": "{\"chunks\":[{\"id\":\"a\",\"text\":\"a\",\"tokens\":2},{\"id\":\"b\",\"text\":\"b\",\"tokens\":4},{\"id\":\"c\",\"text\":\"c\",\"tokens\":1}],\"budget\":3}"
+  },
+  {
+    "payload": "{\"chunks\":[{\"id\":\"a\",\"text\":\"a\",\"tokens\":9},{\"id\":\"b\",\"text\":\"b\",\"tokens\":10}],\"budget\":2}"
+  },
+  {
+    "payload": "{\"chunks\":[{\"id\":\"a\",\"text\":\"a\\nb\",\"tokens\":2},{\"id\":\"b\",\"text\":\"c\",\"tokens\":1}],\"budget\":3}"
+  },
+  {
+    "payload": "{\"chunks\":[{\"id\":\"a\",\"text\":\"  x \",\"tokens\":1}],\"budget\":2}"
+  },
+  {
+    "payload": "{\"chunks\":[{\"id\":\"a\",\"text\":\"\",\"tokens\":1}],\"budget\":1}"
+  },
+  {
+    "payload": "{\"chunks\":[{\"id\":\"a\",\"text\":\"\",\"tokens\":1},{\"id\":\"b\",\"text\":\"\",\"tokens\":1}],\"budget\":2}"
+  },
+  {
+    "payload": "{\"chunks\":[{\"id\":\"a\",\"text\":\"many words in this text\",\"tokens\":1}],\"budget\":1}"
+  },
+  {
+    "payload": "{\"chunks\":[{\"id\":\"a\",\"text\":\"a\",\"tokens\":2},{\"id\":\"b\",\"text\":\"b\",\"tokens\":1}],\"budget\":2}"
+  },
+  {
+    "payload": "{\"chunks\":[{\"id\":\"a\",\"text\":\"x\",\"tokens\":1},{\"id\":\"b\",\"text\":\"x\",\"tokens\":1}],\"budget\":2}"
+  },
+  {
+    "payload": "{\"chunks\":[{\"id\":\"a\",\"text\":\"a\",\"tokens\":100},{\"id\":\"b\",\"text\":\"b\",\"tokens\":200}],\"budget\":1000}"
+  },
+  {
+    "payload": "{\"chunks\":[{\"id\":\"a\",\"text\":\"a\",\"tokens\":2},{\"id\":\"b\",\"text\":\"b\",\"tokens\":2}],\"budget\":3}"
+  },
+  {
+    "payload": "{\"chunks\":[{\"id\":\"a\",\"text\":\"a\",\"tokens\":9},{\"id\":\"b\",\"text\":\"b\",\"tokens\":8},{\"id\":\"c\",\"text\":\"c\",\"tokens\":1}],\"budget\":1}"
+  },
+  {
+    "payload": "{\"chunks\":[{\"id\":\"a\",\"text\":\"\\u6771\\u4eac\",\"tokens\":2}],\"budget\":2}"
+  },
+  {
+    "payload": "{\"chunks\":[],\"budget\":0}"
+  },
+  {
+    "payload": "{\"chunks\":[{\"id\":\"a\",\"text\":\"a\",\"tokens\":2},{\"id\":\"b\",\"text\":\"b\",\"tokens\":4},{\"id\":\"c\",\"text\":\"c\",\"tokens\":3}],\"budget\":5}"
+  },
+  {
+    "payload": "{\"chunks\":[{\"id\":\"a\",\"text\":\"first\",\"tokens\":1},{\"id\":\"a\",\"text\":\"second\",\"tokens\":1}],\"budget\":2}"
+  },
+  {
+    "payload": "{\"chunks\":[{\"id\":\"a\",\"text\":\"large\",\"tokens\":9},{\"id\":\"a\",\"text\":\"small\",\"tokens\":1},{\"id\":\"b\",\"text\":\"fits\",\"tokens\":1}],\"budget\":2}"
+  },
+  {
+    "payload": "{\"chunks\":[{\"id\":\"a\",\"text\":\"A\",\"tokens\":1},{\"id\":\"b\",\"text\":\"B\",\"tokens\":1},{\"id\":\"a\",\"text\":\"C\",\"tokens\":1}],\"budget\":3}"
+  }
+]

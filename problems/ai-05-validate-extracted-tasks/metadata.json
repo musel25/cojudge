@@ -1,0 +1,48 @@
+{
+  "id": "ai-05-validate-extracted-tasks",
+  "title": "05. Validate Extracted Tasks",
+  "difficulty": "Medium",
+  "studyMinutes": 30,
+  "link": "",
+  "category": "applied-ai",
+  "examples": [
+    {
+      "input": "{\"tasks\": [{\"title\": \" Fix bug \", \"priority\": \"medium\", \"due_date\": \"2026-11-04\"}, {\"title\": \"Write tests\", \"priority\": \"urgent\", \"due_date\": \"2026-11-04\"}]}",
+      "output": "{\"tasks\": [{\"title\": \"Fix bug\", \"priority\": \"medium\", \"due_date\": \"2026-11-04\"}], \"errors\": [{\"index\": 1, \"errors\": [\"priority\"]}]}"
+    },
+    {
+      "input": "{\"tasks\": []}",
+      "output": "{\"tasks\": [], \"errors\": []}"
+    },
+    {
+      "input": "{\"tasks\": [{\"title\": \"Write tests\", \"priority\": \"medium\", \"due_date\": \"2026-11-04\"}]}",
+      "output": "{\"tasks\": [{\"title\": \"Write tests\", \"priority\": \"medium\", \"due_date\": \"2026-11-04\"}], \"errors\": []}"
+    }
+  ],
+  "starterCode": {
+    "python": "def solve(data: dict) -> dict:\n    raise NotImplementedError\n\n# Supplied Cojudge adapter. Implement solve(data) above.\nimport json\n\nclass Solution:\n    def run(self, payload: str) -> str:\n        return json.dumps(solve(json.loads(payload)), ensure_ascii=True, allow_nan=False)\n"
+  },
+  "testCases": [
+    {
+      "payload": "{\"tasks\":[{\"title\":\" Fix bug \",\"priority\":\"medium\",\"due_date\":\"2026-11-04\"},{\"title\":\"Write tests\",\"priority\":\"urgent\",\"due_date\":\"2026-11-04\"}]}"
+    },
+    {
+      "payload": "{\"tasks\":[]}"
+    },
+    {
+      "payload": "{\"tasks\":[{\"title\":\"Write tests\",\"priority\":\"medium\",\"due_date\":\"2026-11-04\"}]}"
+    }
+  ],
+  "functionName": "run",
+  "params": [
+    {
+      "name": "payload",
+      "type": "string"
+    }
+  ],
+  "outputType": "string",
+  "hints": [
+    "Validate field types before values.",
+    "Check the date format before parsing it with datetime.date.fromisoformat."
+  ]
+}

@@ -1,0 +1,77 @@
+[
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"one two three four five\"}],\"chunk_size\":3,\"overlap\":1}"
+  },
+  {
+    "payload": "{\"documents\":[],\"chunk_size\":3,\"overlap\":1}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"\"}],\"chunk_size\":2,\"overlap\":0}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\" \\t\\n\"}],\"chunk_size\":2,\"overlap\":1}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"one two\"}],\"chunk_size\":3,\"overlap\":0}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"a b c\"}],\"chunk_size\":3,\"overlap\":2}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"a b c d\"}],\"chunk_size\":3,\"overlap\":0}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"a b c d\"}],\"chunk_size\":2,\"overlap\":0}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"a b c d e\"}],\"chunk_size\":3,\"overlap\":2}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"a b c\"}],\"chunk_size\":1,\"overlap\":0}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"b\",\"text\":\"a b\"},{\"id\":\"a\",\"text\":\"c d\"}],\"chunk_size\":1,\"overlap\":0}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"x\"},{\"id\":\"b\",\"text\":\"\"},{\"id\":\"c\",\"text\":\"y\"}],\"chunk_size\":2,\"overlap\":1}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\" a\\tb\\nc\\r \"}],\"chunk_size\":2,\"overlap\":0}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"AI ai\"}],\"chunk_size\":1,\"overlap\":0}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"Hi, AI!\"}],\"chunk_size\":2,\"overlap\":1}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"caf\\u00e9 \\u6771\\u4eac fin\"}],\"chunk_size\":2,\"overlap\":1}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"a b c d\"}],\"chunk_size\":3,\"overlap\":1}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"x\"}],\"chunk_size\":5,\"overlap\":4}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"a b c\"}],\"chunk_size\":2,\"overlap\":1}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"a b c d e f\"}],\"chunk_size\":3,\"overlap\":0}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"a b c d e f\"}],\"chunk_size\":3,\"overlap\":1}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"x\"},{\"id\":\"b\",\"text\":\"x\"}],\"chunk_size\":2,\"overlap\":0}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"a\\fb\\u000bc\"}],\"chunk_size\":2,\"overlap\":0}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"doc-1\",\"text\":\"a b c d\"}],\"chunk_size\":10,\"overlap\":9}"
+  },
+  {
+    "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"a b c d e\"}],\"chunk_size\":4,\"overlap\":2}"
+  }
+]

@@ -1,0 +1,48 @@
+{
+  "id": "ai-07-evaluate-search",
+  "title": "07. Evaluate Search",
+  "difficulty": "Medium",
+  "studyMinutes": 30,
+  "link": "",
+  "category": "applied-ai",
+  "examples": [
+    {
+      "input": "{\"questions\": [{\"id\": \"q1\", \"retrieved\": [\"x\", \"a\"], \"relevant\": [\"a\"]}, {\"id\": \"q2\", \"retrieved\": [\"y\"], \"relevant\": [\"b\"]}], \"k\": 2}",
+      "output": "{\"hit_rate\": 0.5, \"failed_ids\": [\"q2\"]}"
+    },
+    {
+      "input": "{\"questions\": [], \"k\": 3}",
+      "output": "{\"hit_rate\": 0, \"failed_ids\": []}"
+    },
+    {
+      "input": "{\"questions\": [{\"id\": \"q\", \"retrieved\": [\"a\"], \"relevant\": [\"a\"]}], \"k\": 1}",
+      "output": "{\"hit_rate\": 1, \"failed_ids\": []}"
+    }
+  ],
+  "starterCode": {
+    "python": "def solve(data: dict) -> dict:\n    raise NotImplementedError\n\n# Supplied Cojudge adapter. Implement solve(data) above.\nimport json\n\nclass Solution:\n    def run(self, payload: str) -> str:\n        return json.dumps(solve(json.loads(payload)), ensure_ascii=True, allow_nan=False)\n"
+  },
+  "testCases": [
+    {
+      "payload": "{\"questions\":[{\"id\":\"q1\",\"retrieved\":[\"x\",\"a\"],\"relevant\":[\"a\"]},{\"id\":\"q2\",\"retrieved\":[\"y\"],\"relevant\":[\"b\"]}],\"k\":2}"
+    },
+    {
+      "payload": "{\"questions\":[],\"k\":3}"
+    },
+    {
+      "payload": "{\"questions\":[{\"id\":\"q\",\"retrieved\":[\"a\"],\"relevant\":[\"a\"]}],\"k\":1}"
+    }
+  ],
+  "functionName": "run",
+  "params": [
+    {
+      "name": "payload",
+      "type": "string"
+    }
+  ],
+  "outputType": "string",
+  "hints": [
+    "Convert each relevant list to a set.",
+    "Check only the first k retrieved positions."
+  ]
+}

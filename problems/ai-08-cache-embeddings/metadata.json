@@ -1,0 +1,48 @@
+{
+  "id": "ai-08-cache-embeddings",
+  "title": "08. Cache Embeddings",
+  "difficulty": "Medium",
+  "studyMinutes": 30,
+  "link": "",
+  "category": "applied-ai",
+  "examples": [
+    {
+      "input": "{\"cache\": [], \"requests\": [{\"model\": \"m\", \"text\": \"x\", \"fresh_embedding\": [1]}, {\"model\": \"m\", \"text\": \"x\", \"fresh_embedding\": [9]}]}",
+      "output": "{\"embeddings\": [[1], [1]], \"cache\": [{\"model\": \"m\", \"text\": \"x\", \"embedding\": [1]}], \"calls\": 1}"
+    },
+    {
+      "input": "{\"cache\": [], \"requests\": []}",
+      "output": "{\"embeddings\": [], \"cache\": [], \"calls\": 0}"
+    },
+    {
+      "input": "{\"cache\": [{\"model\": \"m\", \"text\": \"x\", \"embedding\": [1]}], \"requests\": []}",
+      "output": "{\"embeddings\": [], \"cache\": [{\"model\": \"m\", \"text\": \"x\", \"embedding\": [1]}], \"calls\": 0}"
+    }
+  ],
+  "starterCode": {
+    "python": "def solve(data: dict) -> dict:\n    raise NotImplementedError\n\n# Supplied Cojudge adapter. Implement solve(data) above.\nimport json\n\nclass Solution:\n    def run(self, payload: str) -> str:\n        return json.dumps(solve(json.loads(payload)), ensure_ascii=True, allow_nan=False)\n"
+  },
+  "testCases": [
+    {
+      "payload": "{\"cache\":[],\"requests\":[{\"model\":\"m\",\"text\":\"x\",\"fresh_embedding\":[1]},{\"model\":\"m\",\"text\":\"x\",\"fresh_embedding\":[9]}]}"
+    },
+    {
+      "payload": "{\"cache\":[],\"requests\":[]}"
+    },
+    {
+      "payload": "{\"cache\":[{\"model\":\"m\",\"text\":\"x\",\"embedding\":[1]}],\"requests\":[]}"
+    }
+  ],
+  "functionName": "run",
+  "params": [
+    {
+      "name": "payload",
+      "type": "string"
+    }
+  ],
+  "outputType": "string",
+  "hints": [
+    "Use a tuple key. Joining strings with a delimiter can create collisions.",
+    "Update the cache immediately on each miss."
+  ]
+}
