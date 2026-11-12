@@ -69,7 +69,10 @@ export class PythonRunner extends ProgramRunner {
             pack.finalize();
             await this.container.putArchive(pack as any, { path: '/app' });
 
-            await ProgramRunner.ensureTimeInstalled(this.container);
+            // Script tests report their own elapsed time. The minimal Python
+            // image lacks /usr/bin/time, and installing it can exceed Run's
+            // startup limit when the machine is offline.
+            if (problemData.scriptMode !== true) await ProgramRunner.ensureTimeInstalled(this.container);
             this.prepared = true;
         } catch (e) {
             if (this.container) {
