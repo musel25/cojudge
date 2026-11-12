@@ -1,0 +1,48 @@
+{
+  "id": "pns-31-count-a-word",
+  "title": "31. Count a Word",
+  "difficulty": "Medium",
+  "link": "",
+  "category": "05-sets-and-dictionaries",
+  "examples": [
+    {
+      "input": "cat dog cat\ncat",
+      "output": "2"
+    },
+    {
+      "input": "red blue\ngreen",
+      "output": "0"
+    }
+  ],
+  "starterCode": {
+    "python": "text = input()\ntarget = input()\ncounts = {}\n# Count each word.\nprint(counts.get(target, 0))\n"
+  },
+  "testCases": [
+    {
+      "input": "cat dog cat\ncat"
+    },
+    {
+      "input": "red blue\ngreen"
+    },
+    {
+      "input": "\ncat"
+    }
+  ],
+  "functionName": "program",
+  "params": [
+    {
+      "name": "input",
+      "type": "string"
+    }
+  ],
+  "outputType": "string",
+  "scriptMode": true,
+  "courseHelp": {
+    "title": "How this course works / Cómo funciona",
+    "body": "Read the short lesson, then change the starter code. **Run** tries the examples. **Submit** tries more cases. Most answers are numbers or values from the input. Spaces between numbers do not change the score. Open a hint if you need one.\n\nLee la explicación corta. Cambia el código inicial. **Run** prueba los ejemplos. **Submit** prueba más casos."
+  },
+  "hints": [
+    "Use counts.get(word, 0) + 1.",
+    "Show counts.get(target, 0)."
+  ]
+}

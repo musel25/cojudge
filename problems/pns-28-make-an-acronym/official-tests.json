@@ -1,0 +1,77 @@
+[
+  {
+    "input": "portable network graphics"
+  },
+  {
+    "input": "Blue sky"
+  },
+  {
+    "input": "\n"
+  },
+  {
+    "input": "one"
+  },
+  {
+    "input": "  red   apple  "
+  },
+  {
+    "input": "a b c"
+  },
+  {
+    "input": "book"
+  },
+  {
+    "input": "code red cat"
+  },
+  {
+    "input": "book moon book"
+  },
+  {
+    "input": "code red red blue blue cat"
+  },
+  {
+    "input": "moon"
+  },
+  {
+    "input": "blue code sun tree"
+  },
+  {
+    "input": "tree sun blue moon"
+  },
+  {
+    "input": "red book tree red cat code"
+  },
+  {
+    "input": "cat book book blue sun code"
+  },
+  {
+    "input": "code code tree tree blue cat"
+  },
+  {
+    "input": "moon blue book"
+  },
+  {
+    "input": "blue sun book cat sun"
+  },
+  {
+    "input": "sun moon"
+  },
+  {
+    "input": "blue blue"
+  },
+  {
+    "input": "blue tree code code code code"
+  },
+  {
+    "input": "tree book book"
+  },
+  {
+    "input": "moon moon"
+  },
+  {
+    "input": "book sun moon book tree sun"
+  },
+  {
+    "input": "moon red code red blue"
+  }
+]

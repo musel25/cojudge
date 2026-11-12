@@ -1,0 +1,48 @@
+{
+  "id": "pns-14-prime-check",
+  "title": "14. Prime Check",
+  "difficulty": "Easy",
+  "link": "",
+  "category": "02-functions",
+  "examples": [
+    {
+      "input": "7",
+      "output": "1"
+    },
+    {
+      "input": "9",
+      "output": "0"
+    }
+  ],
+  "starterCode": {
+    "python": "def is_prime(number):\n    # Check for another divisor.\n    return 0\n\nnumber = int(input())\nprint(is_prime(number))\n"
+  },
+  "testCases": [
+    {
+      "input": "7"
+    },
+    {
+      "input": "9"
+    },
+    {
+      "input": "0"
+    }
+  ],
+  "functionName": "program",
+  "params": [
+    {
+      "name": "input",
+      "type": "string"
+    }
+  ],
+  "outputType": "string",
+  "scriptMode": true,
+  "courseHelp": {
+    "title": "How this course works / Cómo funciona",
+    "body": "Read the short lesson, then change the starter code. **Run** tries the examples. **Submit** tries more cases. Most answers are numbers or values from the input. Spaces between numbers do not change the score. Open a hint if you need one.\n\nLee la explicación corta. Cambia el código inicial. **Run** prueba los ejemplos. **Submit** prueba más casos."
+  },
+  "hints": [
+    "Use number % divisor == 0 to find a divisor.",
+    "Try range(2, number)."
+  ]
+}

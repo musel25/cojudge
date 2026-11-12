@@ -1,0 +1,77 @@
+[
+  {
+    "input": "cat\ncar"
+  },
+  {
+    "input": "abc\nabc"
+  },
+  {
+    "input": "\n\n"
+  },
+  {
+    "input": "A\na"
+  },
+  {
+    "input": "abcd\nwxyz"
+  },
+  {
+    "input": "ubd\ndYu\n"
+  },
+  {
+    "input": "YZauXX\ncacaeo\n"
+  },
+  {
+    "input": "YdXZi\nciZeo\n"
+  },
+  {
+    "input": "XaYiXbai\nbbZbabZY\n"
+  },
+  {
+    "input": "e\ni\n"
+  },
+  {
+    "input": "ZZ\nea\n"
+  },
+  {
+    "input": "iXucba\necYuuu\n"
+  },
+  {
+    "input": "XubYcoaY\ncYecubca\n"
+  },
+  {
+    "input": "oXoe\noYod\n"
+  },
+  {
+    "input": "adbZZdiaa\nuYbcacceu\n"
+  },
+  {
+    "input": "YicYZbebbc\nebbcaeXauo\n"
+  },
+  {
+    "input": "iabbuZXbb\neidZodaYb\n"
+  },
+  {
+    "input": "die\nXbi\n"
+  },
+  {
+    "input": "Zbiuud\noZYoao\n"
+  },
+  {
+    "input": "X\ne\n"
+  },
+  {
+    "input": "bYZeZocXo\nXdacZdYYe\n"
+  },
+  {
+    "input": "cicooeeido\nuZiZdYuXZb\n"
+  },
+  {
+    "input": "d\nb\n"
+  },
+  {
+    "input": "ceacZebbd\naZcddoudZ\n"
+  },
+  {
+    "input": "icXY\ncucZ\n"
+  }
+]

@@ -1,0 +1,48 @@
+{
+  "id": "pns-29-count-unique-values",
+  "title": "29. Count Unique Values",
+  "difficulty": "Medium",
+  "link": "",
+  "category": "05-sets-and-dictionaries",
+  "examples": [
+    {
+      "input": "2 2 5",
+      "output": "2"
+    },
+    {
+      "input": "4 4 4",
+      "output": "1"
+    }
+  ],
+  "starterCode": {
+    "python": "nums = []\nfor part in input().split():\n    nums.append(int(part))\n# Count different values.\n"
+  },
+  "testCases": [
+    {
+      "input": "2 2 5"
+    },
+    {
+      "input": "4 4 4"
+    },
+    {
+      "input": "\n"
+    }
+  ],
+  "functionName": "program",
+  "params": [
+    {
+      "name": "input",
+      "type": "string"
+    }
+  ],
+  "outputType": "string",
+  "scriptMode": true,
+  "courseHelp": {
+    "title": "How this course works / Cómo funciona",
+    "body": "Read the short lesson, then change the starter code. **Run** tries the examples. **Submit** tries more cases. Most answers are numbers or values from the input. Spaces between numbers do not change the score. Open a hint if you need one.\n\nLee la explicación corta. Cambia el código inicial. **Run** prueba los ejemplos. **Submit** prueba más casos."
+  },
+  "hints": [
+    "Use set(nums).",
+    "Use len() to count the set."
+  ]
+}

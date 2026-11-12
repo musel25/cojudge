@@ -1,0 +1,48 @@
+{
+  "id": "pns-25-count-vowels",
+  "title": "25. Count Vowels",
+  "difficulty": "Medium",
+  "link": "",
+  "category": "04-strings",
+  "examples": [
+    {
+      "input": "Apple",
+      "output": "2"
+    },
+    {
+      "input": "sky",
+      "output": "0"
+    }
+  ],
+  "starterCode": {
+    "python": "text = input()\ncount = 0\n# Count the vowels.\nprint(count)\n"
+  },
+  "testCases": [
+    {
+      "input": "Apple"
+    },
+    {
+      "input": "sky"
+    },
+    {
+      "input": "\n"
+    }
+  ],
+  "functionName": "program",
+  "params": [
+    {
+      "name": "input",
+      "type": "string"
+    }
+  ],
+  "outputType": "string",
+  "scriptMode": true,
+  "courseHelp": {
+    "title": "How this course works / Cómo funciona",
+    "body": "Read the short lesson, then change the starter code. **Run** tries the examples. **Submit** tries more cases. Most answers are numbers or values from the input. Spaces between numbers do not change the score. Open a hint if you need one.\n\nLee la explicación corta. Cambia el código inicial. **Run** prueba los ejemplos. **Submit** prueba más casos."
+  },
+  "hints": [
+    "Use text.lower().",
+    "Check if letter in \"aeiou\"."
+  ]
+}

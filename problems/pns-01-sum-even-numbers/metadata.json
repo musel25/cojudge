@@ -1,0 +1,48 @@
+{
+  "id": "pns-01-sum-even-numbers",
+  "title": "01. Sum Even Numbers",
+  "difficulty": "Easy",
+  "link": "",
+  "category": "01-loops",
+  "examples": [
+    {
+      "input": "6",
+      "output": "12"
+    },
+    {
+      "input": "1",
+      "output": "0"
+    }
+  ],
+  "starterCode": {
+    "python": "n = int(input())\ntotal = 0\nfor number in range(1, n + 1):\n    # Add this number only if it is even.\n    pass\nprint(total)\n"
+  },
+  "testCases": [
+    {
+      "input": "6"
+    },
+    {
+      "input": "1"
+    },
+    {
+      "input": "0"
+    }
+  ],
+  "functionName": "program",
+  "params": [
+    {
+      "name": "input",
+      "type": "string"
+    }
+  ],
+  "outputType": "string",
+  "scriptMode": true,
+  "courseHelp": {
+    "title": "How this course works / Cómo funciona",
+    "body": "Read the short lesson, then change the starter code. **Run** tries the examples. **Submit** tries more cases. Most answers are numbers or values from the input. Spaces between numbers do not change the score. Open a hint if you need one.\n\nLee la explicación corta. Cambia el código inicial. **Run** prueba los ejemplos. **Submit** prueba más casos."
+  },
+  "hints": [
+    "Use range(1, n + 1).",
+    "Use if number % 2 == 0 inside the loop."
+  ]
+}

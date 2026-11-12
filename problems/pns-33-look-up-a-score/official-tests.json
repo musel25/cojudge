@@ -1,0 +1,77 @@
+[
+  {
+    "input": "2\nada 7\nbea 4\nada"
+  },
+  {
+    "input": "1\nada 7\ncal"
+  },
+  {
+    "input": "0\nada"
+  },
+  {
+    "input": "1\nfox 0\nfox"
+  },
+  {
+    "input": "0\neve"
+  },
+  {
+    "input": "5\ndan 63\nfox 2\nada 70\neve 63\ncal 16\nbea"
+  },
+  {
+    "input": "2\ncal 2\nfox 84\ncal"
+  },
+  {
+    "input": "5\nfox 57\nbea 67\ncal 29\nada 21\ndan 15\nada"
+  },
+  {
+    "input": "5\nbea 21\nfox 83\neve 3\nada 95\ndan 4\nbea"
+  },
+  {
+    "input": "3\ndan 62\ncal 76\nbea 8\ncal"
+  },
+  {
+    "input": "1\nada 13\nada"
+  },
+  {
+    "input": "1\nfox 86\neve"
+  },
+  {
+    "input": "6\nada 77\neve 32\nbea 81\ncal 6\ndan 85\nfox 8\nbea"
+  },
+  {
+    "input": "6\nada 25\nbea 61\nfox 14\ndan 28\ncal 57\neve 3\nada"
+  },
+  {
+    "input": "6\ncal 96\nfox 90\nada 19\neve 80\nbea 82\ndan 2\ncal"
+  },
+  {
+    "input": "2\ndan 0\ncal 56\ncal"
+  },
+  {
+    "input": "3\ndan 34\nbea 98\nada 98\nbea"
+  },
+  {
+    "input": "2\ndan 84\neve 71\ncal"
+  },
+  {
+    "input": "6\nfox 11\nbea 61\nada 16\ndan 5\ncal 33\neve 67\nada"
+  },
+  {
+    "input": "6\nfox 13\nada 51\nbea 5\ncal 97\neve 7\ndan 75\nbea"
+  },
+  {
+    "input": "6\nada 44\neve 99\nbea 77\ncal 41\ndan 72\nfox 44\ndan"
+  },
+  {
+    "input": "2\nfox 28\nada 99\nada"
+  },
+  {
+    "input": "1\nfox 88\nada"
+  },
+  {
+    "input": "6\ndan 11\ncal 34\nbea 8\nfox 8\nada 39\neve 45\nbea"
+  },
+  {
+    "input": "4\ndan 27\nada 63\nfox 23\ncal 91\nfox"
+  }
+]

@@ -1,0 +1,77 @@
+[
+  {
+    "input": "red blue red"
+  },
+  {
+    "input": "\n"
+  },
+  {
+    "input": "cat"
+  },
+  {
+    "input": "a bb ccc"
+  },
+  {
+    "input": "sun sun sun"
+  },
+  {
+    "input": "code red moon"
+  },
+  {
+    "input": "red blue moon"
+  },
+  {
+    "input": "code red cat blue"
+  },
+  {
+    "input": "code cat red blue code sun code red red"
+  },
+  {
+    "input": "cat red code"
+  },
+  {
+    "input": "sun cat"
+  },
+  {
+    "input": "sun sun sun red sun cat red sun moon"
+  },
+  {
+    "input": "blue sun sun cat moon"
+  },
+  {
+    "input": "blue sun moon moon red code moon"
+  },
+  {
+    "input": "code blue"
+  },
+  {
+    "input": "moon"
+  },
+  {
+    "input": "code moon sun red cat cat"
+  },
+  {
+    "input": "red blue moon code red"
+  },
+  {
+    "input": "code red"
+  },
+  {
+    "input": "code blue code red sun"
+  },
+  {
+    "input": "code moon moon code cat red"
+  },
+  {
+    "input": "moon blue moon"
+  },
+  {
+    "input": "red"
+  },
+  {
+    "input": "red moon sun cat red moon blue red"
+  },
+  {
+    "input": "cat sun cat"
+  }
+]

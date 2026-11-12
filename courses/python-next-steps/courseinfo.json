@@ -1,0 +1,108 @@
+{
+  "title": "Python Next Steps",
+  "description": "40 short Python exercises after Python First Steps. Learn loops, functions, lists, strings, sets, dictionaries, and small programs. Each task has simple English, a Spanish summary, examples, and a worked answer. Select Python.",
+  "category-order": [
+    "01-loops",
+    "02-functions",
+    "03-lists",
+    "04-strings",
+    "05-sets-and-dictionaries",
+    "06-more-python"
+  ],
+  "problems-of-category": {
+    "01-loops": [
+      "pns-01-sum-even-numbers",
+      "pns-02-count-matches",
+      "pns-03-sum-until-zero",
+      "pns-04-first-negative-position",
+      "pns-05-count-divisors",
+      "pns-06-sum-squares",
+      "pns-07-even-grid-positions",
+      "pns-08-reach-a-power-of-two"
+    ],
+    "02-functions": [
+      "pns-09-square-function",
+      "pns-10-inside-a-range",
+      "pns-11-clamp-a-number",
+      "pns-12-sum-a-range",
+      "pns-13-digit-count-function",
+      "pns-14-prime-check"
+    ],
+    "03-lists": [
+      "pns-15-first-and-last",
+      "pns-16-sum-positive-values",
+      "pns-17-keep-small-values",
+      "pns-18-rotate-three-values",
+      "pns-19-running-totals",
+      "pns-20-count-increases",
+      "pns-21-reverse-a-list",
+      "pns-22-square-a-list"
+    ],
+    "04-strings": [
+      "pns-23-first-two-letters",
+      "pns-24-reverse-text",
+      "pns-25-count-vowels",
+      "pns-26-different-positions",
+      "pns-27-count-words",
+      "pns-28-make-an-acronym"
+    ],
+    "05-sets-and-dictionaries": [
+      "pns-29-count-unique-values",
+      "pns-30-common-numbers",
+      "pns-31-count-a-word",
+      "pns-32-first-repeated-number",
+      "pns-33-look-up-a-score",
+      "pns-34-add-scores-by-name"
+    ],
+    "06-more-python": [
+      "pns-35-number-report",
+      "pns-36-word-report",
+      "pns-37-safe-integer",
+      "pns-38-json-total",
+      "pns-39-distance-between-points",
+      "pns-40-counter-class"
+    ]
+  },
+  "problem-numbers": {
+    "pns-01-sum-even-numbers": 1,
+    "pns-02-count-matches": 2,
+    "pns-03-sum-until-zero": 3,
+    "pns-04-first-negative-position": 4,
+    "pns-05-count-divisors": 5,
+    "pns-06-sum-squares": 6,
+    "pns-07-even-grid-positions": 7,
+    "pns-08-reach-a-power-of-two": 8,
+    "pns-09-square-function": 9,
+    "pns-10-inside-a-range": 10,
+    "pns-11-clamp-a-number": 11,
+    "pns-12-sum-a-range": 12,
+    "pns-13-digit-count-function": 13,
+    "pns-14-prime-check": 14,
+    "pns-15-first-and-last": 15,
+    "pns-16-sum-positive-values": 16,
+    "pns-17-keep-small-values": 17,
+    "pns-18-rotate-three-values": 18,
+    "pns-19-running-totals": 19,
+    "pns-20-count-increases": 20,
+    "pns-21-reverse-a-list": 21,
+    "pns-22-square-a-list": 22,
+    "pns-23-first-two-letters": 23,
+    "pns-24-reverse-text": 24,
+    "pns-25-count-vowels": 25,
+    "pns-26-different-positions": 26,
+    "pns-27-count-words": 27,
+    "pns-28-make-an-acronym": 28,
+    "pns-29-count-unique-values": 29,
+    "pns-30-common-numbers": 30,
+    "pns-31-count-a-word": 31,
+    "pns-32-first-repeated-number": 32,
+    "pns-33-look-up-a-score": 33,
+    "pns-34-add-scores-by-name": 34,
+    "pns-35-number-report": 35,
+    "pns-36-word-report": 36,
+    "pns-37-safe-integer": 37,
+    "pns-38-json-total": 38,
+    "pns-39-distance-between-points": 39,
+    "pns-40-counter-class": 40
+  }
+}
