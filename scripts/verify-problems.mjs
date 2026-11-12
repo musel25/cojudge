@@ -21,6 +21,7 @@ const env = {
 	...process.env, COJUDGE_ROOT: root,
 	COJUDGE_CONTENT_DIR: join(directory, 'content'), COJUDGE_HOME: join(directory, 'content'),
 	COJUDGE_PROGRESS_FILE: join(directory, 'cli-progress.json'),
+	COJUDGE_ISOLATED_VERIFY: '1',
 	COJUDGE_SERVER_PROGRESS_DIR: '', COJUDGE_SERVER_PROGRESS_ORIGIN: '',
 	COJUDGE_SERVER_PROGRESS_OWNER: '', COJUDGE_SERVER_PROGRESS_USERS: '', IS_DEMO_SITE: 'false'
 };

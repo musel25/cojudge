@@ -1,5 +1,5 @@
 import { beginExecutionShutdown, EXECUTION_TIMEOUT_SECONDS } from '$lib/utils/util';
-import { containerSessionId } from '$lib/server/containerSession';
+import { containerCreatedLabel, containerSessionId, orphanMaxAgeMs } from '$lib/server/containerSession';
 import Dockerode from 'dockerode';
 import ContainerPool from '$lib/runners/ContainerPool';
 
@@ -34,7 +34,7 @@ async function shutdownContainers() {
             const containers = await docker.listContainers({
                 all: true,
                 filters: {
-                    label: ['cojudge.created=true', `cojudge.session=${containerSessionId}`]
+                    label: [`cojudge.created=${containerCreatedLabel}`, `cojudge.session=${containerSessionId}`]
                 }
             });
             await Promise.allSettled(
@@ -60,7 +60,7 @@ async function cleanupContainers() {
             all: true,
             filters: {
                 // Age checks below make cross-session cleanup safe and reclaim crash leftovers.
-                label: ['cojudge.created=true']
+                label: [`cojudge.created=${containerCreatedLabel}`]
             }
         });
 
@@ -72,7 +72,7 @@ async function cleanupContainers() {
             const isDebug = containerInfo.Labels && containerInfo.Labels['cojudge.debug'] === 'true';
             console.log(`[cleanup] container ${containerInfo.Id.substring(0, 12)} age=${age}ms inPool=${inPool} debug=${isDebug} image=${containerInfo.Image}`);
 
-            const maxAge = isDebug ? 300000 : TIMEOUT_MS;
+            const maxAge = orphanMaxAgeMs(containerInfo.Labels, TIMEOUT_MS);
             if (age > maxAge && !inPool) {
                 const container = docker.getContainer(containerInfo.Id);
                 try {

@@ -29,7 +29,8 @@ function fixture({ countStatus = 0, buildStatus = 0, submissionStatus = 0 } = {}
 		import { appendFileSync } from 'node:fs';
 		appendFileSync(${JSON.stringify(trace)}, JSON.stringify({
 			step: ${JSON.stringify(step)}, args: process.argv.slice(2),
-			directory: process.env.COJUDGE_HOME, progress: process.env.COJUDGE_PROGRESS_FILE
+			directory: process.env.COJUDGE_HOME, progress: process.env.COJUDGE_PROGRESS_FILE,
+			verifyMode: process.env.COJUDGE_ISOLATED_VERIFY
 		}) + '\\n');
 	`;
 	write('scripts/verify-test-counts.js', `${event('counts')} process.exitCode = ${countStatus};`);
@@ -72,7 +73,7 @@ function run(args = ['fixture-problem']) {
 		env: { ...process.env, COJUDGE_CONTENT_DIR: join(root, 'learner'), COJUDGE_PROGRESS_FILE: join(root, 'learner', 'progress.json') }
 	});
 }
-function events(): { step: string; args?: string[]; directory?: string; progress?: string; pid?: number }[] {
+function events(): { step: string; args?: string[]; directory?: string; progress?: string; verifyMode?: string; pid?: number }[] {
 	return existsSync(trace) ? readFileSync(trace, 'utf8').trim().split('\n').map(line => JSON.parse(line)) : [];
 }
 function expectCleanup() {
@@ -136,6 +137,7 @@ describe('problem verification wrapper', () => {
 		expect(events().find(event => event.step === 'submissions')?.args).toEqual([
 			'--languages', 'python', '--solutions-root', expect.any(String), '--run', 'fixture-problem'
 		]);
+		expect(events().find(event => event.step === 'submissions')?.verifyMode).toBe('1');
 		expectCleanup();
 	});
 });
