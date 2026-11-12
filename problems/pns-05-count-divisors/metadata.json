@@ -37,10 +37,6 @@
   ],
   "outputType": "string",
   "scriptMode": true,
-  "courseHelp": {
-    "title": "How this course works / Cómo funciona",
-    "body": "Read the short lesson, then change the starter code. **Run** tries the examples. **Submit** tries more cases. Most answers are numbers or values from the input. Spaces between numbers do not change the score. Open a hint if you need one.\n\nLee la explicación corta. Cambia el código inicial. **Run** prueba los ejemplos. **Submit** prueba más casos."
-  },
   "hints": [
     "Use range(1, n + 1).",
     "A divisor meets n % value == 0."

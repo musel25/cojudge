@@ -2,18 +2,25 @@
 
 A function can use a loop and return its final total. The same function works for different inputs.
 
-**Idea en español:** Una función puede usar un ciclo y devolver el total final.
-
 ```python
-def add_two(a, b):
-    return a + b
+def add_to_three():
+    total = 0
+    for number in range(1, 4):
+        total += number
+    return total
+
+print(add_to_three())
+```
+
+This code prints:
+
+```text
+6
 ```
 
 ## Your task
 
 Complete sum_range(start, end). Add every whole number from start through end. start is never greater than end. Values use -50 through 50.
-
-**En español:** Completa sum_range. Suma todos los números enteros desde start hasta end, incluidos ambos.
 
 **Example 1**
 
@@ -30,6 +37,8 @@ Result:
 9
 ```
 
+Why: Add 2 + 3 + 4 to get 9.
+
 **Example 2**
 
 Input:
@@ -44,5 +53,7 @@ Result:
 ```text
 0
 ```
+
+Why: Add -2 + -1 + 0 + 1 + 2 to get 0.
 
 Start with the supplied code. Change the code near the comment.

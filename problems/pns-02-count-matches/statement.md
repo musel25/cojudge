@@ -2,19 +2,23 @@
 
 A loop can read several input lines. A counter starts at 0. Add 1 each time a value matches the target.
 
-**Idea en español:** Un contador empieza en 0. Suma 1 cuando encuentras el dato buscado.
-
 ```python
 matches = 0
-for _ in range(3):
-    value = int(input())
+for value in [3, 2, 3]:
+    if value == 3:
+        matches += 1
+print(matches)
+```
+
+This code prints:
+
+```text
+2
 ```
 
 ## Your task
 
 Read a target number, then a count, then that many numbers. Show how many numbers equal the target. The count is 0 through 12.
-
-**En español:** Lee el número buscado, la cantidad de datos y los datos. Cuenta cuántos son iguales al número buscado.
 
 **Example 1**
 
@@ -35,6 +39,8 @@ Result:
 3
 ```
 
+Why: The target is 3. It occurs three times in 3, 2, 3, 3.
+
 **Example 2**
 
 Input:
@@ -49,5 +55,7 @@ Result:
 ```text
 0
 ```
+
+Why: The count is 0, so there are no numbers to compare.
 
 Start with the supplied code. Change the code near the comment.

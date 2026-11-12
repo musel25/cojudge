@@ -2,18 +2,20 @@
 
 A set keeps each value once. Use set(nums) to remove repeated values before you count them.
 
-**Idea en español:** Un conjunto set guarda cada valor una sola vez.
-
 ```python
 nums = [2, 2, 5]
 print(len(set(nums)))  # 2
 ```
 
+This code prints:
+
+```text
+2
+```
+
 ## Your task
 
 Read one line of numbers. Show how many different numbers it contains. A blank line gives 0.
-
-**En español:** Cuenta cuántos números diferentes hay en la lista.
 
 **Example 1**
 
@@ -29,6 +31,8 @@ Result:
 2
 ```
 
+Why: The different values are 2 and 5, so the count is 2.
+
 **Example 2**
 
 Input:
@@ -42,5 +46,7 @@ Result:
 ```text
 1
 ```
+
+Why: All three values are 4, so there is one different value.
 
 Start with the supplied code. Change the code near the comment.

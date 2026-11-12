@@ -2,18 +2,20 @@
 
 lower() changes big letters to small letters. Use in to check whether one character is in a group.
 
-**Idea en español:** lower() convierte letras a minúsculas. in comprueba si una letra está en un grupo.
-
 ```python
 letter = "A"
 print(letter.lower() in "aeiou")  # True
 ```
 
+This code prints:
+
+```text
+True
+```
+
 ## Your task
 
 Read one line of text. Count the letters a, e, i, o, and u. Count big and small letters. Show the count.
-
-**En español:** Cuenta las letras a, e, i, o y u. Cuenta mayúsculas y minúsculas.
 
 **Example 1**
 
@@ -29,6 +31,8 @@ Result:
 2
 ```
 
+Why: Apple has two vowels: A and e.
+
 **Example 2**
 
 Input:
@@ -42,5 +46,7 @@ Result:
 ```text
 0
 ```
+
+Why: sky has none of a, e, i, o, or u.
 
 Start with the supplied code. Change the code near the comment.

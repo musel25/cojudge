@@ -2,20 +2,24 @@
 
 return ends a function. You can return early when a value is too small or too large.
 
-**Idea en español:** return termina la función. Puedes usarlo en distintos casos.
-
 ```python
 def at_least_zero(value):
     if value < 0:
         return 0
     return value
+
+print(at_least_zero(-3))
+```
+
+This code prints:
+
+```text
+0
 ```
 
 ## Your task
 
 Complete clamp(value, low, high). Return low if value is below low. Return high if value is above high. Otherwise return value. low is never greater than high.
-
-**En español:** Limita value al intervalo de low a high. Devuelve el límite si value está fuera.
 
 **Example 1**
 
@@ -33,6 +37,8 @@ Result:
 10
 ```
 
+Why: 15 is above 10, so clamp returns the upper bound 10.
+
 **Example 2**
 
 Input:
@@ -48,5 +54,7 @@ Result:
 ```text
 6
 ```
+
+Why: 6 is between 0 and 10, so clamp returns 6.
 
 Start with the supplied code. Change the code near the comment.

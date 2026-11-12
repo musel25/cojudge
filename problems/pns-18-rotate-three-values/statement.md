@@ -2,18 +2,20 @@
 
 A list keeps its order. You can use indexes to place items in a new order.
 
-**Idea en español:** Los índices permiten leer valores de una lista en otro orden.
-
 ```python
 values = [5, 8, 2]
 print(values[1])  # 8
 ```
 
+This code prints:
+
+```text
+8
+```
+
 ## Your task
 
 Read exactly three numbers. Move the first number to the end. Show the new order. For 5 8 2, show 8 2 5.
-
-**En español:** Lee tres números. Mueve el primero al final y muestra el nuevo orden.
 
 **Example 1**
 
@@ -29,6 +31,8 @@ Result:
 8 2 5
 ```
 
+Why: Move 5 to the end of 5, 8, 2. The new order is 8, 2, 5.
+
 **Example 2**
 
 Input:
@@ -42,6 +46,8 @@ Result:
 ```text
 1 1 1
 ```
+
+Why: All three values are 1, so the order looks the same.
 
 When the result has several numbers, you can put spaces or new lines between them.
 

@@ -1,6 +1,6 @@
 {
   "title": "Python Next Steps",
-  "description": "40 short Python exercises after Python First Steps. Learn loops, functions, lists, strings, sets, dictionaries, and small programs. Each task has simple English, a Spanish summary, examples, and a worked answer. Select Python.",
+  "description": "40 short Python exercises after Python First Steps. Learn loops, functions, lists, strings, sets, dictionaries, and small programs. Each task has a code example with its output, explained results, and a worked answer. Select Python.",
   "category-order": [
     "01-loops",
     "02-functions",
