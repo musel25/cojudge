@@ -154,10 +154,13 @@ export async function getMarkerResponses(problemId: string, functionName: string
         const results = rstdout.split('---\n').filter(res => res.trim() !== '');
         return results.map((x, i) => {
             const arr = x.split('\n');
+            // The answer can span lines (for example printed program output).
+            const answer = arr.slice(1);
+            if (answer.length > 1 && answer[answer.length - 1] === '') answer.pop();
             return {
                 actualAnswer: outputs[i],
                 isCorrect: arr[0] === 'true',
-                correctAnswer: arr[1]
+                correctAnswer: answer.join('\n')
             } as MarkerResponse;
         });
     } finally {

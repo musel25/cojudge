@@ -73,7 +73,7 @@ test('desktop Firebase settings enable loading a shared code', async ({ page }) 
 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole('button', { name: 'Toggle menu' }).click();
-  await page.getByRole('menuitem', { name: 'Load', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'Load File', exact: true }).click();
   const loadDialog = page.getByRole('dialog', { name: 'Enter code' });
   await expect(loadDialog).toBeVisible();
   const loadDialogBox = await loadDialog.boundingBox();
@@ -210,7 +210,11 @@ test('whiteboard can create and undo a shape', async ({ page }) => {
   await page.reload();
 
   await expect(page.getByRole('application', { name: 'Whiteboard drawing canvas' })).toBeVisible();
-  await page.getByRole('button', { name: 'Rectangle (2 or R)' }).click();
+  const rectangle = page.getByRole('button', { name: 'Rectangle (2 or R)' });
+  await expect(async () => {
+    if ((await rectangle.getAttribute('aria-pressed')) !== 'true') await rectangle.click();
+    await expect(rectangle).toHaveAttribute('aria-pressed', 'true');
+  }).toPass();
   await page.mouse.move(400, 220);
   await page.mouse.down();
   await page.mouse.move(620, 380);

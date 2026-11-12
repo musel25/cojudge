@@ -19,7 +19,8 @@ export const GET: RequestHandler = async ({ params }) => {
     const baseDir = await resolveProblemDir(params.slug);
     const assetPath = path.join(baseDir, params.path);
 
-    if (!path.resolve(assetPath).startsWith(path.resolve(baseDir))) {
+    const relative = path.relative(path.resolve(baseDir), path.resolve(assetPath));
+    if (relative === '..' || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
         throw error(403, 'Forbidden');
     }
 
@@ -27,7 +28,7 @@ export const GET: RequestHandler = async ({ params }) => {
         const data = await fs.readFile(assetPath);
         const ext = path.extname(assetPath).toLowerCase();
         const mimeType = MIME_TYPES[ext] || 'application/octet-stream';
-        return new Response(data, {
+        return new Response(new Uint8Array(data), {
             headers: { 'Content-Type': mimeType },
         });
     } catch {

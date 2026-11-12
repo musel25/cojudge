@@ -15,6 +15,7 @@ import {
     getProblemSources
 } from '$lib/server/contentPaths';
 import { existsSync } from 'node:fs';
+import { LEARNING_PATH_COURSE_IDS } from '$lib/learningPath';
 import type { PageServerLoad } from './$types';
 
 async function resolveContentDir(userDir: string, bundledDir: string): Promise<string> {
@@ -76,7 +77,15 @@ export const load: PageServerLoad = async ({ url }) => {
         .toSorted((a, b) => (a.title || '').localeCompare(b.title || ''));
 
     return {
-        courses: courses.map((course) => ({ id: course.id, title: course.info.title, source: courseSources[course.id] ?? 'bundled' })),
+        // `"hidden": true` in courseinfo.json only sets the default; each viewer
+        // chooses the visible tabs in the "Lists" menu (stored in the browser).
+        courses: courses.map((course) => ({
+            id: course.id, title: course.info.title, source: courseSources[course.id] ?? 'bundled',
+            hidden: course.info.hidden === true,
+            ...(LEARNING_PATH_COURSE_IDS.has(course.id) ? {
+                problemIds: orderProblemsForCourse(course.info, allProblems).map((problem) => problem.id)
+            } : {})
+        })),
         selectedCourseId: selectedCourse?.id ?? null,
         selectedCourseInfo: selectedCourse?.info ?? null,
         problems: problemsWithSource,

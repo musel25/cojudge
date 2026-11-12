@@ -16,6 +16,7 @@ const docker = new Dockerode();
 
 export abstract class PlaygroundRunner {
     protected readonly code: string;
+    protected container: Dockerode.Container | null = null;
 
     constructor(code: string) {
         this.code = code;
@@ -26,18 +27,18 @@ export abstract class PlaygroundRunner {
 
     /** Stage piped stdin as a file so the program can `<` redirect from it.
      *  Empty stdin yields immediate EOF (same as before). */
-    protected async stageStdin(stdin: string = ''): Promise<void> {
+    protected async stageStdin(stdin: string = ''): Promise<Dockerode.Container> {
         if (!this.container) throw new Error('Container not initialized');
         const stdinPack = tar.pack();
         stdinPack.entry({ name: 'cojudge_stdin.txt' }, Buffer.from(stdin ?? ''));
         stdinPack.finalize();
-        await this.container.putArchive(stdinPack as any, { path: '/app' });
+        const container = this.container;
+        await container.putArchive(stdinPack as any, { path: '/app' });
+        return container;
     }
 }
 
 export class PlaygroundJavaRunner extends PlaygroundRunner {
-    private container: Dockerode.Container | null = null;
-
     async compile(): Promise<void> {
         this.container = await ContainerPool.acquire(javaImage);
         if (!this.container) {
@@ -82,9 +83,9 @@ export class PlaygroundJavaRunner extends PlaygroundRunner {
     }
 
     async run(stdin: string = ''): Promise<{ output: string; logs: string }> {
-        await this.stageStdin(stdin);
+        const container = await this.stageStdin(stdin);
         
-        const exec = await this.container!.exec({
+        const exec = await container.exec({
             Cmd: ['timeout', EXECUTION_TIMEOUT_SECONDS, '/bin/sh', '-c', 'java Main < cojudge_stdin.txt'],
             AttachStdout: true,
             AttachStderr: true
@@ -104,12 +105,12 @@ export class PlaygroundJavaRunner extends PlaygroundRunner {
         
         const inspect = await exec.inspect();
         if (inspect.ExitCode === 124) {
-            await ContainerPool.markForCleanup(this.container);
+            await ContainerPool.markForCleanup(container);
             this.container = null;
             throw new Error(TIMEOUT_MESSAGE);
         }
 
-        await ContainerPool.release(javaImage, this.container);
+        await ContainerPool.release(javaImage, container);
         this.container = null;
         
         return { output: stdout, logs: stderr };
@@ -117,8 +118,6 @@ export class PlaygroundJavaRunner extends PlaygroundRunner {
 }
 
 export class PlaygroundPythonRunner extends PlaygroundRunner {
-    private container: Dockerode.Container | null = null;
-
     async compile(): Promise<void> {
         this.container = await ContainerPool.acquire(pythonImage);
         if (!this.container) {
@@ -140,9 +139,9 @@ export class PlaygroundPythonRunner extends PlaygroundRunner {
     }
 
     async run(stdin: string = ''): Promise<{ output: string; logs: string }> {
-        await this.stageStdin(stdin);
+        const container = await this.stageStdin(stdin);
         
-        const exec = await this.container!.exec({
+        const exec = await container.exec({
             Cmd: ['timeout', EXECUTION_TIMEOUT_SECONDS, '/bin/sh', '-c', 'python3 main.py < cojudge_stdin.txt'],
             AttachStdout: true,
             AttachStderr: true
@@ -162,12 +161,12 @@ export class PlaygroundPythonRunner extends PlaygroundRunner {
         
         const inspect = await exec.inspect();
         if (inspect.ExitCode === 124) {
-            await ContainerPool.markForCleanup(this.container);
+            await ContainerPool.markForCleanup(container);
             this.container = null;
             throw new Error(TIMEOUT_MESSAGE);
         }
 
-        await ContainerPool.release(pythonImage, this.container);
+        await ContainerPool.release(pythonImage, container);
         this.container = null;
         
         return { output: stdout, logs: stderr };
@@ -175,8 +174,6 @@ export class PlaygroundPythonRunner extends PlaygroundRunner {
 }
 
 export class PlaygroundCppRunner extends PlaygroundRunner {
-    private container: Dockerode.Container | null = null;
-
     async compile(): Promise<void> {
         this.container = await ContainerPool.acquire(cppImage);
         if (!this.container) {
@@ -221,9 +218,9 @@ export class PlaygroundCppRunner extends PlaygroundRunner {
     }
 
     async run(stdin: string = ''): Promise<{ output: string; logs: string }> {
-        await this.stageStdin(stdin);
+        const container = await this.stageStdin(stdin);
 
-        const exec = await this.container!.exec({
+        const exec = await container.exec({
             Cmd: ['timeout', EXECUTION_TIMEOUT_SECONDS, '/bin/sh', '-c', './main < cojudge_stdin.txt'],
             AttachStdout: true,
             AttachStderr: true
@@ -243,12 +240,12 @@ export class PlaygroundCppRunner extends PlaygroundRunner {
         
         const inspect = await exec.inspect();
         if (inspect.ExitCode === 124) {
-            await ContainerPool.markForCleanup(this.container);
+            await ContainerPool.markForCleanup(container);
             this.container = null;
             throw new Error(TIMEOUT_MESSAGE);
         }
 
-        await ContainerPool.release(cppImage, this.container);
+        await ContainerPool.release(cppImage, container);
         this.container = null;
         
         return { output: stdout, logs: stderr };
@@ -256,8 +253,6 @@ export class PlaygroundCppRunner extends PlaygroundRunner {
 }
 
 export class PlaygroundCSharpRunner extends PlaygroundRunner {
-    private container: Dockerode.Container | null = null;
-
     async compile(): Promise<void> {
         this.container = await ContainerPool.acquire(csharpImage);
         if (!this.container) {
@@ -314,9 +309,9 @@ export class PlaygroundCSharpRunner extends PlaygroundRunner {
     }
 
     async run(stdin: string = ''): Promise<{ output: string; logs: string }> {
-        await this.stageStdin(stdin);
+        const container = await this.stageStdin(stdin);
 
-        const exec = await this.container!.exec({
+        const exec = await container.exec({
             Cmd: ['timeout', EXECUTION_TIMEOUT_SECONDS, '/bin/sh', '-c', 'dotnet run --no-build < cojudge_stdin.txt'],
             AttachStdout: true,
             AttachStderr: true
@@ -336,12 +331,12 @@ export class PlaygroundCSharpRunner extends PlaygroundRunner {
         
         const inspect = await exec.inspect();
         if (inspect.ExitCode === 124) {
-            await ContainerPool.markForCleanup(this.container);
+            await ContainerPool.markForCleanup(container);
             this.container = null;
             throw new Error(TIMEOUT_MESSAGE);
         }
 
-        await ContainerPool.release(csharpImage, this.container);
+        await ContainerPool.release(csharpImage, container);
         this.container = null;
         
         return { output: stdout, logs: stderr };
@@ -349,8 +344,6 @@ export class PlaygroundCSharpRunner extends PlaygroundRunner {
 }
 
 export class PlaygroundRustRunner extends PlaygroundRunner {
-    private container: Dockerode.Container | null = null;
-
     async compile(): Promise<void> {
         this.container = await ContainerPool.acquire(rustImage);
         if (!this.container) {
@@ -395,9 +388,9 @@ export class PlaygroundRustRunner extends PlaygroundRunner {
     }
 
     async run(stdin: string = ''): Promise<{ output: string; logs: string }> {
-        await this.stageStdin(stdin);
+        const container = await this.stageStdin(stdin);
 
-        const exec = await this.container!.exec({
+        const exec = await container.exec({
             Cmd: ['timeout', EXECUTION_TIMEOUT_SECONDS, '/bin/sh', '-c', './main < cojudge_stdin.txt'],
             AttachStdout: true,
             AttachStderr: true
@@ -417,12 +410,12 @@ export class PlaygroundRustRunner extends PlaygroundRunner {
         
         const inspect = await exec.inspect();
         if (inspect.ExitCode === 124) {
-            await ContainerPool.markForCleanup(this.container);
+            await ContainerPool.markForCleanup(container);
             this.container = null;
             throw new Error(TIMEOUT_MESSAGE);
         }
 
-        await ContainerPool.release(rustImage, this.container);
+        await ContainerPool.release(rustImage, container);
         this.container = null;
         
         return { output: stdout, logs: stderr };
@@ -430,8 +423,6 @@ export class PlaygroundRustRunner extends PlaygroundRunner {
 }
 
 export class PlaygroundGoRunner extends PlaygroundRunner {
-    private container: Dockerode.Container | null = null;
-
     async compile(): Promise<void> {
         this.container = await ContainerPool.acquire(goImage);
         if (!this.container) {
@@ -488,9 +479,9 @@ export class PlaygroundGoRunner extends PlaygroundRunner {
     }
 
     async run(stdin: string = ''): Promise<{ output: string; logs: string }> {
-        await this.stageStdin(stdin);
+        const container = await this.stageStdin(stdin);
 
-        const exec = await this.container!.exec({
+        const exec = await container.exec({
             Cmd: ['timeout', EXECUTION_TIMEOUT_SECONDS, '/bin/sh', '-c', './main < cojudge_stdin.txt'],
             AttachStdout: true,
             AttachStderr: true
@@ -510,12 +501,12 @@ export class PlaygroundGoRunner extends PlaygroundRunner {
         
         const inspect = await exec.inspect();
         if (inspect.ExitCode === 124) {
-            await ContainerPool.markForCleanup(this.container);
+            await ContainerPool.markForCleanup(container);
             this.container = null;
             throw new Error(TIMEOUT_MESSAGE);
         }
 
-        await ContainerPool.release(goImage, this.container);
+        await ContainerPool.release(goImage, container);
         this.container = null;
         
         return { output: stdout, logs: stderr };
@@ -523,8 +514,6 @@ export class PlaygroundGoRunner extends PlaygroundRunner {
 }
 
 export class PlaygroundTypeScriptRunner extends PlaygroundRunner {
-    private container: Dockerode.Container | null = null;
-
     async compile(): Promise<void> {
         this.container = await ContainerPool.acquire(tsImage);
         if (!this.container) {
@@ -558,9 +547,9 @@ export class PlaygroundTypeScriptRunner extends PlaygroundRunner {
     }
 
     async run(stdin: string = ''): Promise<{ output: string; logs: string }> {
-        await this.stageStdin(stdin);
+        const container = await this.stageStdin(stdin);
 
-        const exec = await this.container!.exec({
+        const exec = await container.exec({
             Cmd: ['timeout', EXECUTION_TIMEOUT_SECONDS, '/bin/sh', '-c', 'npx --yes tsx main.ts < cojudge_stdin.txt'],
             AttachStdout: true,
             AttachStderr: true
@@ -580,12 +569,12 @@ export class PlaygroundTypeScriptRunner extends PlaygroundRunner {
         
         const inspect = await exec.inspect();
         if (inspect.ExitCode === 124) {
-            await ContainerPool.markForCleanup(this.container);
+            await ContainerPool.markForCleanup(container);
             this.container = null;
             throw new Error(TIMEOUT_MESSAGE);
         }
 
-        await ContainerPool.release(tsImage, this.container);
+        await ContainerPool.release(tsImage, container);
         this.container = null;
         
         return { output: stdout, logs: stderr };
@@ -593,8 +582,6 @@ export class PlaygroundTypeScriptRunner extends PlaygroundRunner {
 }
 
 export class PlaygroundPhpRunner extends PlaygroundRunner {
-    private container: Dockerode.Container | null = null;
-
     async compile(): Promise<void> {
         this.container = await ContainerPool.acquire(phpImage);
         if (!this.container) {
@@ -616,9 +603,9 @@ export class PlaygroundPhpRunner extends PlaygroundRunner {
     }
 
     async run(stdin: string = ''): Promise<{ output: string; logs: string }> {
-        await this.stageStdin(stdin);
+        const container = await this.stageStdin(stdin);
 
-        const exec = await this.container!.exec({
+        const exec = await container.exec({
             Cmd: ['timeout', EXECUTION_TIMEOUT_SECONDS, '/bin/sh', '-c', 'php main.php < cojudge_stdin.txt'],
             AttachStdout: true,
             AttachStderr: true
@@ -638,12 +625,12 @@ export class PlaygroundPhpRunner extends PlaygroundRunner {
 
         const inspect = await exec.inspect();
         if (inspect.ExitCode === 124) {
-            await ContainerPool.markForCleanup(this.container);
+            await ContainerPool.markForCleanup(container);
             this.container = null;
             throw new Error(TIMEOUT_MESSAGE);
         }
 
-        await ContainerPool.release(phpImage, this.container);
+        await ContainerPool.release(phpImage, container);
         this.container = null;
 
         return { output: stdout, logs: stderr };

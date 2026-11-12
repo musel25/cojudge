@@ -4,8 +4,8 @@ test('folder collapse/expand state persists to localStorage across reloads', asy
   await page.goto('/playground');
   await page.evaluate(() => {
     localStorage.removeItem('files');
-    // Reset the playground collapse-state key so the test starts clean
-    localStorage.removeItem('playground-collapsed-folders');
+    // Start with an explicit preference that keeps folders expanded.
+    localStorage.setItem('playground-collapsed-folders', '{}');
     const now = Date.now();
     const files = [
       {
@@ -70,7 +70,7 @@ test('explorer highlights markdown files in nested folders while in WYSIWYG mode
   await page.goto('/playground');
   await page.evaluate(() => {
     localStorage.removeItem('files');
-    localStorage.removeItem('playground-collapsed-folders');
+    localStorage.setItem('playground-collapsed-folders', '{}');
     localStorage.setItem('playground-markdown-mode', 'wysiwyg');
     const now = Date.now();
     const files = [
@@ -134,4 +134,22 @@ test('explorer highlights markdown files in nested folders while in WYSIWYG mode
   await page.locator('[data-explorer-id="note-a"]').click();
   await expect(page.locator('[data-explorer-id="note-a"]')).toHaveClass(/active/);
   await expect(page.locator('[data-explorer-id="note-b"]')).not.toHaveClass(/active/);
+});
+
+test('fresh folder preferences keep an active nested file collapsed', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.removeItem('playground-collapsed-folders');
+    localStorage.setItem('files', JSON.stringify({ playground: JSON.stringify([
+      { fileId: 'fresh-folder', fileName: 'FreshFolder', type: 'folder', language: 'plaintext', content: '', order: 0, lastUpdated: 1 },
+      { fileId: 'fresh-note', fileName: 'FreshNote', language: 'java', lastLanguage: 'java', content: '// active nested file', parentId: 'fresh-folder', isActive: true, isOpen: true, order: 1, lastUpdated: 2 }
+    ]) }));
+  });
+  await page.goto('/playground');
+  await expect(page.locator('.monaco-editor')).toBeVisible();
+  await expect(page.getByRole('tab', { name: /FreshNote/ })).toHaveAttribute('aria-selected', 'true');
+  const folder = page.locator('[data-explorer-id="fresh-folder"] .folder-chevron');
+  await expect(folder).toHaveAttribute('aria-expanded', 'false');
+  await expect(page.locator('[data-explorer-id="fresh-note"]')).toHaveCount(0);
+  await folder.click();
+  await expect(page.locator('[data-explorer-id="fresh-note"]')).toBeVisible();
 });

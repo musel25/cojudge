@@ -55,6 +55,7 @@ function isSafeSegment(segment: string): boolean {
 
 /** Prefer the user copy; fall back to the bundled copy. */
 export function resolveProblemDirSync(slug: string): string {
+	if (!isSafeSegment(slug)) throw new Error('Invalid problem ID.');
 	const userDir = path.join(getProblemsDir(), slug);
 	try {
 		if (existsSync(userDir)) return userDir;
@@ -66,6 +67,7 @@ export function resolveProblemDirSync(slug: string): string {
 
 /** Prefer the user copy; fall back to the bundled copy. */
 export async function resolveProblemDir(slug: string): Promise<string> {
+	if (!isSafeSegment(slug)) throw new Error('Invalid problem ID.');
 	const userDir = path.join(getProblemsDir(), slug);
 	try {
 		await fs.access(userDir);

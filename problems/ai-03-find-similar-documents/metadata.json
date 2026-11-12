@@ -1,0 +1,48 @@
+{
+  "id": "ai-03-find-similar-documents",
+  "title": "03. Find Similar Documents",
+  "difficulty": "Medium",
+  "studyMinutes": 40,
+  "link": "",
+  "category": "applied-ai",
+  "examples": [
+    {
+      "input": "{\"query\": [1, 0], \"documents\": [{\"id\": \"b\", \"vector\": [10, 10]}, {\"id\": \"a\", \"vector\": [1, 0]}, {\"id\": \"c\", \"vector\": [-1, 0]}], \"k\": 2}",
+      "output": "{\"ids\": [\"a\", \"b\"]}"
+    },
+    {
+      "input": "{\"query\": [1], \"documents\": [], \"k\": 2}",
+      "output": "{\"ids\": []}"
+    },
+    {
+      "input": "{\"query\": [1], \"documents\": [{\"id\": \"a\", \"vector\": [1]}], \"k\": 0}",
+      "output": "{\"ids\": []}"
+    }
+  ],
+  "starterCode": {
+    "python": "def solve(data: dict) -> dict:\n    raise NotImplementedError\n\n# Supplied Cojudge adapter. Implement solve(data) above.\nimport json\n\nclass Solution:\n    def run(self, payload: str) -> str:\n        return json.dumps(solve(json.loads(payload)), ensure_ascii=True, allow_nan=False)\n"
+  },
+  "testCases": [
+    {
+      "payload": "{\"query\":[1,0],\"documents\":[{\"id\":\"b\",\"vector\":[10,10]},{\"id\":\"a\",\"vector\":[1,0]},{\"id\":\"c\",\"vector\":[-1,0]}],\"k\":2}"
+    },
+    {
+      "payload": "{\"query\":[1],\"documents\":[],\"k\":2}"
+    },
+    {
+      "payload": "{\"query\":[1],\"documents\":[{\"id\":\"a\",\"vector\":[1]}],\"k\":0}"
+    }
+  ],
+  "functionName": "run",
+  "params": [
+    {
+      "name": "payload",
+      "type": "string"
+    }
+  ],
+  "outputType": "string",
+  "hints": [
+    "Compute the dot product and the two vector lengths.",
+    "Use a sorting key with negative score followed by ID."
+  ]
+}

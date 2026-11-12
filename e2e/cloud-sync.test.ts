@@ -51,6 +51,11 @@ test('progress exports omit Firebase auth and cloud bookkeeping', async ({ page 
 
 test('progress imports cannot replace the Firebase project', async ({ page }) => {
 	await page.goto('/');
+	const menu = page.getByRole('menu');
+	await expect(async () => {
+		if (!(await menu.isVisible())) await page.getByRole('button', { name: 'Toggle menu' }).click();
+		await expect(menu).toBeVisible();
+	}).toPass();
 	await page.evaluate(() => {
 		localStorage.setItem('cojudge-firebase-settings', JSON.stringify({ projectId: 'trusted' }));
 	});

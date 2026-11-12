@@ -9,6 +9,9 @@
     import SaveStatus from "./SaveStatus.svelte";
     import GameModeTimer from "./GameModeTimer.svelte";
     import DockerSettingsModal from "./DockerSettingsModal.svelte";
+    import AcceptedCelebration from "./AcceptedCelebration.svelte";
+    import TestCaseDetails from "./TestCaseDetails.svelte";
+    import { getTestCasePresentation } from "$lib/utils/testCasePresentation";
     import userStore from "$lib/stores/userStore";
     import { isDesktopRuntime } from "$lib/firebaseSettings";
     import { isDebugSupported, type ProgrammingLanguage } from "$lib/utils/util";
@@ -46,6 +49,7 @@
         | "debugger"
         | "debug-console" = "testcase";
     let activeTestCaseIndex = 0;
+    let editingTestCaseIndex: number | null = null;
     let isLoading = false;
     let isMac = false;
     let isResizing = false;
@@ -69,6 +73,8 @@
         testCase: any | null; // inputs for the failing/TLE case
         yourAnswer?: string | null;
         expectedAnswer?: string | null;
+        failureDetail?: string | null;
+        logs?: string | null;
         error?: string | null;
     } | null;
     let submissionFailure: SubmissionFailure = null;
@@ -110,6 +116,11 @@
     }
     $: isLeftPaneVisible = ($leftPaneWidthStore === null ? 50 : $leftPaneWidthStore) > 5;
     $: isBottomPaneVisible = $execPaneHeightStore > minExecPanelHeight;
+
+    // Accepted-submission animation; the key restarts it on every new acceptance.
+    let showCelebration = false;
+    let celebrationKey = 0;
+    let celebrationTests: number | null = null;
 
     function statusToString(status: StatusType) {
         switch (status) {
@@ -382,7 +393,7 @@
         const toStore = testCaseResults.map((tc: any) => {
             const copy: any = {};
             Object.entries(tc).forEach(([k, v]) => {
-                if (k !== "output" && k !== "error" && k !== "logs")
+                if (k !== "output" && k !== "error" && k !== "logs" && k !== "failureDetail" && k !== "testDetails")
                     copy[k] = v;
             });
             return copy;
@@ -400,6 +411,8 @@
                 k !== "output" &&
                 k !== "error" &&
                 k !== "logs" &&
+                k !== "failureDetail" &&
+                k !== "testDetails" &&
                 k !== "correctAnswer" &&
                 k !== "isCorrect"
             )
@@ -409,6 +422,7 @@
         const pushed = { ...newCase, output: null, logs: "", error: null };
         testCaseResults = [...testCaseResults, pushed];
         activeTestCaseIndex = testCaseResults.length - 1;
+        editingTestCaseIndex = getTestCasePresentation(problem, pushed) ? activeTestCaseIndex : null;
     }
 
     function resetTestCases() {
@@ -420,6 +434,7 @@
             error: null,
         }));
         activeTestCaseIndex = 0;
+        editingTestCaseIndex = null;
         hasRunOnce = false;
         status = "no-status";
     }
@@ -433,6 +448,8 @@
                 k !== "output" &&
                 k !== "error" &&
                 k !== "logs" &&
+                k !== "failureDetail" &&
+                k !== "testDetails" &&
                 k !== "correctAnswer" &&
                 k !== "isCorrect"
             )
@@ -445,6 +462,7 @@
     }
 
     function removeTestCase(index: number) {
+        editingTestCaseIndex = null;
         // Remove the case
         const next = testCaseResults.filter((_: any, i: number) => i !== index);
         testCaseResults = next;
@@ -468,7 +486,7 @@
 
         testCaseResults = testCaseResults.map((tc: any, idx: number) => {
             if (idx !== activeTestCaseIndex) return tc;
-            return { ...tc, [key]: parsed };
+            return { ...tc, [key]: parsed, testDetails: null, failureDetail: null };
         });
     }
 
@@ -510,6 +528,8 @@
 
     // A reactive statement to get the currently selected test case
     $: activeTestCase = testCaseResults[activeTestCaseIndex];
+    $: activeTestCasePresentation = getTestCasePresentation(problem, activeTestCase);
+    $: submissionTestCasePresentation = getTestCasePresentation(problem, submissionFailure?.testCase);
 
     function delay(ms: number) {
         return new Promise((res) => setTimeout(res, ms));
@@ -530,6 +550,8 @@
             logs: "",
             error: null,
             correctAnswer: null,
+            failureDetail: null,
+            testDetails: null,
         }));
         hasRunOnce = true;
         status = "running";
@@ -546,7 +568,7 @@
             const payloadTestCases = testCaseResults.map((tc: any) => {
                 const copy: any = {};
                 Object.entries(tc).forEach(([k, v]) => {
-                    if (k !== "output" && k !== "error" && k !== "logs")
+                    if (k !== "output" && k !== "error" && k !== "logs" && k !== "failureDetail" && k !== "testDetails")
                         copy[k] = v;
                 });
                 return copy;
@@ -784,6 +806,9 @@
                     if (body.allAccepted) {
                         status = "accepted";
                         runningMessage = "";
+                        celebrationTests = totalTc || null;
+                        celebrationKey += 1;
+                        showCelebration = true;
                         userStore.update((prev) => ({
                             ...prev,
                             [problem.id]: true,
@@ -813,6 +838,8 @@
                             testCase: failing || null,
                             yourAnswer: failing?.output ?? null,
                             expectedAnswer: failing?.correctAnswer ?? null,
+                            failureDetail: failing?.failureDetail ?? null,
+                            logs: failing?.logs ?? null,
                             error: failing?.error ?? null,
                         };
                         activeMainTab = "submission";
@@ -1076,7 +1103,7 @@
         return testCaseResults.map((tc: any) => {
             const copy: any = {};
             Object.entries(tc).forEach(([k, v]) => {
-                if (k !== "output" && k !== "error" && k !== "logs")
+                if (k !== "output" && k !== "error" && k !== "logs" && k !== "failureDetail" && k !== "testDetails")
                     copy[k] = v;
             });
             return copy;
@@ -1410,6 +1437,10 @@
                 </div>
                 {#if activeTestCase}
                     <div class="case-inputs">
+                        {#if activeTestCasePresentation && editingTestCaseIndex !== activeTestCaseIndex}
+                            <TestCaseDetails detail={activeTestCasePresentation} />
+                            <button type="button" class="link-btn" on:click={() => (editingTestCaseIndex = activeTestCaseIndex)}>Edit test selection</button>
+                        {:else}
                         {#each Object.entries(activeTestCase) as [key, value]}
                             {#if problem.params.find((x: any) => x.name === key)}
                                 <label for={key}>{key} =</label>
@@ -1438,6 +1469,10 @@
                                 {/if}
                             {/if}
                         {/each}
+                        {#if activeTestCasePresentation}
+                            <button type="button" class="link-btn" on:click={() => (editingTestCaseIndex = null)}>Show test details</button>
+                        {/if}
+                        {/if}
                     </div>
                 {/if}
             </div>
@@ -1470,6 +1505,9 @@
                 {#if activeTestCase}
                     <div class="result-item">
                         <div class="case-inputs">
+                            {#if activeTestCasePresentation}
+                                <TestCaseDetails detail={activeTestCasePresentation} />
+                            {:else}
                             {#each Object.entries(activeTestCase) as [key, value]}
                                 {#if problem.params.find((x: any) => x.name === key)}
                                     <label for={key}>{key} =</label>
@@ -1494,7 +1532,12 @@
                                     {/if}
                                 {/if}
                             {/each}
+                            {/if}
                         </div>
+                        {#if activeTestCase.failureDetail}
+                            <span class="result-title">Failure details</span>
+                            <pre class="result-output error">{activeTestCase.failureDetail}</pre>
+                        {/if}
                         <span class="result-title">Your Answer</span>
                         {#if activeTestCase.error}
                             <span class="result-status error">Error</span>
@@ -1557,6 +1600,9 @@
                     <div class="result-title">Inputs</div>
                     <div class="kv-list">
                         {#if submissionFailure.testCase}
+                            {#if submissionTestCasePresentation}
+                                <TestCaseDetails detail={submissionTestCasePresentation} />
+                            {:else}
                             {#each problem.params as p}
                                 {#if submissionFailure.testCase[p.name] !== undefined}
                                     <div class="kv-row">
@@ -1570,6 +1616,7 @@
                                     </div>
                                 {/if}
                             {/each}
+                            {/if}
                         {:else}
                             <div class="kv-row">
                                 <span>No input details available.</span>
@@ -1578,6 +1625,18 @@
                     </div>
                 </div>
                 <div class="outputs">
+                    {#if submissionFailure.failureDetail}
+                        <div class="result-item">
+                            <span class="result-title">Failure details</span>
+                            <pre class="result-output error">{submissionFailure.failureDetail}</pre>
+                        </div>
+                    {/if}
+                    {#if submissionFailure.logs}
+                        <div class="result-item">
+                            <span class="result-title">Console</span>
+                            <pre class="result-output">{submissionFailure.logs}</pre>
+                        </div>
+                    {/if}
                     {#if submissionFailure.type === "tle"}
                         <div class="result-item">
                             <span class="result-title">Result</span>
@@ -2157,6 +2216,16 @@
         </div>
     </div>
 </div>
+
+{#if showCelebration}
+    {#key celebrationKey}
+        <AcceptedCelebration
+            totalTests={celebrationTests}
+            runtimeMs={executionTimeMs ?? null}
+            on:done={() => (showCelebration = false)}
+        />
+    {/key}
+{/if}
 
 <DockerSettingsModal
     open={showDockerSettings}

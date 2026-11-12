@@ -1,0 +1,77 @@
+[
+  {
+    "payload": "{\"source_ids\":[\"doc-a\"],\"answers\":[{\"text\":\"A\",\"citations\":[\"doc-a\"]},{\"text\":\"B\",\"citations\":[]},{\"text\":\"C\",\"citations\":[\"other\"]}]}"
+  },
+  {
+    "payload": "{\"source_ids\":[],\"answers\":[]}"
+  },
+  {
+    "payload": "{\"source_ids\":[\"a\"],\"answers\":[{\"text\":\"x\",\"citations\":[\"a\"]}]}"
+  },
+  {
+    "payload": "{\"source_ids\":[\"a\"],\"answers\":[{\"text\":\"x\",\"citations\":[]}]}"
+  },
+  {
+    "payload": "{\"source_ids\":[],\"answers\":[{\"text\":\"x\",\"citations\":[\"a\"]}]}"
+  },
+  {
+    "payload": "{\"source_ids\":[],\"answers\":[{\"text\":\"x\",\"citations\":[]}]}"
+  },
+  {
+    "payload": "{\"source_ids\":[\"a\",\"b\"],\"answers\":[{\"text\":\"x\",\"citations\":[\"a\",\"c\"]}]}"
+  },
+  {
+    "payload": "{\"source_ids\":[\"a\",\"b\"],\"answers\":[{\"text\":\"x\",\"citations\":[\"a\",\"b\"]}]}"
+  },
+  {
+    "payload": "{\"source_ids\":[\"a\"],\"answers\":[{\"text\":\"x\",\"citations\":[\"a\",\"a\"]}]}"
+  },
+  {
+    "payload": "{\"source_ids\":[\"a\"],\"answers\":[{\"text\":\"x\",\"citations\":[\"z\",\"z\"]}]}"
+  },
+  {
+    "payload": "{\"source_ids\":[\"A\"],\"answers\":[{\"text\":\"x\",\"citations\":[\"a\"]}]}"
+  },
+  {
+    "payload": "{\"source_ids\":[\"a\"],\"answers\":[{\"text\":\"x\",\"citations\":[\" a\"]}]}"
+  },
+  {
+    "payload": "{\"source_ids\":[\"a\"],\"answers\":[{\"text\":\"\",\"citations\":[\"a\"]}]}"
+  },
+  {
+    "payload": "{\"source_ids\":[\"a\"],\"answers\":[{\"text\":\"The moon is cheese.\",\"citations\":[\"a\"]}]}"
+  },
+  {
+    "payload": "{\"source_ids\":[\"a\",\"b\"],\"answers\":[{\"text\":\"x\",\"citations\":[\"b\",\"a\"]}]}"
+  },
+  {
+    "payload": "{\"source_ids\":[\"a\"],\"answers\":[{\"text\":\"b\",\"citations\":[\"z\"]},{\"text\":\"a\",\"citations\":[\"a\"]},{\"text\":\"c\",\"citations\":[]}]}"
+  },
+  {
+    "payload": "{\"source_ids\":[\"a\"],\"answers\":[{\"text\":\"x\",\"citations\":[\"a\"]},{\"text\":\"y\",\"citations\":[\"a\"]}]}"
+  },
+  {
+    "payload": "{\"source_ids\":[\"a\"],\"answers\":[{\"text\":\"x\",\"citations\":[]},{\"text\":\"y\",\"citations\":[\"b\"]}]}"
+  },
+  {
+    "payload": "{\"source_ids\":[\"doc-10\"],\"answers\":[{\"text\":\"x\",\"citations\":[\"doc-1\"]}]}"
+  },
+  {
+    "payload": "{\"source_ids\":[\"a\"],\"answers\":[{\"text\":\"\\u6771\\u4eac\",\"citations\":[\"a\"]}]}"
+  },
+  {
+    "payload": "{\"source_ids\":[\"doc_1\"],\"answers\":[{\"text\":\"x\",\"citations\":[\"doc-1\"]}]}"
+  },
+  {
+    "payload": "{\"source_ids\":[\"a\",\"b\",\"c\"],\"answers\":[{\"text\":\"x\",\"citations\":[\"b\"]}]}"
+  },
+  {
+    "payload": "{\"source_ids\":[\"a\"],\"answers\":[{\"text\":\"x\",\"citations\":[\"a\",\"b\",\"c\"]}]}"
+  },
+  {
+    "payload": "{\"source_ids\":[\"a\"],\"answers\":[{\"text\":\"x\",\"citations\":[]},{\"text\":\"y\",\"citations\":[\"z\"]},{\"text\":\"z\",\"citations\":[\"a\"]}]}"
+  },
+  {
+    "payload": "{\"source_ids\":[\"a\",\"b\"],\"answers\":[]}"
+  }
+]

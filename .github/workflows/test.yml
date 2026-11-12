@@ -1,35 +1,56 @@
-name: Verify Problem Submissions
+name: Verify Application and Problems
 
 on:
   push:
   pull_request:
 
+concurrency:
+  group: verify-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   verify:
     timeout-minutes: 30
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: lts/*
+          node-version-file: .nvmrc
           cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Run unit tests
-        run: npm test -- --run
+      - name: Install uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
 
-      - name: Build application
-        run: npm run build
+      - name: Install Python 3.11
+        run: uv python install 3.11
+
+      - name: Check types and Svelte components
+        run: npm run check
+
+      - name: Run unit tests
+        run: npm run test:unit
+
+      - name: Install Chromium and system dependencies
+        run: npx playwright install --with-deps chromium
+
+      - name: Build application and run browser tests
+        run: npm run test:e2e
+
+      - name: Upload browser failure traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results
+          path: test-results/
+          retention-days: 7
 
       - name: Pull Java runtime image
         run: docker pull alpine/java:22-jdk
 
-      - name: Verify test coverage counts
-        run: node scripts/verify-test-counts.js
-
-      - name: Verify problem submissions
-        run: node scripts/verify-submissions.js
+      - name: Verify problems
+        run: npm run verify:problems
