@@ -2,8 +2,6 @@
 
 A class keeps data and actions together. __init__ starts the value. A method can change or read it.
 
-**Idea en español:** Una clase guarda datos y acciones juntos. Sus métodos cambian o leen esos datos.
-
 ```python
 class Box:
     def __init__(self):
@@ -13,11 +11,15 @@ box = Box()
 print(box.value)  # 0
 ```
 
+This code prints:
+
+```text
+0
+```
+
 ## Your task
 
 Complete Counter. add(number) adds a number. reset() sets the total to 0. value() returns the total. The starter reads commands: add number, reset, or value. Show one number for each value command.
-
-**En español:** Completa Counter. add suma, reset vuelve a 0 y value devuelve el total.
 
 **Example 1**
 
@@ -38,6 +40,8 @@ Result:
 3 5
 ```
 
+Why: Add 3, then show 3. Add 2 to get 5, then show 5. The final reset has no value command after it.
+
 **Example 2**
 
 Input:
@@ -53,6 +57,8 @@ Result:
 ```text
 0
 ```
+
+Why: Reset sets the total to 0. The value command shows 0.
 
 When the result has several numbers, you can put spaces or new lines between them.
 

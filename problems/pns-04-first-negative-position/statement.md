@@ -2,19 +2,23 @@
 
 break stops a loop early. Positions start at 0. Save the first matching position before you stop.
 
-**Idea en español:** break detiene un ciclo. La primera posición de una lista es 0.
-
 ```python
 for position in range(4):
-    if position == 2:
+    print(position)
+    if position == 1:
         break
+```
+
+This code prints:
+
+```text
+0
+1
 ```
 
 ## Your task
 
 Read a count, then that many numbers. Show the position of the first negative number. Show -1 when there is none. The count is 0 through 12.
-
-**En español:** Lee la cantidad de datos y los datos. Muestra la posición del primer número negativo. Usa -1 si no hay uno.
 
 **Example 1**
 
@@ -34,6 +38,8 @@ Result:
 1
 ```
 
+Why: The first negative number is -2 at position 1. Positions start at 0.
+
 **Example 2**
 
 Input:
@@ -50,5 +56,7 @@ Result:
 ```text
 -1
 ```
+
+Why: All three numbers are positive, so no negative number has a position.
 
 Start with the supplied code. Change the code near the comment.

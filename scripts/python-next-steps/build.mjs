@@ -9,7 +9,7 @@ import { lists } from './lists.mjs';
 import { strings } from './strings.mjs';
 import { collections } from './collections.mjs';
 import { morePython } from './more-python.mjs';
-import { spanishConcepts } from './spanish.mjs';
+import { explanations } from './explanations.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const problems = [...loops, ...functions, ...lists, ...strings, ...collections, ...morePython];
@@ -18,11 +18,6 @@ const categories = [
   ['04-strings', strings], ['05-sets-and-dictionaries', collections],
   ['06-more-python', morePython]
 ];
-const help = {
-  title: 'How this course works / Cómo funciona',
-  body: 'Read the short lesson, then change the starter code. **Run** tries the examples. **Submit** tries more cases. Most answers are numbers or values from the input. Spaces between numbers do not change the score. Open a hint if you need one.\n\nLee la explicación corta. Cambia el código inicial. **Run** prueba los ejemplos. **Submit** prueba más casos.'
-};
-
 function marker(problem) {
   const comparison = problem.kind === 'numbers'
     ? `try { return outputNumbers(program(input)).equals(outputNumbers(output)); } catch (NumberFormatException error) { return false; }`
@@ -82,7 +77,7 @@ ${problem.java.trim().split('\n').map(line => `        ${line}`).join('\n')}
 `;
 }
 
-function statement(problem) {
+function statement(problem, explanation) {
   const hasSeveralNumbers = problem.kind === 'numbers' && problem.examples.some(
     example => example.output.trim().split(/\s+/).filter(Boolean).length > 1
   );
@@ -90,23 +85,25 @@ function statement(problem) {
     ? `_${emptyLabel}_`
     : `\x60\x60\x60text\n${value.replace(/\n$/, '')}\n\x60\x60\x60`;
   const examples = problem.examples.map(({ input, output }, index) =>
-    `**Example ${index + 1}**\n\nInput:\n\n${display(input, 'One blank line')}\n\nResult:\n\n${display(output, 'No output')}`
+    `**Example ${index + 1}**\n\nInput:\n\n${display(input, 'One blank line')}\n\nResult:\n\n${display(output, 'No output')}\n\nWhy: ${explanation.examples[index]}`
   ).join('\n\n');
   return `## Learn
 
 ${problem.learn}
 
-**Idea en español:** ${spanishConcepts[problem.slug]}
-
 \x60\x60\x60python
 ${problem.learnCode.trim()}
+\x60\x60\x60
+
+This code prints:
+
+\x60\x60\x60text
+${explanation.learnOutput}
 \x60\x60\x60
 
 ## Your task
 
 ${problem.task}
-
-**En español:** ${problem.spanish}
 
 ${examples}
 
@@ -131,9 +128,12 @@ ${problem.solution.trim()}
 ${problem.source ? `\nInspired by [this public exercise](${problem.source}). The task text and cases here are new.\n` : ''}`;
 }
 
-if (problems.length !== 40) throw new Error(`Expected 40 lessons, found ${problems.length}`);
+if (problems.length !== 40 || explanations.length !== problems.length) throw new Error('Expected 40 lessons and explanations');
 for (const [index, problem] of problems.entries()) {
-  if (problem.num !== index + 1 || problem.tests.length < 25 || !problem.tests.every(x => typeof x === 'string') || !spanishConcepts[problem.slug]) {
+  const [learnOutput, exampleReasons] = explanations[index];
+  if (problem.num !== index + 1 || problem.tests.length < 25 || !problem.tests.every(x => typeof x === 'string') ||
+      typeof learnOutput !== 'string' || exampleReasons.length !== problem.examples.length ||
+      exampleReasons.some(reason => !reason)) {
     throw new Error(`Invalid order or tests for ${problem.slug}`);
   }
   const slug = `pns-${String(problem.num).padStart(2, '0')}-${problem.slug}`;
@@ -147,11 +147,11 @@ for (const [index, problem] of problems.entries()) {
     starterCode: { python: problem.starter.trimEnd() + '\n' },
     testCases: problem.tests.slice(0, 3).map(input => ({ input })),
     functionName: 'program', params: [{ name: 'input', type: 'string' }],
-    outputType: 'string', scriptMode: true, courseHelp: help,
+    outputType: 'string', scriptMode: true,
     hints: problem.hints
   };
   writeFileSync(join(dir, 'metadata.json'), JSON.stringify(metadata, null, 2) + '\n');
-  writeFileSync(join(dir, 'statement.md'), statement(problem));
+  writeFileSync(join(dir, 'statement.md'), statement(problem, { learnOutput, examples: exampleReasons }));
   writeFileSync(join(dir, 'solution.md'), solution(problem));
   writeFileSync(join(dir, 'official-tests.json'), JSON.stringify(problem.tests.map(input => ({ input })), null, 2) + '\n');
   writeFileSync(join(dir, 'Marker.java'), marker(problem));
@@ -159,7 +159,7 @@ for (const [index, problem] of problems.entries()) {
 
 const course = {
   title: 'Python Next Steps',
-  description: '40 short Python exercises after Python First Steps. Learn loops, functions, lists, strings, sets, dictionaries, and small programs. Each task has simple English, a Spanish summary, examples, and a worked answer. Select Python.',
+  description: '40 short Python exercises after Python First Steps. Learn loops, functions, lists, strings, sets, dictionaries, and small programs. Each task has a code example with its output, explained results, and a worked answer. Select Python.',
   'category-order': categories.map(([name]) => name),
   'problems-of-category': Object.fromEntries(categories.map(([name, entries]) => [name,
     entries.map(problem => `pns-${String(problem.num).padStart(2, '0')}-${problem.slug}`)])),

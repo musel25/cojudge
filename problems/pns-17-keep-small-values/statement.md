@@ -2,19 +2,21 @@
 
 append adds one item to the end of a list. Build a new list when you want to keep only some items.
 
-**Idea en español:** append agrega un valor al final de una lista nueva.
-
 ```python
 small = []
 small.append(2)
 print(small)  # [2]
 ```
 
+This code prints:
+
+```text
+[2]
+```
+
 ## Your task
 
 Read a line of numbers, then a limit on the next line. Keep values below the limit. Keep their original order. Show the kept numbers. Show nothing if none qualify.
-
-**En español:** Conserva los números menores que el límite. Mantén su orden original.
 
 **Example 1**
 
@@ -31,6 +33,8 @@ Result:
 2 1
 ```
 
+Why: Only 2 and 1 are below 5. Keep them in that order.
+
 **Example 2**
 
 Input:
@@ -43,6 +47,8 @@ Input:
 Result:
 
 _No output_
+
+Why: Neither 7 nor 8 is below 3, so there is no output.
 
 When the result has several numbers, you can put spaces or new lines between them.
 

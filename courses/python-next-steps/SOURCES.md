@@ -1,6 +1,6 @@
 # Python Next Steps sources
 
-The course follows the 25 Python First Steps exercises. The ideas below came from public practice sites and repositories. The Cojudge task text, Spanish summaries, examples, tests, Java markers, and Python answers were written for this course. No source instructions or solutions were copied.
+The course follows the 25 Python First Steps exercises. The ideas below came from public practice sites and repositories. The Cojudge task text, code examples, result explanations, tests, Java markers, and Python answers were written for this course. No source instructions or solutions were copied.
 
 | Cojudge tasks | Source idea |
 | --- | --- |

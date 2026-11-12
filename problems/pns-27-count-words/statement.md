@@ -2,18 +2,20 @@
 
 split() divides text at spaces and gives a list of words. len() gives the number of items in that list.
 
-**Idea en español:** split() separa las palabras. len() cuenta los elementos.
-
 ```python
 words = "red blue green".split()
 print(len(words))  # 3
 ```
 
+This code prints:
+
+```text
+3
+```
+
 ## Your task
 
 Read one line of text. Count its space-separated words. Extra spaces do not make extra words. Show the count.
-
-**En español:** Lee una línea. Cuenta las palabras separadas por espacios.
 
 **Example 1**
 
@@ -29,6 +31,8 @@ Result:
 3
 ```
 
+Why: red, blue, and green are three words.
+
 **Example 2**
 
 Input:
@@ -42,5 +46,7 @@ Result:
 ```text
 2
 ```
+
+Why: Extra spaces do not create words. The words are one and two.
 
 Start with the supplied code. Change the code near the comment.

@@ -2,19 +2,22 @@
 
 A dictionary can store a score for each name. get(key, 0) returns 0 when a name is missing.
 
-**Idea en español:** Un diccionario puede guardar un puntaje para cada nombre.
-
 ```python
 scores = {"ada": 7}
 print(scores.get("ada", 0))  # 7
 print(scores.get("bea", 0))  # 0
 ```
 
+This code prints:
+
+```text
+7
+0
+```
+
 ## Your task
 
 Read a count, then that many lines with a name and a score. Names are unique and use small lower-case letters. Read a query name. Show its score, or 0 if missing.
-
-**En español:** Guarda cada nombre con su puntaje. Muestra el puntaje buscado o 0 si no existe.
 
 **Example 1**
 
@@ -33,6 +36,8 @@ Result:
 7
 ```
 
+Why: The saved score for ada is 7.
+
 **Example 2**
 
 Input:
@@ -48,5 +53,7 @@ Result:
 ```text
 0
 ```
+
+Why: There is no score for cal, so show 0.
 
 Start with the supplied code. Change the code near the comment.

@@ -10,6 +10,7 @@ import { lists } from './lists.mjs';
 import { strings } from './strings.mjs';
 import { collections } from './collections.mjs';
 import { morePython } from './more-python.mjs';
+import { explanations } from './explanations.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const problems = [...loops, ...functions, ...lists, ...strings, ...collections, ...morePython];
@@ -62,6 +63,24 @@ function run(command, args, options = {}) {
   const result = spawnSync(command, args, { encoding: 'utf8', maxBuffer: 10 * 1024 * 1024, ...options });
   if (result.status !== 0) throw new Error(`${command} failed: ${result.stderr || result.stdout}`);
   return result.stdout;
+}
+
+if (problems.length !== 40 || explanations.length !== problems.length) {
+  throw new Error('Expected 40 lessons and explanations');
+}
+for (const [index, problem] of problems.entries()) {
+  const slug = `pns-${String(problem.num).padStart(2, '0')}-${problem.slug}`;
+  const statement = readFileSync(join(root, 'problems', slug, 'statement.md'), 'utf8');
+  const metadata = JSON.parse(readFileSync(join(root, 'problems', slug, 'metadata.json'), 'utf8'));
+  const [learnOutput, reasons] = explanations[index];
+  const actual = run('uv', ['run', '--no-project', 'python', '-c', problem.learnCode]).trimEnd();
+  if (actual !== learnOutput || !statement.includes(`This code prints:\n\n\x60\x60\x60text\n${learnOutput}\n\x60\x60\x60`)) {
+    throw new Error(`${slug}: Learn output differs from the code`);
+  }
+  if (reasons.length !== problem.examples.length || reasons.some(reason => !statement.includes(`Why: ${reason}`)) ||
+      /Idea en español|En español|How this course works/.test(statement) || metadata.courseHelp) {
+    throw new Error(`${slug}: missing result explanation or old help text remains`);
+  }
 }
 
 const payload = problems.map(problem => ({
