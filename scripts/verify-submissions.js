@@ -35,7 +35,7 @@ function parseArgs(argv) {
   const options = {
     concurrency: 2,
     includeRun: false,
-    languages: ["java"],
+    languages: ["python"],
     problems: [],
     report: null,
     solutionsRoot: null,
@@ -154,30 +154,43 @@ async function verifySubmission(item, options, tempRoot) {
       };
     }
   } else {
-    if (language !== "java") {
+    if (language === "python") {
+      const referencePath = path.resolve(problemDir, "solution.md");
+      const source = fs.existsSync(referencePath)
+        ? fs.readFileSync(referencePath, "utf8").match(/^```python[ \t]*\r?\n([\s\S]*?)\r?\n```[ \t]*$/m)?.[1]
+        : null;
+      if (!source?.trim()) {
+        return { slug, language, passed: false, error: `Python reference not found: ${referencePath}` };
+      }
+      const solutionDir = path.resolve(tempRoot, slug);
+      fs.mkdirSync(solutionDir, { recursive: true });
+      solutionPath = path.resolve(solutionDir, "Solution.py");
+      fs.writeFileSync(solutionPath, `${source}\n`);
+    } else if (language !== "java") {
       return {
         slug,
         language,
         passed: false,
-        error: "Non-Java verification requires --solutions-root",
+        error: "This language requires --solutions-root",
       };
+    } else {
+      const markerPath = path.resolve(problemDir, "Marker.java");
+      if (!fs.existsSync(markerPath)) {
+        return { slug, language, passed: false, error: "Marker.java not found" };
+      }
+      const metadata = JSON.parse(fs.readFileSync(path.resolve(problemDir, "metadata.json"), "utf8"));
+      const className = metadata.classProblem?.userClassName;
+      if (className !== undefined && (typeof className !== "string" || !/^[A-Za-z_][A-Za-z0-9_]*$/.test(className))) {
+        return { slug, language, passed: false, error: "Invalid classProblem.userClassName" };
+      }
+      const solutionDir = path.resolve(tempRoot, slug);
+      fs.mkdirSync(solutionDir, { recursive: true });
+      solutionPath = path.resolve(solutionDir, "Solution.java");
+      fs.writeFileSync(
+        solutionPath,
+        convertMarkerToSolution(fs.readFileSync(markerPath, "utf8"), className),
+      );
     }
-    const markerPath = path.resolve(problemDir, "Marker.java");
-    if (!fs.existsSync(markerPath)) {
-      return { slug, language, passed: false, error: "Marker.java not found" };
-    }
-    const metadata = JSON.parse(fs.readFileSync(path.resolve(problemDir, "metadata.json"), "utf8"));
-    const className = metadata.classProblem?.userClassName;
-    if (className !== undefined && (typeof className !== "string" || !/^[A-Za-z_][A-Za-z0-9_]*$/.test(className))) {
-      return { slug, language, passed: false, error: "Invalid classProblem.userClassName" };
-    }
-    const solutionDir = path.resolve(tempRoot, slug);
-    fs.mkdirSync(solutionDir, { recursive: true });
-    solutionPath = path.resolve(solutionDir, "Solution.java");
-    fs.writeFileSync(
-      solutionPath,
-      convertMarkerToSolution(fs.readFileSync(markerPath, "utf8"), className),
-    );
   }
 
   const result = {

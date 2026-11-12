@@ -11,6 +11,7 @@ Reuse the classic binary-tree codec: serialize with breadth-first order (or preo
 
 ```python
 from collections import deque
+from TreeNode import TreeNode
 class Codec:
     def serialize(self, root):
         if not root:
@@ -36,22 +37,17 @@ class Codec:
         toks = [t.strip() for t in inner.split(",") if t.strip() != ""]
         if not toks or toks[0] in ("null", "None"):
             return None
-        class N:
-            def __init__(self, v):
-                self.val = int(v)
-                self.left = None
-                self.right = None
-        root = N(toks[0])
+        root = TreeNode(int(toks[0]))
         q = deque([root])
         i = 1
         while q and i < len(toks):
             node = q.popleft()
             if toks[i] not in ("null", "None"):
-                node.left = N(toks[i])
+                node.left = TreeNode(int(toks[i]))
                 q.append(node.left)
             i += 1
             if i < len(toks) and toks[i] not in ("null", "None"):
-                node.right = N(toks[i])
+                node.right = TreeNode(int(toks[i]))
                 q.append(node.right)
             i += 1
         return root

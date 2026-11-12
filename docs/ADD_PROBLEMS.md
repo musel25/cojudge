@@ -550,7 +550,7 @@ You can also add problems to categories that don't exist yet:
 
 ## 9. Verification
 
-For repository changes, run `npm run verify:problems -- <slug>`. This command uses repository content, its own server, and temporary CLI progress. Official tests must be valid and non-empty. Submission reports an error when they cannot load. See [DEVELOPMENT.md](DEVELOPMENT.md) for the full check matrix.
+For repository changes, run `npm run verify:problems -- <slug>`. This command uses repository content, its own server, and temporary CLI progress. It submits the first Python code block in `solution.md` as the reference. Official tests must be valid and non-empty. Submission reports an error when they cannot load. See [DEVELOPMENT.md](DEVELOPMENT.md) for the full check matrix.
 
 The manual CLI examples below use the CLI's configured content and progress. Use a temporary content directory and `COJUDGE_PROGRESS_FILE` for repository smoke tests. Do not attach them to a live learner server.
 
