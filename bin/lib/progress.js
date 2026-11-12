@@ -5,6 +5,8 @@ import { rootDir } from "./utils.js";
 import { resolveProblemDirSync } from "./contentPaths.js";
 
 function getProgressFile() {
+  const override = process.env.COJUDGE_PROGRESS_FILE?.trim();
+  if (override) return path.resolve(override);
   const homeProgressFile = path.join(os.homedir(), ".cojudge", "progress.json");
   const localProgressFile = path.join(rootDir, ".cojudge_progress.json");
 
@@ -38,6 +40,7 @@ export function loadProgress() {
 
 function saveProgress(progress) {
   const progressFile = getProgressFile();
+  fs.mkdirSync(path.dirname(progressFile), { recursive: true });
   fs.writeFileSync(progressFile, JSON.stringify(progress, null, 2), "utf8");
 }
 

@@ -2,6 +2,7 @@ import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
 import type { ProgrammingLanguage } from '$lib/utils/util';
 import { writeProgressStorageItem } from '$lib/progressBackup';
+import { crossTabSync, isApplyingCrossTabSync } from './crossTabSync';
 
 export type GameResult = {
     runCount: number;
@@ -52,8 +53,10 @@ const gameResultsStore = writable<GameResults>(initial);
 
 if (browser) {
     gameResultsStore.subscribe((value) => {
+        if (isApplyingCrossTabSync(STORAGE_KEY)) return;
         writeProgressStorageItem(localStorage, STORAGE_KEY, JSON.stringify(value));
     });
+    crossTabSync(gameResultsStore, STORAGE_KEY);
 }
 
 export default gameResultsStore;

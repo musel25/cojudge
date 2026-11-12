@@ -726,7 +726,8 @@
 
 	function getRotatedBounds(element: BoardElement): Bounds {
 		const bounds = getBounds(element);
-		if (!element.rotation) return bounds;
+		const rotation = element.rotation;
+		if (!rotation) return bounds;
 		const center = {
 			x: isConnector(element) ? element.x + element.width / 2 : bounds.x + bounds.width / 2,
 			y: isConnector(element) ? element.y + element.height / 2 : bounds.y + bounds.height / 2
@@ -736,7 +737,7 @@
 			{ x: bounds.x + bounds.width, y: bounds.y },
 			{ x: bounds.x + bounds.width, y: bounds.y + bounds.height },
 			{ x: bounds.x, y: bounds.y + bounds.height }
-		].map((point) => rotatePoint(point, center, element.rotation));
+		].map((point) => rotatePoint(point, center, rotation));
 		const left = Math.min(...corners.map((point) => point.x));
 		const top = Math.min(...corners.map((point) => point.y));
 		const right = Math.max(...corners.map((point) => point.x));

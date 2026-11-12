@@ -2,6 +2,8 @@
 
 This guide explains how to add a new problem to Cojudge, with examples for both standard function-based problems and class-based design problems.
 
+For a repository contribution, create `problems/<slug>/` in the repository. Update `courses/<course-id>/courseinfo.json` for the target course. Use `npm run verify:problems -- <slug>` to verify repository content with isolated storage. Do not edit a learner's `~/cojudge` directory during a repository task.
+
 ## Where content lives (`~/cojudge`)
 
 For local use, Cojudge keeps all editable content in your home folder:
@@ -21,7 +23,7 @@ On first start, Cojudge copies (seeds) the repo's bundled `problems/` and `cours
 
 Only `statement.md`, `metadata.json`, `official-tests.json`, and `Marker.java` are required. `solution.md` is optional — if present, a "Reference Solution" button appears in the UI.
 
-After creating the problem files, register it in `~/cojudge/courses/blind75/courseinfo.json`.
+After creating personal problem files, register them in `~/cojudge/courses/<course-id>/courseinfo.json`. Use the requested course. Blind 75 is one example, not the default for every problem.
 
 > Contributing to the repo itself? Edit `problems/` / `courses/` in the repo — those are the seed contents that get copied to `~/cojudge` on first start.
 
@@ -88,6 +90,14 @@ Explanation: Because nums[0] + nums[1] == 9, we return [0, 1].
 | `char_array_2d` | 2D char array | `"[[\"a\",\"b\"],[\"c\"]]"` |
 
 ### Starter Code Per Language
+
+Python problems can bundle real, pure-Python libraries for offline execution.
+Set `"pythonDependencies": true` in `metadata.json` and place `python-libs.zip`
+beside it. The ZIP must contain importable packages at its root. Include their
+license files. The Python runner stages the archive and adds it to `sys.path`
+before it imports learner code. No packages are downloaded during execution.
+The Run and Submit actions support this archive. The playground and debugger
+do not load problem libraries.
 
 Include starter code for each supported language. The class/method names follow each language's conventions:
 
@@ -494,9 +504,28 @@ References: `guess-number-higher-or-lower`, `first-bad-version`,
 
 ---
 
+## 7c. Python script problems (beginner `print` and `input`)
+
+Set `"scriptMode": true` for a Python-only problem in which the learner writes a
+whole program, not a function. The editor contains only the learner's code.
+
+- `starterCode` has only a `python` entry.
+- `params` is `[{ "name": "input", "type": "string" }]` and `outputType` is `"string"`.
+- Each test case gives the program its `input` text on stdin. Use `\n` between
+  lines. Use `""` when the program reads no input.
+- The judge runs `Solution.py` once for each test. The printed text, without
+  final newlines, is the output. An error shows its line number and message.
+  Each test can run for 2 seconds.
+- The question text of `input("...")` is not printed, so it is not judged.
+- `Marker.java` has `String <functionName>(String input)`, which returns the
+  expected printed text, and `isCorrect(String input, String output)`.
+  Compare lines without trailing spaces, so beginners do not fail on invisible
+  whitespace.
+- Do not print a line that ends with `---`. The judge uses that text to separate tests.
+
 ## 8. Registering in a Course
 
-Add the problem slug to `~/cojudge/courses/blind75/courseinfo.json` under the appropriate category:
+Add the problem slug to `courses/<course-id>/courseinfo.json` under the appropriate category. For a personal-content task, use that file under the selected user content directory instead:
 
 ```json
 {
@@ -520,6 +549,10 @@ You can also add problems to categories that don't exist yet:
 ---
 
 ## 9. Verification
+
+For repository changes, run `npm run verify:problems -- <slug>`. This command uses repository content, its own server, and temporary CLI progress. Official tests must be valid and non-empty. Submission reports an error when they cannot load. See [DEVELOPMENT.md](DEVELOPMENT.md) for the full check matrix.
+
+The manual CLI examples below use the CLI's configured content and progress. Use a temporary content directory and `COJUDGE_PROGRESS_FILE` for repository smoke tests. Do not attach them to a live learner server.
 
 ### 9.1 Initialize starter code
 
@@ -547,7 +580,7 @@ All sample tests should pass.
 
 Create an intentionally wrong solution to ensure the judge correctly rejects it.
 
-### 9.4 Run submission tests (optional)
+### 9.4 Run submission tests
 
 ```bash
 cojudge submit <slug> /tmp/solution.java
@@ -561,8 +594,8 @@ cojudge submit <slug> /tmp/solution.java
 
 ### Verification Checklist
 
-- [ ] `cojudge init` produces correct starter code for all 7 languages
-- [ ] `cojudge run` passes for a correct solution in all 7 languages
+- [ ] `cojudge init` produces correct starter code for each supported language
+- [ ] `cojudge run` passes for a correct solution in each supported language
 - [ ] `cojudge run` fails for an incorrect solution
 - [ ] `cojudge submit` passes (official tests)
 - [ ] Problem appears in the web UI under the correct category

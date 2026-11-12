@@ -1,5 +1,6 @@
 import { browser } from '$app/environment';
 import type { Writable } from 'svelte/store';
+import { serverRestorePending, reloadAfterServerRestore } from '../serverProgressRestore';
 
 const applyingStorageKeys = new Set<string>();
 
@@ -13,6 +14,10 @@ export function crossTabSync<T>(store: Writable<T>, storageKey: string, onSync?:
 	if (!browser) return () => {};
 
 	function handler(event: StorageEvent) {
+		if (serverRestorePending()) {
+			reloadAfterServerRestore();
+			return;
+		}
 		if (event.storageArea === window.localStorage && event.key === storageKey && event.newValue !== null) {
 			try {
 				// Another window (or this one) may have saved again while this event

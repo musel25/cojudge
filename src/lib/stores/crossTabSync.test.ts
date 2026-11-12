@@ -99,6 +99,25 @@ describe('cross-window persistence while offline', () => {
 		expect(storage.setItem).toHaveBeenCalledTimes(1);
 	});
 
+	it('keeps solved flags from another tab when adding a new completed problem', async () => {
+		const { default: progress } = await import('./userStore');
+		storage.setItem('user-checkboxes', '{"first":true}');
+		deliver('user-checkboxes', '{"first":true}');
+		progress.update(value => ({ ...value, second: true }));
+		expect(JSON.parse(storage.getItem('user-checkboxes')!)).toEqual({ first: true, second: true });
+	});
+
+	it('refreshes custom tests and game history from another tab', async () => {
+		const { default: cases } = await import('./testCaseStore');
+		const { default: games } = await import('./gameResultsStore');
+		storage.setItem('testcases', '{"first":[{"input":1}]}');
+		storage.setItem('game-results', '{"first":[]}');
+		deliver('testcases', '{"first":[{"input":1}]}');
+		deliver('game-results', '{"first":[]}');
+		expect(get(cases)).toEqual({ first: [{ input: 1 }] });
+		expect(get(games)).toEqual({ first: [] });
+	});
+
 	it('ignores session storage, removals and malformed snapshots', async () => {
 		const { default: files, fileSyncVersion } = await import('./fileStore');
 		storage.setItem('files', '{"playground":"[]"}');

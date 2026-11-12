@@ -1,0 +1,48 @@
+{
+  "id": "ai-09-retry-failed-requests",
+  "title": "09. Retry Failed Requests",
+  "difficulty": "Medium",
+  "studyMinutes": 30,
+  "link": "",
+  "category": "applied-ai",
+  "examples": [
+    {
+      "input": "{\"requests\": [{\"id\": \"a\", \"outcomes\": [\"timeout\", \"ok\"]}], \"max_attempts\": 3}",
+      "output": "{\"results\": [{\"id\": \"a\", \"status\": \"ok\", \"attempts\": 2, \"last_outcome\": \"ok\"}]}"
+    },
+    {
+      "input": "{\"requests\": [], \"max_attempts\": 3}",
+      "output": "{\"results\": []}"
+    },
+    {
+      "input": "{\"requests\": [{\"id\": \"a\", \"outcomes\": [\"ok\"]}], \"max_attempts\": 3}",
+      "output": "{\"results\": [{\"id\": \"a\", \"status\": \"ok\", \"attempts\": 1, \"last_outcome\": \"ok\"}]}"
+    }
+  ],
+  "starterCode": {
+    "python": "def solve(data: dict) -> dict:\n    raise NotImplementedError\n\n# Supplied Cojudge adapter. Implement solve(data) above.\nimport json\n\nclass Solution:\n    def run(self, payload: str) -> str:\n        return json.dumps(solve(json.loads(payload)), ensure_ascii=True, allow_nan=False)\n"
+  },
+  "testCases": [
+    {
+      "payload": "{\"requests\":[{\"id\":\"a\",\"outcomes\":[\"timeout\",\"ok\"]}],\"max_attempts\":3}"
+    },
+    {
+      "payload": "{\"requests\":[],\"max_attempts\":3}"
+    },
+    {
+      "payload": "{\"requests\":[{\"id\":\"a\",\"outcomes\":[\"ok\"]}],\"max_attempts\":3}"
+    }
+  ],
+  "functionName": "run",
+  "params": [
+    {
+      "name": "payload",
+      "type": "string"
+    }
+  ],
+  "outputType": "string",
+  "hints": [
+    "Stop after success or a permanent error.",
+    "The attempt limit applies separately to each request."
+  ]
+}

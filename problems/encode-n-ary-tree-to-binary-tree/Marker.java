@@ -146,11 +146,19 @@ class Marker {
         if (a == null || b == null) return false;
         return a.val == b.val && equalTrees(a.left, b.left) && equalTrees(a.right, b.right);
     }
+    class Codec {
+        public String encode(String data) {
+            return serializeBinary(encodeBinary(parseNary(data)));
+        }
+        public String decode(String data) {
+            return serializeNary(decodeBinary(parseBinary(data)));
+        }
+    }
     public List<String> solve(String data) {
-        NNode root = parseNary(data);
-        String binA = serializeBinary(encodeBinary(root));
-        String binB = serializeBinary(encodeBinary(root));
-        String nary = serializeNary(decodeBinary(parseBinary(binA)));
+        Codec codec = new Codec();
+        String binA = codec.encode(data);
+        String binB = codec.encode(data);
+        String nary = codec.decode(binA);
         return Arrays.asList(binA, binB, nary);
     }
     public boolean isCorrect(String data, List<String> output) {

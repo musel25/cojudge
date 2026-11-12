@@ -5,7 +5,8 @@ import { expect, test } from '@playwright/test';
 // then assert the spinner, status line, and dimmed content appear and clear.
 test('course tab shows loading state while course data is slow', async ({ page }) => {
   await page.goto('/?course=blind75');
-  const nc150Tab = page.getByRole('link', { name: 'NeetCode 150' });
+  await page.getByRole('button', { name: /Choose a list\. Current list:/ }).click();
+  const nc150Tab = page.getByRole('link', { name: 'NeetCode 150', exact: true });
   await expect(nc150Tab).toBeVisible();
 
   await page.route('**/__data.json*', async (route) => {
@@ -15,7 +16,7 @@ test('course tab shows loading state while course data is slow', async ({ page }
 
   await nc150Tab.click();
 
-  const pendingTab = page.locator('.tab.pending');
+  const pendingTab = page.locator('.lists-toggle.pending');
   await expect(pendingTab).toBeVisible();
   await expect(pendingTab).toContainText('NeetCode 150');
   await expect(pendingTab.locator('.tab-spinner')).toBeVisible();
@@ -24,6 +25,6 @@ test('course tab shows loading state while course data is slow', async ({ page }
 
   await expect(page).toHaveURL(/course=nc150/);
   await expect(page.locator('.overall-count')).toContainText('/ 150');
-  await expect(page.locator('.tab.pending')).toHaveCount(0);
+  await expect(page.locator('.lists-toggle.pending')).toHaveCount(0);
   await expect(page.locator('.stale')).toHaveCount(0);
 });

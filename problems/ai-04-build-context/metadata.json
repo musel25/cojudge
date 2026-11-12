@@ -1,0 +1,48 @@
+{
+  "id": "ai-04-build-context",
+  "title": "04. Build Context",
+  "difficulty": "Easy",
+  "studyMinutes": 20,
+  "link": "",
+  "category": "applied-ai",
+  "examples": [
+    {
+      "input": "{\"chunks\": [{\"id\": \"a\", \"text\": \"large\", \"tokens\": 8}, {\"id\": \"b\", \"text\": \"small\", \"tokens\": 2}, {\"id\": \"c\", \"text\": \"last\", \"tokens\": 3}], \"budget\": 5}",
+      "output": "{\"ids\": [\"b\", \"c\"], \"context\": \"small\\n\\nlast\", \"used_tokens\": 5}"
+    },
+    {
+      "input": "{\"chunks\": [], \"budget\": 10}",
+      "output": "{\"ids\": [], \"context\": \"\", \"used_tokens\": 0}"
+    },
+    {
+      "input": "{\"chunks\": [{\"id\": \"a\", \"text\": \"x\", \"tokens\": 1}], \"budget\": 0}",
+      "output": "{\"ids\": [], \"context\": \"\", \"used_tokens\": 0}"
+    }
+  ],
+  "starterCode": {
+    "python": "def solve(data: dict) -> dict:\n    raise NotImplementedError\n\n# Supplied Cojudge adapter. Implement solve(data) above.\nimport json\n\nclass Solution:\n    def run(self, payload: str) -> str:\n        return json.dumps(solve(json.loads(payload)), ensure_ascii=True, allow_nan=False)\n"
+  },
+  "testCases": [
+    {
+      "payload": "{\"chunks\":[{\"id\":\"a\",\"text\":\"large\",\"tokens\":8},{\"id\":\"b\",\"text\":\"small\",\"tokens\":2},{\"id\":\"c\",\"text\":\"last\",\"tokens\":3}],\"budget\":5}"
+    },
+    {
+      "payload": "{\"chunks\":[],\"budget\":10}"
+    },
+    {
+      "payload": "{\"chunks\":[{\"id\":\"a\",\"text\":\"x\",\"tokens\":1}],\"budget\":0}"
+    }
+  ],
+  "functionName": "run",
+  "params": [
+    {
+      "name": "payload",
+      "type": "string"
+    }
+  ],
+  "outputType": "string",
+  "hints": [
+    "Keep a running token total and a set of IDs already seen.",
+    "Mark an ID as seen before you check its cost."
+  ]
+}

@@ -129,6 +129,13 @@ describe('course catalog', () => {
         });
     });
 
+    it('keeps the optional hidden flag and rejects non-boolean values', () => {
+        const base = { title: 'Course', description: '', 'category-order': [], 'problems-of-category': {} };
+        expect(parseCourseInfo({ ...base, hidden: true })).toEqual({ ...base, hidden: true });
+        expect(parseCourseInfo(base)).toEqual(base);
+        expect(parseCourseInfo({ ...base, hidden: 'yes' })).toBeNull();
+    });
+
     async function makeProblemsDir(
         base: string,
         problems: Record<string, { metadata: Record<string, unknown>; statement?: string }>

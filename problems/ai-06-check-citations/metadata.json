@@ -1,0 +1,48 @@
+{
+  "id": "ai-06-check-citations",
+  "title": "06. Check Citations",
+  "difficulty": "Easy",
+  "studyMinutes": 20,
+  "link": "",
+  "category": "applied-ai",
+  "examples": [
+    {
+      "input": "{\"source_ids\": [\"doc-a\"], \"answers\": [{\"text\": \"A\", \"citations\": [\"doc-a\"]}, {\"text\": \"B\", \"citations\": []}, {\"text\": \"C\", \"citations\": [\"other\"]}]}",
+      "output": "{\"valid\": [0], \"invalid\": [1, 2]}"
+    },
+    {
+      "input": "{\"source_ids\": [], \"answers\": []}",
+      "output": "{\"valid\": [], \"invalid\": []}"
+    },
+    {
+      "input": "{\"source_ids\": [\"a\"], \"answers\": [{\"text\": \"x\", \"citations\": [\"a\"]}]}",
+      "output": "{\"valid\": [0], \"invalid\": []}"
+    }
+  ],
+  "starterCode": {
+    "python": "def solve(data: dict) -> dict:\n    raise NotImplementedError\n\n# Supplied Cojudge adapter. Implement solve(data) above.\nimport json\n\nclass Solution:\n    def run(self, payload: str) -> str:\n        return json.dumps(solve(json.loads(payload)), ensure_ascii=True, allow_nan=False)\n"
+  },
+  "testCases": [
+    {
+      "payload": "{\"source_ids\":[\"doc-a\"],\"answers\":[{\"text\":\"A\",\"citations\":[\"doc-a\"]},{\"text\":\"B\",\"citations\":[]},{\"text\":\"C\",\"citations\":[\"other\"]}]}"
+    },
+    {
+      "payload": "{\"source_ids\":[],\"answers\":[]}"
+    },
+    {
+      "payload": "{\"source_ids\":[\"a\"],\"answers\":[{\"text\":\"x\",\"citations\":[\"a\"]}]}"
+    }
+  ],
+  "functionName": "run",
+  "params": [
+    {
+      "name": "payload",
+      "type": "string"
+    }
+  ],
+  "outputType": "string",
+  "hints": [
+    "Put the allowed source IDs in a set.",
+    "Check for an empty list before checking its members."
+  ]
+}

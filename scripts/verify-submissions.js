@@ -26,6 +26,9 @@ const defaultProblems = [
   "maximum-depth-of-binary-tree",
   "climbing-stairs",
   "number-of-islands",
+  "encode-and-decode-tinyurl",
+  "encode-n-ary-tree-to-binary-tree",
+  "serialize-and-deserialize-bst",
 ];
 
 function parseArgs(argv) {
@@ -84,7 +87,15 @@ function readSlugsFromCsv(csvPath) {
     });
 }
 
-function convertMarkerToSolution(markerCode) {
+function convertMarkerToSolution(markerCode, className) {
+  if (className) {
+    if (!markerCode.includes(`class ${className}`)) {
+      throw new Error(`Marker has no ${className} reference class.`);
+    }
+    const isStatic = markerCode.includes(`static class ${className}`);
+    const constructor = isStatic ? "" : `${className}() { new Marker().super(); }`;
+    return `class ${className} extends Marker.${className} { ${constructor} }\n`;
+  }
   // Extra methods are legal in a submission and retaining isCorrect avoids
   // brittle source parsing for multiline signatures.
   return markerCode.replace(/\bclass\s+Marker\b/, "class Solution");
@@ -155,12 +166,17 @@ async function verifySubmission(item, options, tempRoot) {
     if (!fs.existsSync(markerPath)) {
       return { slug, language, passed: false, error: "Marker.java not found" };
     }
+    const metadata = JSON.parse(fs.readFileSync(path.resolve(problemDir, "metadata.json"), "utf8"));
+    const className = metadata.classProblem?.userClassName;
+    if (className !== undefined && (typeof className !== "string" || !/^[A-Za-z_][A-Za-z0-9_]*$/.test(className))) {
+      return { slug, language, passed: false, error: "Invalid classProblem.userClassName" };
+    }
     const solutionDir = path.resolve(tempRoot, slug);
     fs.mkdirSync(solutionDir, { recursive: true });
     solutionPath = path.resolve(solutionDir, "Solution.java");
     fs.writeFileSync(
       solutionPath,
-      convertMarkerToSolution(fs.readFileSync(markerPath, "utf8")),
+      convertMarkerToSolution(fs.readFileSync(markerPath, "utf8"), className),
     );
   }
 

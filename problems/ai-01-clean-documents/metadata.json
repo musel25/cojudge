@@ -1,0 +1,48 @@
+{
+  "id": "ai-01-clean-documents",
+  "title": "01. Clean Documents",
+  "difficulty": "Easy",
+  "studyMinutes": 20,
+  "link": "",
+  "category": "applied-ai",
+  "examples": [
+    {
+      "input": "{\"documents\": [{\"id\": \"a\", \"text\": \"  A\\tB \"}, {\"id\": \"b\", \"text\": \"A B\"}, {\"id\": \"c\", \"text\": \"\\n\"}]}",
+      "output": "{\"documents\": [{\"id\": \"a\", \"text\": \"A B\"}]}"
+    },
+    {
+      "input": "{\"documents\": []}",
+      "output": "{\"documents\": []}"
+    },
+    {
+      "input": "{\"documents\": [{\"id\": \"a\", \"text\": \"Hello\"}]}",
+      "output": "{\"documents\": [{\"id\": \"a\", \"text\": \"Hello\"}]}"
+    }
+  ],
+  "starterCode": {
+    "python": "def solve(data: dict) -> dict:\n    raise NotImplementedError\n\n# Supplied Cojudge adapter. Implement solve(data) above.\nimport json\n\nclass Solution:\n    def run(self, payload: str) -> str:\n        return json.dumps(solve(json.loads(payload)), ensure_ascii=True, allow_nan=False)\n"
+  },
+  "testCases": [
+    {
+      "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"  A\\tB \"},{\"id\":\"b\",\"text\":\"A B\"},{\"id\":\"c\",\"text\":\"\\n\"}]}"
+    },
+    {
+      "payload": "{\"documents\":[]}"
+    },
+    {
+      "payload": "{\"documents\":[{\"id\":\"a\",\"text\":\"Hello\"}]}"
+    }
+  ],
+  "functionName": "run",
+  "params": [
+    {
+      "name": "payload",
+      "type": "string"
+    }
+  ],
+  "outputType": "string",
+  "hints": [
+    "Normalize text before checking duplicates.",
+    "Use a set of cleaned text values."
+  ]
+}

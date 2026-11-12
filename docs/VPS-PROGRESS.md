@@ -1,0 +1,496 @@
+# Private VPS progress storage
+
+This fork adds optional server persistence behind an authenticated reverse proxy. Without profile configuration, everyone shares one progress store. The private deployment supports separate authenticated learner profiles as described below.
+
+The current private deployment also remembers sign-in for 30 days. See
+[`deploy/README.md`](../deploy/README.md) for the login helper and current nginx
+configuration. The original Basic-only configuration below is retained as the
+deployment history.
+
+Set these runtime variables on the existing Node application:
+
+```
+COJUDGE_SERVER_PROGRESS_DIR=/data/progress
+COJUDGE_SERVER_PROGRESS_ORIGIN=https://cojudge.musel.dev
+BODY_SIZE_LIMIT=5M
+```
+
+The directory must be a persistent, private volume. Keep the application port on loopback and retain the existing nginx HTTP authentication. The API is disabled unless both progress variables are set. PUT requires the configured browser Origin, JSON content and the explicit sync header. Run one application process against this directory; its write queue is in-process.
+
+## Saved data
+
+Code solutions, workspace files (including dotfiles), completed-problem flags, bookmarks, custom tests and game results are included. Browser settings, Firebase credentials, whiteboard drawings and pasted images are not included. Existing browser export remains available for those items.
+
+Browser storage remains the offline copy. The first visit imports into an empty server. A fresh browser restores before the editor opens. Saves start after a 500 ms debounce; a three-second poll catches other changes and checks for server updates. Saves run in the background without a routine status panel. Allow time for the save before closing the browser. Closing a browser before acknowledgement can leave the final edit only in that browser; reopening retries it.
+
+Restoring server data reloads open tabs. An origin-wide restore marker stops old editors and page teardown from writing stale tabs back into the new snapshot.
+
+Server errors and conflicts show recovery controls. Network or disk errors never show a successful server save. If both browser and server changed, writes stop for review. **Save this browser copy** uses a revision check and keeps the previous server revision. **Use server copy** first stores the displaced browser data under `cojudge-vps-conflict-<timestamp>` in browser local storage. That key is intentionally excluded from ordinary exports; recover it directly if needed.
+
+## Storage and recovery
+
+- `/data/progress/current.json`: the latest acknowledged snapshot, including revision and save time.
+- `/data/progress/history/<revision>.json`: the latest 100 snapshots. These are earlier versions on the same disk, not an independent disaster-recovery backup.
+- Snapshot files have mode 0600; new directories have mode 0700.
+
+Writes use a private temporary file, fsync, atomic rename and directory fsync. The history copy is written before the current copy. Invalid existing storage causes an error instead of being silently reset.
+
+Back up the entire progress directory with the existing VPS backup process. Do not commit it. To recover an older revision, stop the application, copy the directory to a separate recovery location, inspect the chosen history file, and restore it as a **new revision greater than the current revision**. Restart the application and resolve browser conflicts explicitly. Do not lower the revision or run two application containers against the same progress directory.
+
+## Verification
+
+```
+npm run verify
+npm run verify:problems
+```
+
+The browser projects start separate local Node servers with temporary content and progress directories. They use Playwright Chromium. They do not use the live VPS or the learner's browser profile. See [DEVELOPMENT.md](DEVELOPMENT.md) for setup and focused commands.
+
+The current check requires zero errors and zero warnings. The dated deployment records below retain their historical diagnostic counts.
+
+## Initial deployment record — October 26, 2026
+
+This single-profile deployment was replaced by the profile deployment recorded below.
+
+- Running application: `cojudge-vps`, image `cojudge:vps-cef3d5cba8844d4e7f9f93c14133c8d5b23f840a`.
+- nginx keeps the original HTTPS and HTTP authentication. It forwards to loopback port 5378.
+- Existing content volume `cojudge-trial-data` remains mounted at `/data`. Progress is under `/data/progress`; existing courses remain in their original directories.
+- The original `cojudge` container is stopped and retained for rollback. The isolated verification container and volume were removed.
+- Pre-deployment configuration and content backup: `/home/ubuntu/cojudge-backups/pre-vps-sync.ILTC5V/`. The runtime environment backup is private. No credentials or learner data are in this repository.
+- Browser and post-deployment progress backups are also kept locally under `/home/musel/.local/share/cojudge-backups/` with private permissions.
+
+Verification: 253 unit/integration tests passed; the production build passed. The dedicated browser test saved a real editor change, restored in a fresh browser, synchronized bookmarks, and replaced a deleted active file across two open tabs. A separate VPS test confirmed persistent code and completed flags after container restart, rejection of a stale revision, and rejection of a different Origin. Public unauthenticated requests returned 401. The live browser matched server revision 20; a new isolated browser restored the same three file groups and three progress entries without sending a write. Learner activity continues after these observations, so revision counts will increase.
+
+An independent review found two issues: failed conflict actions could hide recovery controls, and stale editor tabs could recreate deleted files. Regression tests reproduced both issues. Conflict controls now remain available after failure. Restores now invalidate old editor contexts and reload tabs; tests cover teardown writes and browser-storage exhaustion. Visual testing also confirmed that the server indicator leaves Submit accessible. The type-check result remains the upstream baseline of 30 errors and 29 warnings.
+
+Rollback: start the retained `cojudge` container, restore `nginx-before-switch.conf` from the backup directory to `/etc/nginx/sites-available/cojudge.musel.dev`, validate with `sudo nginx -t`, and reload nginx. Stop `cojudge-vps` only after traffic has moved. Keep `/data/progress` intact. The old application will use browser storage again and will not synchronize server progress.
+
+## Separate profiles
+
+Enable profile isolation with:
+
+```
+COJUDGE_SERVER_PROGRESS_OWNER=musel
+COJUDGE_SERVER_PROGRESS_USERS=musel,alessa
+```
+
+The original Basic-only proxy authenticates users with a CoJudge-specific
+password file and overwrites the identity header:
+
+```
+auth_basic_user_file /etc/nginx/.htpasswd-cojudge;
+proxy_set_header X-CoJudge-User $remote_user;
+```
+
+Keep the application port bound to loopback. The identity header is trusted only because the reverse proxy overwrites it. Do not expose this port directly or accept identity from a client-controlled header through another proxy. Both profile variables must be valid; incomplete configuration fails closed.
+
+The `musel` account keeps the existing `/data/progress/current.json` and history. The `alessa` account uses `/data/progress/profiles/alessa/`. Existing owner work requires no copy or move. Courses and problem definitions remain shared. Credentials are held only in private configuration; they are not application source files.
+
+The API requires an expected-profile header and checks it against the authenticated username. The response identifies its profile too. A browser whose login changes must reload before saving. Each profile has its own browser cache for code/progress and sync state. Switching accounts saves the outgoing offline copy before changing the active cache; failure to save that copy stops the switch. Use a separate browser profile or private window when two people use the same computer at the same time. HTTP Basic authentication does not provide an in-app account picker or logout button.
+
+These profiles cover solutions, files, solved flags, bookmarks, custom tests and game results. Browser preferences, images and whiteboards remain outside server synchronization. Old browser caches are private to that browser installation, not encrypted against someone who can inspect that same browser profile.
+
+Profile changes and synchronization share an origin-wide browser lock. A waiting tab reads the active profile again after it acquires the lock. This prevents simultaneous tabs from replacing the outgoing offline cache with another profile's data. The browser must support Web Locks in a secure context. The browser regression test holds this lock in one tab and confirms that another tab cannot switch profiles until release.
+
+## Profile deployment record — October 26, 2026
+
+- Running application: `cojudge-profiles`, image `cojudge:profiles-af6d9fa9ec3ef29e087caa4f5192bfd972f2c2fa`, loopback port 5379.
+- nginx uses `/etc/nginx/.htpasswd-cojudge` and overwrites `X-CoJudge-User` with `$remote_user`. The password file has mode 0640 and owner `root:www-data`. The existing owner password hash is unchanged. The separate password file used by the other website is unchanged.
+- The same `cojudge-trial-data` volume remains mounted at `/data`. The prior `cojudge-vps` writer was stopped before nginx sent traffic to the new application. Both previous application containers remain available for rollback.
+- Private cutover backups are in `/home/ubuntu/cojudge-backups/pre-profiles.dEZH2J/`. They include the prior runtime environment, `nginx-at-cutover.conf`, and `progress-at-cutover.tar.gz`. Local private backups include the browser copy before the switch and the VPS progress directory after the switch.
+- The isolated VPS verification container and its test-only volume were removed.
+
+Verification: 261 unit/integration tests and three browser tests passed. The production build passed. The type check remains at the upstream baseline of 30 errors and 29 warnings. Browser tests cover separate profiles, rejected cross-profile requests, offline work when switching both ways, and a tab waiting for another tab's profile lock. Independent review found no remaining blocking issue after the lock change. Its original cache race was demonstrated by a controlled storage-helper interleaving, not by the reviewer's initial browser attempt.
+
+The isolated VPS test saved different data for both profiles, restarted the container, and confirmed that both stores persisted independently. Live checks verified Alessa's supplied password, rejection of an invalid password, and rejection of forged-identity reads and writes through nginx. A fresh browser showed **Alessa** and **Saved to VPS**, with all six progress collections empty at revision 1. The existing owner's browser showed **Müsel** and **Saved to VPS**; its data matched server revision 22, including four file groups, four custom-test collections and three progress entries. These are observations at deployment time; later learner activity changes the counts.
+
+To roll back to the prior server-save deployment, stop `cojudge-profiles`, start the retained `cojudge-vps` container, and restore `nginx-at-cutover.conf` from the profile backup directory to `/etc/nginx/sites-available/cojudge.musel.dev`. Validate with `sudo nginx -t` and reload nginx. Restore the complete nginx configuration, including its original owner-only password file; never enable Alessa's login against the old shared store. Keep the full `/data/progress` directory, including Alessa's subdirectory, intact for recovery. The prior application continues saving the owner's progress only.
+
+## Hidden courses — October 27, 2026
+
+- A course with `"hidden": true` in its `courseinfo.json` is left out of the home-page tabs. Its content stays on disk.
+- Running application: `cojudge-profiles`, image `cojudge:profiles-cbccbd08d4fe6b28ce2aa6239ff2fd750026e592`, same port, volume, and environment as before. The previous container is kept, stopped, as `cojudge-profiles-af6d9fa` for rollback.
+- The flag is set in the volume copies of `leetcode-1000`, `nc150`, and `nc250`. Backups of the original files are in `/home/ubuntu/cojudge-backups/hide-courses-20261027T224535/`. Remove the flag (or restore a backup) to show a course again; no restart is needed.
+- The new `python-oop` course (22 exercises) comes from `capital-one-prep/cojudge/oop`; see its README.
+
+## Course picker and accepted animation — October 27, 2026
+
+- Running application: `cojudge-profiles`, image `cojudge:profiles-1bcab72d0f669737fd1b766a6e7b6ad93f4e3071`. The previous container is kept, stopped, as `cojudge-profiles-cbccbd0` for rollback.
+- The home page has a **Lists** menu. Each viewer chooses the visible course tabs; the choice is stored in the browser (`course-visibility`). `"hidden": true` in `courseinfo.json` is now only the default.
+- An accepted submission plays a short green check animation (`AcceptedCelebration.svelte`). It closes after about 2 seconds, on click, or on Escape, and respects reduced motion.
+- A problem opens in a language that has starter code, so Python-only courses no longer open an empty Java editor in a new browser.
+
+## Software Engineering Tickets and Pybites checks — October 28, 2026
+
+- Published **Software Engineering Tickets** at `/?course=software-engineering`: 24 short Python tickets covering data, APIs, reliability, state, SQL, CSV, UTC, permissions, paths, versions, dependencies, synchronization, and HTML escaping.
+- Removed the live `capital-one-codebase-practice`, `capital-one-engineering-50`, and `python-oop` course indexes. Their problem files and saved learner work remain available. Other course indexes are unchanged by this publication.
+- Updated all 22 `pybites-oop` problems with input contracts and additional boundary tests. The User bite guarantees nonempty ASCII names. The Ninja Rankings reference now prevents reused people and self-pairs.
+- Older Pybites editor tabs keep their old embedded tests. Use **+** to open the current template, then copy the learner implementation into that tab. The old saved tab remains intact.
+- Authoring lives in `capital-one-prep/cojudge/production` and `capital-one-prep/cojudge/pybites`. Relevant commits are `355370d`, `ec5695a`, `a8035ea`, and `b119851`. See `cojudge/production/verification.md` in that repository for the detailed record.
+
+Verification: all 380 new-ticket cases and all 390 Pybites cases pass the live judge. All 103 prepared faulty ticket implementations are rejected. Local Pybites verification also rejects 83 prepared faults. Python and independent Java ticket references match all manual expectations; Python 3.11 runs every supplied adapter. An isolated copy of this task passes 86 repository tests. CLI checks accept a correct example solution and reject an incorrect one. Browser and catalog checks confirm the new list and updated content. Learner progress was not written by these checks.
+
+The application image is unchanged: `cojudge:profiles-1bcab72d0f669737fd1b766a6e7b6ad93f4e3071`. Content updates need no application restart.
+
+Rollback files are outside the served volume under `/home/ubuntu/cojudge-backups/software-tickets.PJshjq/`. `content-before.tar.gz` contains the prior Pybites content and affected course indexes. `retired-courses/` holds the three removed course directories. To reverse this replacement, move the new `software-engineering` index out of the served courses directory, restore the three old indexes, and restore prior Pybites definitions if required. Keep all progress data in place.
+
+## Pybites FastAPI course — October 28, 2026
+
+All 10 FastAPI exercises are published at `/?course=pybites-fastapi`. Content,
+import provenance, documented adaptations, locked dependencies, references, and
+verification tools live in `capital-one-prep/cojudge/fastapi_path` (commits
+`39adadb` and `f9ff81f`). The course uses real FastAPI, Pydantic, pytest, and JWT libraries.
+
+The application remains `cojudge:typer-b58c197`. Its environment now sets
+`COJUDGE_PYTHON_IMAGE=cojudge-python:fastapi-20261028`. Commit `8b49b46` supplies
+this setting for the judge, playground, and debugger. The runtime includes
+SQLModel to preserve the existing SQLModel course. Packages and `/usr/bin/time`
+are installed at image build time. The runtime image ID is
+`sha256:c2a1e4e43f2d24fe34ab7912e54364c30c0c270e544d787956ca1bc2e427d966`.
+
+Verification: 59 isolated live tests pass; all starters are rejected; 12 prepared
+faults are detected locally. The Python repository suite passes 146 tests. The
+image setting passes 264 Cojudge unit tests and the production build. Production
+checks pass both hello-world cases, token creation, an authenticated create, and
+rejection of an ownership transfer. The browser shows the new course with 0 / 10
+progress. These API checks do not change learner code or completion flags.
+
+Parallel judge instances can remove other sessions' pooled execution containers.
+The final isolated JWT check used fresh containers after each completed request.
+The temporary FastAPI judge was removed after verification.
+
+Private backup: `/home/ubuntu/cojudge-backups/fastapi-20261028.y1dFbs/`. The prior
+application is retained, stopped, as `cojudge-profiles-pre-fastapi-20261028T123728`.
+To restore its runtime configuration, stop and rename the current application,
+then rename and start that retained container as `cojudge-profiles`. Keep the
+content volume and progress data. To hide the course, move only its course index
+out of the served courses directory. The startup health request must include
+`X-CoJudge-User: musel`; the public reverse proxy adds that identity header.
+
+## Course tab overflow and save panel — October 28, 2026
+
+The application now runs `cojudge:ui-307af20`. This image replaces the application
+build in `cojudge:typer-b58c197`. It keeps the existing runtime environment,
+Python image, data volume, Docker socket, and loopback port 5379.
+
+Course tabs now scroll within their row. Long names stay on one line and do not
+cover the Lists button. The routine VPS save panel, profile name, description,
+and timestamp are removed. Automatic saves continue. Errors and conflicts still
+show recovery controls. The editor uses the space previously reserved for the
+panel.
+
+Verification: 267 unit tests pass. The production build and all three server-save
+browser tests pass. Browser checks cover 1280, 768, and 390 pixel widths. An
+isolated VPS container passed before deployment. Live checks with all lists
+enabled confirm scrolling and access to the Lists button at desktop and phone
+widths. These live checks made no learner-data writes. The type check retains
+the documented baseline of 30 errors and 29 warnings. Code review found no issues.
+
+Private backup: `/home/ubuntu/cojudge-backups/ui-307af20/`. It contains the prior
+container configuration and a progress backup. The prior container is retained,
+stopped, as `cojudge-profiles-pre-ui-307af20`. To roll back, stop and rename the
+current container. Rename the retained container to `cojudge-profiles` and start
+it. Keep the current data volume and progress data.
+
+## Python learning path — October 28, 2026
+
+The application now runs `cojudge:learning-path-e66bce7`. The image replaces the
+application build in `cojudge:ui-307af20`. It preserves the runtime environment,
+Python image, data volume, Docker socket, restart policy, and loopback port 5379.
+
+The home page has a **Learning path** button beside **Lists**. The panel groups
+nine steps into Foundation and Build, in the approved course order. Each
+available course shows saved exercise progress. **Continue** opens the first
+available unfinished course. Opening a hidden course makes it visible in the
+course navigation. Decorators and Context Managers remains visible as
+**Not available** until its course is added.
+
+Verification: the clean release from commit `e66bce7` passes 271 unit tests,
+three learning-path browser tests, and the production build. An isolated VPS
+container passes with a copy of the live course content. Live browser checks
+confirm both phases, eight available course links, 111 exercises, and the saved
+completion flags. The 390-pixel layout has no horizontal overflow. The browser
+checks block progress writes and recorded no write attempts. The type check
+retains the baseline of 30 errors and 29 warnings.
+
+Private backup: `/home/ubuntu/cojudge-backups/learning-path-e66bce7.qSVu9f/`.
+It contains the prior container configuration, runtime environment, and progress
+backup. The prior container is retained, stopped, as
+`cojudge-profiles-pre-learning-path-20261028T130540`. To roll back, stop and rename
+the current container. Rename the retained container to `cojudge-profiles` and
+start it. Keep the current data volume and progress data.
+## Compact course selector — October 28, 2026
+
+The application now runs `cojudge:picker-e5de36c`, based on
+`cojudge:learning-path-e66bce7`. The course header uses one selector with search
+and full list names. Manage lists retains the existing visibility preferences.
+Bookmarks and the Learning path button remain available. The routine VPS save
+panel remains removed.
+
+Verification: 271 unit tests and the production build pass. All nine browser
+checks pass across the picker, course loading, learning path, and server saving.
+Live checks cover nine lists at desktop and phone widths. Search and Escape
+work. The checks made no learner-data writes. The type check retains the baseline
+of 30 errors and 29 warnings. Code review found no issues.
+
+Private backup: `/home/ubuntu/cojudge-backups/picker-e5de36c/`. The prior container
+is retained, stopped, as `cojudge-profiles-pre-picker-e5de36c`. To roll back, stop
+and rename the current container. Rename the retained container to
+`cojudge-profiles` and start it. Keep the current data volume and progress data.
+
+## Decorators and Context Managers course — October 28, 2026
+
+All twelve exercises are published at
+`/?course=pybites-decorators-context-managers`. The existing Foundation step now
+opens this course. Its 12 exercises increase the available learning path to 123
+exercises. Course authoring, references, tests, and provenance live in
+`capital-one-prep/cojudge/decorators_path` (commit `bcf656a`; publication record
+`c0982fb`). The Account exercise retains its original free template and tests.
+The eleven other templates and test suites are explicitly labeled recreations
+from public descriptions because the account does not expose their premium code.
+
+Verification: all 181 authoring repository tests pass. All 200 reference cases
+pass on the live Docker judge. All twelve starters and sixty prepared faults
+are rejected through completed test runs. The same reference checks also pass
+under real pytest. The CLI creates all twelve exact starter files and passes
+the sandwich reference samples; its starter reports test failures. Live browser
+checks confirm the course order and the active Foundation link. No learner
+progress writes were made by these checks.
+
+The small-screen check exposed existing table overflow when exercise groups
+are open. Commit `67c7497` keeps horizontal scrolling inside the table container.
+The application now runs `cojudge:table-scroll-67c7497`, based on
+`cojudge:no-legend-1b3fbdf`. All 275 application unit tests and the production
+build pass. Live checks at 375, 390, 768, and 1280 pixels confirm that all twelve
+links remain accessible and the page does not overflow. The runtime environment,
+mounts, and loopback port are unchanged.
+
+Content backup: `/home/ubuntu/cojudge-backups/decorators-context-20261028.MzvSzE/`.
+To unpublish, move only the `pybites-decorators-context-managers` course index out
+of the served courses directory. Keep saved learner work and completion flags.
+
+Application backup: `/home/ubuntu/cojudge-backups/table-scroll-67c7497.LmkCCe/`.
+The prior container is retained, stopped, as
+`cojudge-profiles-pre-table-scroll-20261028T133434`. To roll back the layout fix,
+stop and rename the current container, rename the retained container to
+`cojudge-profiles`, and start it. Keep the current data volume and progress data.
+
+## Failed Python assertion values — October 28, 2026
+
+The application now runs `cojudge:assertion-values-4f87498`. Failed simple
+equality assertions in the supplied Pybites harness show the actual and expected
+Python values in Run and Submit. The failed test name, assertion message, and
+source line remain visible. The runner also handles saved editor code. Course
+content and saved learner code were not changed.
+
+Verification: 284 unit tests, four focused browser tests, and the production
+build pass. Type checking retains the existing 30 errors and 29 warnings.
+An isolated Docker application verified a failed Run, a passing reference Run,
+and a failed Submit. A live Docker Run verified the exact Vehicles test from
+the reported failure, including both strings and test line 57. These checks did
+not save learner progress. Code review found no remaining issues.
+
+The runtime environment, mounts, restart policy, and loopback port remain the
+same. Backup: `/home/ubuntu/cojudge-backups/assertion-values-4f87498/`. The prior
+container is retained, stopped, as
+`cojudge-profiles-pre-assertion-values-4f87498`. To roll back, stop and rename
+the current container. Rename the retained container to `cojudge-profiles` and
+start it. Keep the current data volume and progress data. The original
+pre-feature application also remains as
+`cojudge-profiles-pre-assertion-values-8f53405`.
+
+## Persistent sign-in — October 29, 2026
+
+Commit `c0a8263` adds a separate login helper. The first sign-in uses the existing
+browser prompt and password file. A signed cookie then keeps that browser signed
+in for 30 days. Normal visits do not extend its expiry. Password changes revoke
+that account's cookies. The accounts remain `musel` and `alessa`.
+
+The helper runs as `cojudge-login.service`, under `www-data`, on loopback port
+5380. Its source is installed at `/opt/cojudge-login/persistent-login.mjs`. Its
+private configuration is `/etc/cojudge-login.env`, with mode 0600 and owner root.
+The existing password file remains `/etc/nginx/.htpasswd-cojudge`. No passwords
+or password hashes were changed. Other websites were not changed.
+
+nginx now uses `auth_request` to check the login and sets `X-CoJudge-User` from
+the verified result. It forwards the initial login cookie to the browser. The
+application remains `cojudge:assertion-values-4f87498` on loopback port 5379. The
+application container, runtime environment, content volume and progress stores
+were not changed.
+
+Verification: all 284 application tests pass. All nine login and isolated nginx
+checks pass. They cover password verification, cookie persistence across helper
+restarts, expired and forged cookies, password and account revocation, separate
+profiles, request-body forwarding, and bounded concurrent password checks. Code
+review found a missing concurrency limit; a failing burst test reproduced it.
+The helper now permits at most four password-check processes at once. A second
+review found no remaining issues.
+
+Live checks used short-lived test cookies for both existing identities. Separate
+Chrome processes restored each saved cookie, opened the site, and read the
+correct profile. Forged identity headers did not change the account. A different
+expected profile returned 403. Unauthenticated requests returned 401. Browser
+checks blocked learner writes and recorded no write attempts. The live helper
+and nginx services are active, and `nginx -t` passes.
+
+Rollback configuration:
+`/home/ubuntu/cojudge-backups/persistent-login-20261029/nginx-before.conf`.
+Restore this file to `/etc/nginx/sites-available/cojudge.musel.dev`, run
+`sudo nginx -t`, and reload nginx. Then stop and disable `cojudge-login`. The
+original Basic login returns. Keep the application container and all learner
+data in place.
+
+## Editor tabs top bar — November 2, 2026
+
+Commit `d68c379` changes the problem editor header to a language row and a row
+of flat solution tabs. The live application uses `cojudge:editor-tabs-d68c379` on
+loopback port 5379. The image adds the new client build on top of
+`cojudge:python-diagnostics-58ca4b0`. It keeps the same environment, content
+volume and profile data.
+
+An isolated container with server progress disabled served the new header and
+passed the Docker health check. It was removed before cutover. The live
+container passes the same health check, and its client bundle contains the new
+header. Unauthenticated public requests still return HTTP 401. No learner data
+was read in a browser or written.
+
+Private configuration and a progress backup are under
+`/home/ubuntu/cojudge-releases/editor-tabs-d68c379/backup/` on the VPS.
+
+To roll back, stop and remove the current `cojudge-profiles` container. Rename
+`cojudge-profiles-pre-editor-tabs-d68c379` to `cojudge-profiles`, then start it.
+Keep the data volume and profile data unchanged.
+
+## Marie profile and Python First Steps — November 2, 2026
+
+A third learner account, `marie`, was added. It is in
+`/etc/nginx/.htpasswd-cojudge` (mode 0640, `root:www-data`),
+`COJUDGE_LOGIN_USERS` in `/etc/cojudge-login.env`, and
+`COJUDGE_SERVER_PROGRESS_USERS` of the application. Its progress is in
+`/data/progress/profiles/marie/`. Commit `bbb97ef` shows the name **Marie**.
+Credentials are not stored in this repository. The `musel` password was also
+changed on the same day. Changing a password hash revokes that account's
+30-day cookies.
+
+The application now runs `cojudge:first-steps-624f69f`. Commits `5bc43f0` and
+`624f69f` add Python script problems (`"scriptMode": true`). See
+`docs/ADD_PROBLEMS.md`. The new course `python-first-steps` has 25 beginner
+exercises. Its source is in the sibling `capital-one-prep/cojudge/first_steps`
+repository folder.
+
+Checks: 309 application tests and the production build passed. On the local
+judge, an isolated VPS container, and the live application, all 25 references
+passed 128 tests. All 25 starters and 34 prepared mistakes were rejected. One
+mistake submission on the isolated container stopped with a runner error while
+the live container also ran. Two repeated runs passed. The live check after
+cutover had no runner errors. Live checks did not save learner code or
+completion flags. `marie` logs in and sees **Marie**. A `marie` request for
+another profile returns 403. Requests without a login return 401.
+
+Private backups are under `/home/ubuntu/cojudge-releases/profile-marie-20261102T202608Z/backup/`
+(password file, login environment, container settings and progress before the
+profile change) and `/home/ubuntu/cojudge-releases/first-steps-624f69f/backup/`
+(container settings and progress before the application change).
+
+To roll back the application, stop and remove the current `cojudge-profiles`
+container. Rename `cojudge-profiles-pre-first-steps-624f69f` to
+`cojudge-profiles`, then start it. That version cannot run script problems. Move
+`/data/courses/python-first-steps` out of the content directory first. Keep the
+data volume and all profile data.
+
+## Slow-network sync fix — November 3, 2026
+
+On a slow school network, the browser stopped waiting for a save reply after
+10 seconds. The server had already stored that save (revision 1680). The
+browser did not know that revision, so the next check reported a false
+conflict.
+
+- Commit `d389de4`: before each save, the browser stores the sent data under
+  `cojudge-vps-pending-v1`. If the next server revision holds exactly that data,
+  the browser accepts it as its own save. A different server change still
+  reports a conflict. A profile switch clears this key.
+- Commit `423cadd`: each progress reply has an `ETag` (revision and save time).
+  The 3-second check sends the last agreed tag in `If-None-Match`. An unchanged
+  server returns `304` with no body. Progress replies are gzipped. The musel
+  snapshot went from about 290 KB to 25 KB. Save requests still send the full
+  uncompressed browser copy.
+
+The application now runs `cojudge:sync-423cadd`. The previous container is kept,
+stopped, as `cojudge-profiles-pre-sync-423cadd`. Private backups are under
+`/home/ubuntu/cojudge-releases/sync-423cadd/backup/` (container settings,
+runtime environment, and progress before the change).
+
+Checks: 316 application tests, three browser tests and the production build
+passed. The type check stays at the baseline of 30 errors and 29 warnings. A
+read-only candidate container returned the tag, a 25 KB gzip reply, `304` with
+0 bytes for an unchanged poll, and the home page. After cutover, requests
+without a login returned 401. Through nginx, Chrome received the gzip reply in
+0.4 s and the `304` reply in 0.2 s.
+
+To roll back, stop and remove `cojudge-profiles`, rename
+`cojudge-profiles-pre-sync-423cadd` to `cojudge-profiles`, and start it. Keep
+the data volume. Old browser tabs work with either version.
+
+## Simpler Software Engineering Tickets — November 3, 2026
+
+`/?course=software-engineering` now has 15 guided tickets in four stages:
+Clean Input, Data and APIs, Reliability, and Security and Money. Each ticket says
+why it matters, lists one rule per line, and has a step-by-step starter, three
+hints, and an explained solution. Nine tickets are retired from the course index:
+04, 09, 12, 14, 15, 17, 21, 22, 23. Their problem files stay in the content
+directory. Problem IDs are unchanged. Source: `capital-one-prep` commits
+`e81d313`, `3f1ac96`, and `2b2f6b9`; see `cojudge/production/verification.md`.
+
+Checks: the live Submit API accepts every reference and rejects every prepared
+fault and every new starter. A browser check showed the four stages and the new
+ticket text, with progress writes blocked. The application image is unchanged,
+and no restart was needed. Learner progress was not changed.
+
+Backup: `/home/ubuntu/cojudge-backups/tickets-simple-20261103T210416Z/old.tgz`
+holds the 24 prior ticket folders and the prior course index. To roll back,
+extract it into the served content directory.
+
+## Code quality and verification deployment — November 4, 2026
+
+Pull request [#1](https://github.com/musel25/cojudge/pull/1) was merged into
+`feat/separate-profiles` as `192dc801fb200d27d84845c4fd0520cb2570c632`.
+The application now runs `cojudge:review-cleanup-192dc80` in `cojudge-profiles`,
+on the existing loopback port 5379. The image uses Node.js 22.21.0. It was built
+on the VPS from a checksum-verified archive of the merged commit.
+
+Submissions now stop when official tests cannot load or are invalid. Run and
+Submit use one runner factory. Home dialogs, cloud storage, playground helpers,
+and the visual Markdown editor have separate modules. The new development
+workflow checks types, unit tests, production builds, browser tests, and
+reference submissions with isolated storage.
+
+The data volume, application environment, restart policy, port binding, nginx
+configuration, and login helper are preserved. A candidate with copied content
+passed the home, playground, and problem-page checks. It had no Docker socket,
+so it could not clean up another application's judge containers. The old app
+was stopped before the final data backup and the new app started.
+
+Verification: `npm run verify` passed with zero diagnostics, 422 unit tests,
+and 113 browser tests. `npm run verify:problems` passed all 1,031 test-count
+checks and seven Java reference submissions. All 1,031 bundled official test
+files satisfy the new submission validation. Independent review found no
+remaining actionable issue.
+
+Live checks accepted a correct Python Two Sum submission, rejected an incorrect
+submission, and ran a Python playground program. All three profile files matched
+the cutover backup. Profile requests and unchanged-snapshot `304` responses
+worked. Cross-profile reads and cross-origin writes returned 403. Public
+requests without a login returned 401, including requests with a forged profile
+header. The login helper remained healthy. The candidate and its temporary
+data copy were removed.
+
+Private configuration and the complete cutover data backup are under
+`/home/ubuntu/cojudge-releases/review-cleanup-192dc80/backup/`. The verification
+record is `verification.json` in that release directory. No learner data or
+credentials are stored in Git.
+
+The prior application is retained, stopped, as
+`cojudge-profiles-pre-review-192dc80`. To roll back, stop and rename the current
+`cojudge-profiles` container, rename the retained container to `cojudge-profiles`,
+and start it. Keep the data volume. No nginx change or data restore is required
+for an application rollback.
