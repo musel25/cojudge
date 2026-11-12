@@ -58,6 +58,8 @@ beforeEach(() => {
 	mkdirSync(join(root, 'problems', 'fixture-problem'), { recursive: true });
 	mkdirSync(join(root, 'scripts'), { recursive: true });
 	copyFileSync(new URL('../../../scripts/verify-problems.mjs', import.meta.url), join(root, 'scripts', 'verify-problems.mjs'));
+	copyFileSync(new URL('../../../scripts/script-reference.mjs', import.meta.url), join(root, 'scripts', 'script-reference.mjs'));
+	write('problems/fixture-problem/metadata.json', '{"scriptMode":false}');
 	fixture();
 });
 afterEach(() => rmSync(root, { recursive: true, force: true }));
@@ -123,5 +125,17 @@ describe('problem verification wrapper', () => {
 		expect(result.status).not.toBe(0);
 		expect(result.stderr).toContain('Options are not supported.');
 		expect(events()).toEqual([]);
+	});
+
+	it('submits a Python answer for a script-mode problem', () => {
+		write('problems/fixture-problem/metadata.json', '{"scriptMode":true}');
+		write('problems/fixture-problem/solution.md', '```python\nprint(3)\n```\n');
+		const result = run();
+		expect(result.status, result.stderr).toBe(0);
+		expect(events().map(event => event.step)).toEqual(['counts', 'build', 'server', 'submissions']);
+		expect(events().find(event => event.step === 'submissions')?.args).toEqual([
+			'--languages', 'python', '--solutions-root', expect.any(String), '--run', 'fixture-problem'
+		]);
+		expectCleanup();
 	});
 });

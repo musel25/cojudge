@@ -7,6 +7,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
+import { prepareScriptReferences } from './script-reference.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const slugs = process.argv.slice(2);
@@ -61,7 +62,17 @@ try {
 			await delay(250);
 		}
 		if (!ready) throw new Error('Verification server did not become ready.');
-		process.exitCode = await runNode(scriptPath('verify-submissions.js'), slugs);
+		const referenceRoot = join(directory, 'answers');
+		const { scriptSlugs, standardSlugs } = prepareScriptReferences(root, slugs, referenceRoot);
+		const standardStatus = standardSlugs.length || slugs.length === 0
+			? await runNode(scriptPath('verify-submissions.js'), standardSlugs)
+			: 0;
+		const scriptStatus = scriptSlugs.length
+			? await runNode(scriptPath('verify-submissions.js'), [
+				'--languages', 'python', '--solutions-root', referenceRoot, '--run', ...scriptSlugs
+			])
+			: 0;
+		process.exitCode = standardStatus || scriptStatus;
 	}
 } finally {
 	if (server && server.exitCode === null && server.signalCode === null) {
