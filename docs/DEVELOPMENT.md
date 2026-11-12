@@ -27,7 +27,7 @@ The application runs without Firebase settings. Set the values in `.env.example`
 | `npm run test:e2e` | Build and run every browser project with temporary data |
 | `npm run test:e2e -- --project=general e2e/playground-folders.test.ts` | Build and run focused browser tests |
 | `npm run verify` | Run type checks, unit tests, the build, and browser tests |
-| `npm run verify:problems` | Check repository test counts and reference submissions with Docker |
+| `npm run verify:problems` | Check repository test counts and Python reference submissions with Docker |
 | `npm run verify:problems -- two-sum` | Verify one repository problem |
 | `npm run build` | Create the production application |
 | `npm run desktop:dev` | Start desktop development; see [DESKTOP.md](DESKTOP.md) |
