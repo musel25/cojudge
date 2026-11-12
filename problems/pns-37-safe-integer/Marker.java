@@ -38,7 +38,8 @@ class Marker {
 
     private String answer() {
         String text = nextLine().trim();
-        try { return String.valueOf(Integer.parseInt(text)); } catch (NumberFormatException error) { return "0"; }
+        if (!text.matches("[+-]?[0-9](?:_?[0-9])*")) return "0";
+        try { return String.valueOf(Integer.parseInt(text.replace("_", ""))); } catch (NumberFormatException error) { return "0"; }
     }
 
     public String program(String input) {

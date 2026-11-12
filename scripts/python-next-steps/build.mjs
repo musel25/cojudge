@@ -26,7 +26,7 @@ const help = {
 function marker(problem) {
   const comparison = problem.kind === 'numbers'
     ? `try { return outputNumbers(program(input)).equals(outputNumbers(output)); } catch (NumberFormatException error) { return false; }`
-    : `return clean(program(input)).equals(clean(output));`;
+    : `return program(input).equals(output.replace("\\r\\n", "\\n").replaceAll("\\n+$", ""));`;
   return `import java.util.*;
 
 class Marker {

@@ -19,4 +19,4 @@ except ValueError:
 print(number)
 ```
 
-Inspired by [this public exercise](https://www.practicepython.org/exercises/). The task text and cases here are new.
+Inspired by [this public exercise](https://www.practicepython.org/exercise/2022/07/17/40-error-checking.html). The task text and cases here are new.

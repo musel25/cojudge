@@ -4,7 +4,7 @@ The course follows the 25 Python First Steps exercises. The ideas below came fro
 
 | Cojudge tasks | Source idea |
 | --- | --- |
-| 5, 14, 15, 17, 30, 37 | [Practice Python exercises](https://www.practicepython.org/exercises/) |
+| 5, 14, 15, 17, 30, 33, 37 | [Practice Python exercises](https://www.practicepython.org/exercises/) |
 | 18, 21, 23 | [CodingBat Python list and string exercises](https://codingbat.com/python) |
 | 19, 24, 26, 28, 31 | [Exercism Python practice track](https://exercism.org/tracks/python/exercises) and its [MIT-licensed repository](https://github.com/exercism/python) |
 | Function and collection sequence | [Python Koans repository](https://github.com/gregmalcolm/python_koans), MIT licensed |

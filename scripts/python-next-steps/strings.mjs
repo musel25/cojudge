@@ -42,7 +42,8 @@ export const strings = [
     edge: 'An empty line stays empty. Spaces also move when the text reverses.',
     hints: ['Use text[::-1].', 'Do not change letter case.'],
     source: 'https://exercism.org/tracks/python/exercises/reverse-string',
-    tests: makeTests(['cat', 'A b', '\n', 'a', 'abba', 'Hello', 'a  b'], r => randomText(r) || '\n', 124)
+    tests: makeTests(['cat', 'A b', '\n', 'a', 'abba', 'Hello', 'a  b', '  a'], r => randomText(r) || '\n', 124),
+    rejections: [{ input: '  a', output: 'a' }]
   },
   {
     num: 25, slug: 'count-vowels', title: 'Count Vowels', category: '04-strings', kind: 'numbers',

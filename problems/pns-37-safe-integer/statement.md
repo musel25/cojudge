@@ -13,7 +13,7 @@ except ValueError:
 
 ## Your task
 
-Read one line. If it is a whole number from -1000 through 1000, show that number. If int() cannot read it, show 0. Spaces around a number are allowed.
+Read one line. Try int(text). Show the number if it works. Show 0 if it raises ValueError. Numbers use digits 0 through 9 and stay from -1000 through 1000. Spaces around a number are allowed. One underscore may separate digits, as in 1_0.
 
 **En español:** Lee una línea. Muestra el número entero. Si no se puede convertir con int(), muestra 0.
 

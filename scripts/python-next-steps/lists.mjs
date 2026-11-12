@@ -17,7 +17,7 @@ export const lists = [
     steps: ['The starter builds nums.', 'Use nums[0] for the first value.', 'Use nums[-1] for the last value.'],
     edge: 'A one-item list has the same first and last value.',
     hints: ['Use nums[0].', 'Use nums[-1] for the last item.'],
-    source: 'https://www.practicepython.org/exercises/',
+    source: 'https://www.practicepython.org/exercise/2014/04/25/12-list-ends.html',
     tests: listTests(['4 8 3', '7', '-2 0 5', '1 2', '0'], 115, { minLength: 1 })
   },
   {
@@ -127,7 +127,6 @@ export const lists = [
     steps: ['Read the numbers into nums.', 'Build a new list with one square per number.', 'Show each square.'],
     edge: 'A negative number has a positive square. An empty input gives no numbers.',
     hints: ['Use [number * number for number in nums].', 'Show the result list with a loop.'],
-    source: 'https://www.practicepython.org/exercises/',
     tests: listTests(['2 -3 0', '\n', '5', '-1 1', '0 0 0'], 122)
   }
 ];

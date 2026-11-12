@@ -21,6 +21,9 @@
     "input": "a  b"
   },
   {
+    "input": "  a"
+  },
+  {
     "input": "iuc"
   },
   {
@@ -70,8 +73,5 @@
   },
   {
     "input": "YobbYia"
-  },
-  {
-    "input": "Xad"
   }
 ]

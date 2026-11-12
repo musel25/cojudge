@@ -102,6 +102,12 @@ try {
     if (!starters.some((result, i) => result.error || result.output !== answers[i].output)) {
       throw new Error(`${slug}: starter already passes every case`);
     }
+    for (const rejection of problem.rejections ?? []) {
+      const request = [rejection.input, rejection.output].map(
+        value => Buffer.from(value).toString('base64')).join('\t') + '\n';
+      const verdict = run('java', ['-cp', temporary, 'CheckMarker'], { input: request }).trimEnd().split('\t')[1];
+      if (verdict !== 'false') throw new Error(`${slug}: marker accepted wrong output ${JSON.stringify(rejection.output)}`);
+    }
     checked += problem.tests.length;
     console.log(`PASS: ${slug} (${problem.tests.length} cases)`);
   }

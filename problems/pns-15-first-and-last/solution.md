@@ -17,4 +17,4 @@ for part in input().split():
 print(nums[0], nums[-1])
 ```
 
-Inspired by [this public exercise](https://www.practicepython.org/exercises/). The task text and cases here are new.
+Inspired by [this public exercise](https://www.practicepython.org/exercise/2014/04/25/12-list-ends.html). The task text and cases here are new.

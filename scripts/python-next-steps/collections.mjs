@@ -82,7 +82,7 @@ export const collections = [
     steps: ['Start an empty scores dictionary.', 'Store each name with its integer score.', 'Use get(query, 0) to find a score or 0.'],
     edge: 'A count of 0 makes an empty dictionary. Every query then gives 0.',
     hints: ['Use scores[name] = score.', 'The final get call is already in the starter.'],
-    source: 'https://www.practicepython.org/exercises/',
+    source: 'https://www.practicepython.org/exercise/2017/01/24/33-birthday-dictionaries.html',
     tests: makeTests(['2\nada 7\nbea 4\nada', '1\nada 7\ncal', '0\nada', '1\nfox 0\nfox'], r => { const shuffled = [...names].sort(() => r() - 0.5); const count = randomInt(r, 0, names.length); const rows = shuffled.slice(0, count).map(n => `${n} ${randomInt(r, 0, 100)}`); return [count, ...rows, name(r)].join('\n'); }, 133)
   },
   {

@@ -51,6 +51,6 @@ class Marker {
     }
 
     public boolean isCorrect(String input, String output) {
-        return clean(program(input)).equals(clean(output));
+        return program(input).equals(output.replace("\r\n", "\n").replaceAll("\n+$", ""));
     }
 }

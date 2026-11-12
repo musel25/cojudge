@@ -18,5 +18,3 @@ squares = [number * number for number in nums]
 for number in squares:
     print(number)
 ```
-
-Inspired by [this public exercise](https://www.practicepython.org/exercises/). The task text and cases here are new.

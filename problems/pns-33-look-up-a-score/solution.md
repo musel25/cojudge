@@ -22,4 +22,4 @@ query = input()
 print(scores.get(query, 0))
 ```
 
-Inspired by [this public exercise](https://www.practicepython.org/exercises/). The task text and cases here are new.
+Inspired by [this public exercise](https://www.practicepython.org/exercise/2017/01/24/33-birthday-dictionaries.html). The task text and cases here are new.

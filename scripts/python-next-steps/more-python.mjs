@@ -42,17 +42,18 @@ export const morePython = [
     num: 37, slug: 'safe-integer', title: 'Safe Integer', category: '06-more-python', kind: 'numbers',
     learn: 'try runs code that may fail. except ValueError handles text that int() cannot change to a number.',
     learnCode: 'try:\n    number = int("7")\nexcept ValueError:\n    number = 0',
-    task: 'Read one line. If it is a whole number from -1000 through 1000, show that number. If int() cannot read it, show 0. Spaces around a number are allowed.',
+    task: 'Read one line. Try int(text). Show the number if it works. Show 0 if it raises ValueError. Numbers use digits 0 through 9 and stay from -1000 through 1000. Spaces around a number are allowed. One underscore may separate digits, as in 1_0.',
     spanish: 'Lee una línea. Muestra el número entero. Si no se puede convertir con int(), muestra 0.',
     examples: [{ input: '42', output: '42' }, { input: 'cat', output: '0' }],
     starter: 'text = input()\n# Try to change text to an integer.\n',
     solution: 'text = input()\ntry:\n    number = int(text)\nexcept ValueError:\n    number = 0\nprint(number)\n',
-    java: 'String text = nextLine().trim();\ntry { return String.valueOf(Integer.parseInt(text)); } catch (NumberFormatException error) { return "0"; }',
+    java: 'String text = nextLine().trim();\nif (!text.matches("[+-]?[0-9](?:_?[0-9])*")) return "0";\ntry { return String.valueOf(Integer.parseInt(text.replace("_", ""))); } catch (NumberFormatException error) { return "0"; }',
     steps: ['Read the text.', 'Try int(text).', 'Use 0 only when int() raises ValueError.'],
     edge: 'An empty line and a decimal such as 3.5 are invalid integers. Both give 0.',
     hints: ['Put int(text) inside try.', 'Catch ValueError and use 0.'],
-    source: 'https://www.practicepython.org/exercises/',
-    tests: makeTests(['42', 'cat', '\n', '  -7  ', '0', '3.5', '+12', '1000', '-1000'], r => { const choices = ['hello', ' ', '3.14', 'x5', String(randomInt(r, -1000, 1000)), ` ${randomInt(r, -1000, 1000)} `]; return choices[randomInt(r, 0, choices.length - 1)]; }, 137)
+    source: 'https://www.practicepython.org/exercise/2022/07/17/40-error-checking.html',
+    tests: makeTests(['42', 'cat', '\n', '  -7  ', '0', '3.5', '+12', '1000', '-1000', '1_0', '1__0'], r => { const choices = ['hello', ' ', '3.14', 'x5', String(randomInt(r, -1000, 1000)), ` ${randomInt(r, -1000, 1000)} `]; return choices[randomInt(r, 0, choices.length - 1)]; }, 137),
+    rejections: [{ input: '1_0', output: '0' }]
   },
   {
     num: 38, slug: 'json-total', title: 'JSON Total', category: '06-more-python', kind: 'numbers',
