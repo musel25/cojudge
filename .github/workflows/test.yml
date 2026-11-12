@@ -49,8 +49,8 @@ jobs:
           path: test-results/
           retention-days: 7
 
-      - name: Pull Java runtime image
-        run: docker pull alpine/java:22-jdk
+      - name: Pull Python runtime image
+        run: docker pull python:3.11-slim
 
       - name: Verify problems
         run: npm run verify:problems
