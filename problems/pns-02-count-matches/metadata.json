@@ -1,0 +1,48 @@
+{
+  "id": "pns-02-count-matches",
+  "title": "02. Count Matches",
+  "difficulty": "Easy",
+  "link": "",
+  "category": "01-loops",
+  "examples": [
+    {
+      "input": "3\n4\n3\n2\n3\n3",
+      "output": "3"
+    },
+    {
+      "input": "5\n0",
+      "output": "0"
+    }
+  ],
+  "starterCode": {
+    "python": "target = int(input())\ncount = int(input())\nmatches = 0\nfor _ in range(count):\n    value = int(input())\n    # Check value here.\nprint(matches)\n"
+  },
+  "testCases": [
+    {
+      "input": "3\n4\n3\n2\n3\n3"
+    },
+    {
+      "input": "5\n0"
+    },
+    {
+      "input": "2\n3\n1\n1\n1"
+    }
+  ],
+  "functionName": "program",
+  "params": [
+    {
+      "name": "input",
+      "type": "string"
+    }
+  ],
+  "outputType": "string",
+  "scriptMode": true,
+  "courseHelp": {
+    "title": "How this course works / Cómo funciona",
+    "body": "Read the short lesson, then change the starter code. **Run** tries the examples. **Submit** tries more cases. Most answers are numbers or values from the input. Spaces between numbers do not change the score. Open a hint if you need one.\n\nLee la explicación corta. Cambia el código inicial. **Run** prueba los ejemplos. **Submit** prueba más casos."
+  },
+  "hints": [
+    "Put if value == target: inside the loop.",
+    "Add 1 to matches for each match."
+  ]
+}

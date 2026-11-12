@@ -1,0 +1,77 @@
+[
+  {
+    "input": "3\nada 2\nbea 5\nada 4\nada"
+  },
+  {
+    "input": "1\nbea 5\nada"
+  },
+  {
+    "input": "0\nada"
+  },
+  {
+    "input": "2\nfox -2\nfox 3\nfox"
+  },
+  {
+    "input": "3\ncal 1\ndan 4\neve -8\ncal"
+  },
+  {
+    "input": "8\nbea 2\ndan 0\ncal 2\nfox -6\ncal -2\ncal -8\nfox -6\nfox 5\ncal"
+  },
+  {
+    "input": "3\ncal 10\nfox -9\neve -1\ndan"
+  },
+  {
+    "input": "3\nbea -2\nbea -3\nbea -3\nbea"
+  },
+  {
+    "input": "7\ncal -10\nada -4\nfox -6\nfox 9\ncal 3\nbea -5\neve 5\nada"
+  },
+  {
+    "input": "12\nfox 8\neve -9\nbea 10\ncal 3\ndan 8\nada -6\nfox 1\ncal 10\neve -4\nfox 10\nfox 10\nada -5\neve"
+  },
+  {
+    "input": "3\neve -9\nbea -1\nbea -6\neve"
+  },
+  {
+    "input": "2\nbea -9\nfox 9\neve"
+  },
+  {
+    "input": "1\nfox 9\nada"
+  },
+  {
+    "input": "8\ncal 9\nfox -6\neve 10\nbea -3\nfox -5\nfox -8\nfox -1\neve -5\nada"
+  },
+  {
+    "input": "6\ncal 9\ncal -2\nada 0\ncal -10\ndan -9\nbea -5\nbea"
+  },
+  {
+    "input": "3\nbea 1\neve -2\ndan 10\neve"
+  },
+  {
+    "input": "2\nfox -5\nfox -3\nfox"
+  },
+  {
+    "input": "7\nbea 6\ncal 4\ndan -10\nada 0\nfox 10\neve 3\ncal -4\nada"
+  },
+  {
+    "input": "6\neve -8\neve -1\neve 0\nbea 5\nfox -4\ncal 9\nbea"
+  },
+  {
+    "input": "1\nada 9\nbea"
+  },
+  {
+    "input": "4\nfox 7\nbea 10\nada 7\ndan 9\nfox"
+  },
+  {
+    "input": "10\nada 10\nbea -9\neve 8\neve 8\neve -8\neve 10\nada 0\ndan 9\ndan 9\ncal 5\nfox"
+  },
+  {
+    "input": "0\ncal"
+  },
+  {
+    "input": "1\ndan -8\ndan"
+  },
+  {
+    "input": "12\ncal -8\neve -5\nfox -3\ncal 2\nada -7\nfox 6\nbea 8\nbea 0\nbea -2\nfox -2\nfox -10\neve -1\nfox"
+  }
+]

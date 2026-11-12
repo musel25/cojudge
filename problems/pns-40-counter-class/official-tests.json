@@ -1,0 +1,77 @@
+[
+  {
+    "input": "5\nadd 3\nvalue\nadd 2\nvalue\nreset"
+  },
+  {
+    "input": "2\nreset\nvalue"
+  },
+  {
+    "input": "1\nvalue"
+  },
+  {
+    "input": "3\nadd -2\nvalue\nreset"
+  },
+  {
+    "input": "0"
+  },
+  {
+    "input": "4\nvalue\nvalue\nvalue\nvalue"
+  },
+  {
+    "input": "4\nvalue\nvalue\nvalue\nreset"
+  },
+  {
+    "input": "4\nreset\nreset\nadd 10\nvalue"
+  },
+  {
+    "input": "2\nreset\nadd 6"
+  },
+  {
+    "input": "4\nreset\nadd -4\nreset\nadd 8"
+  },
+  {
+    "input": "7\nreset\nvalue\nadd -5\nreset\nvalue\nreset\nadd 5"
+  },
+  {
+    "input": "8\nvalue\nvalue\nreset\nadd 4\nadd 10\nadd -9\nreset\nvalue"
+  },
+  {
+    "input": "11\nadd -7\nreset\nreset\nvalue\nvalue\nvalue\nadd -9\nadd 9\nreset\nadd 9\nreset"
+  },
+  {
+    "input": "1\nadd 10"
+  },
+  {
+    "input": "8\nreset\nreset\nadd -9\nadd -10\nvalue\nreset\nreset\nadd 0"
+  },
+  {
+    "input": "8\nreset\nreset\nvalue\nadd -6\nreset\nadd 2\nadd -2\nreset"
+  },
+  {
+    "input": "9\nadd -7\nvalue\nadd -7\nadd 6\nadd 3\nadd -5\nadd 3\nreset\nadd -6"
+  },
+  {
+    "input": "10\nvalue\nreset\nvalue\nadd 1\nvalue\nadd -7\nvalue\nreset\nreset\nvalue"
+  },
+  {
+    "input": "11\nreset\nreset\nreset\nreset\nvalue\nvalue\nadd 3\nreset\nadd 10\nadd 5\nadd 8"
+  },
+  {
+    "input": "12\nreset\nvalue\nreset\nvalue\nvalue\nadd -6\nreset\nreset\nvalue\nreset\nreset\nreset"
+  },
+  {
+    "input": "3\nvalue\nreset\nvalue"
+  },
+  {
+    "input": "7\nvalue\nreset\nadd 5\nadd 4\nvalue\nadd -1\nvalue"
+  },
+  {
+    "input": "7\nreset\nadd -2\nreset\nvalue\nvalue\nreset\nadd 10"
+  },
+  {
+    "input": "10\nreset\nadd -5\nreset\nreset\nvalue\nreset\nvalue\nvalue\nvalue\nvalue"
+  },
+  {
+    "input": "12\nadd 7\nreset\nvalue\nadd 10\nreset\nadd -9\nadd -7\nreset\nreset\nadd -8\nvalue\nadd 4"
+  }
+]

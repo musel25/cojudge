@@ -29,7 +29,8 @@ function fixture({ countStatus = 0, buildStatus = 0, submissionStatus = 0 } = {}
 		import { appendFileSync } from 'node:fs';
 		appendFileSync(${JSON.stringify(trace)}, JSON.stringify({
 			step: ${JSON.stringify(step)}, args: process.argv.slice(2),
-			directory: process.env.COJUDGE_HOME, progress: process.env.COJUDGE_PROGRESS_FILE
+			directory: process.env.COJUDGE_HOME, progress: process.env.COJUDGE_PROGRESS_FILE,
+			verifyMode: process.env.COJUDGE_ISOLATED_VERIFY
 		}) + '\\n');
 	`;
 	write('scripts/verify-test-counts.js', `${event('counts')} process.exitCode = ${countStatus};`);
@@ -58,6 +59,8 @@ beforeEach(() => {
 	mkdirSync(join(root, 'problems', 'fixture-problem'), { recursive: true });
 	mkdirSync(join(root, 'scripts'), { recursive: true });
 	copyFileSync(new URL('../../../scripts/verify-problems.mjs', import.meta.url), join(root, 'scripts', 'verify-problems.mjs'));
+	copyFileSync(new URL('../../../scripts/script-reference.mjs', import.meta.url), join(root, 'scripts', 'script-reference.mjs'));
+	write('problems/fixture-problem/metadata.json', '{"scriptMode":false}');
 	fixture();
 });
 afterEach(() => rmSync(root, { recursive: true, force: true }));
@@ -70,7 +73,7 @@ function run(args = ['fixture-problem']) {
 		env: { ...process.env, COJUDGE_CONTENT_DIR: join(root, 'learner'), COJUDGE_PROGRESS_FILE: join(root, 'learner', 'progress.json') }
 	});
 }
-function events(): { step: string; args?: string[]; directory?: string; progress?: string; pid?: number }[] {
+function events(): { step: string; args?: string[]; directory?: string; progress?: string; verifyMode?: string; pid?: number }[] {
 	return existsSync(trace) ? readFileSync(trace, 'utf8').trim().split('\n').map(line => JSON.parse(line)) : [];
 }
 function expectCleanup() {
@@ -123,5 +126,18 @@ describe('problem verification wrapper', () => {
 		expect(result.status).not.toBe(0);
 		expect(result.stderr).toContain('Options are not supported.');
 		expect(events()).toEqual([]);
+	});
+
+	it('submits a Python answer for a script-mode problem', () => {
+		write('problems/fixture-problem/metadata.json', '{"scriptMode":true}');
+		write('problems/fixture-problem/solution.md', '```python\nprint(3)\n```\n');
+		const result = run();
+		expect(result.status, result.stderr).toBe(0);
+		expect(events().map(event => event.step)).toEqual(['counts', 'build', 'server', 'submissions']);
+		expect(events().find(event => event.step === 'submissions')?.args).toEqual([
+			'--languages', 'python', '--solutions-root', expect.any(String), '--run', 'fixture-problem'
+		]);
+		expect(events().find(event => event.step === 'submissions')?.verifyMode).toBe('1');
+		expectCleanup();
 	});
 });

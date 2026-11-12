@@ -1,0 +1,48 @@
+{
+  "id": "pns-39-distance-between-points",
+  "title": "39. Distance Between Points",
+  "difficulty": "Medium",
+  "link": "",
+  "category": "06-more-python",
+  "examples": [
+    {
+      "input": "1 2\n4 6",
+      "output": "7"
+    },
+    {
+      "input": "0 0\n0 0",
+      "output": "0"
+    }
+  ],
+  "starterCode": {
+    "python": "parts = input().split()\nfirst = (int(parts[0]), int(parts[1]))\nparts = input().split()\nsecond = (int(parts[0]), int(parts[1]))\n# Unpack both points and find the distance.\n"
+  },
+  "testCases": [
+    {
+      "input": "1 2\n4 6"
+    },
+    {
+      "input": "0 0\n0 0"
+    },
+    {
+      "input": "-2 -3\n2 1"
+    }
+  ],
+  "functionName": "program",
+  "params": [
+    {
+      "name": "input",
+      "type": "string"
+    }
+  ],
+  "outputType": "string",
+  "scriptMode": true,
+  "courseHelp": {
+    "title": "How this course works / Cómo funciona",
+    "body": "Read the short lesson, then change the starter code. **Run** tries the examples. **Submit** tries more cases. Most answers are numbers or values from the input. Spaces between numbers do not change the score. Open a hint if you need one.\n\nLee la explicación corta. Cambia el código inicial. **Run** prueba los ejemplos. **Submit** prueba más casos."
+  },
+  "hints": [
+    "Use x1, y1 = first.",
+    "Use abs() for each difference."
+  ]
+}

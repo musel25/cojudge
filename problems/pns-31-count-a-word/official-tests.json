@@ -1,0 +1,77 @@
+[
+  {
+    "input": "cat dog cat\ncat"
+  },
+  {
+    "input": "red blue\ngreen"
+  },
+  {
+    "input": "\ncat"
+  },
+  {
+    "input": "a a a\na"
+  },
+  {
+    "input": "a b a\nb"
+  },
+  {
+    "input": "ada dan dan\neve\n"
+  },
+  {
+    "input": "eve dan ada ada bea cal dan\ndan\n"
+  },
+  {
+    "input": "dan eve bea cal eve ada bea bea dan cal ada\ncal\n"
+  },
+  {
+    "input": "dan\nada\n"
+  },
+  {
+    "input": "cal dan eve ada\ndan\n"
+  },
+  {
+    "input": "fox eve eve bea dan fox eve bea ada ada\ndan\n"
+  },
+  {
+    "input": "fox bea eve dan\nfox\n"
+  },
+  {
+    "input": "cal fox cal ada ada fox ada ada eve fox dan\ncal\n"
+  },
+  {
+    "input": "dan ada bea cal cal cal bea ada fox bea\nfox\n"
+  },
+  {
+    "input": "eve fox fox eve ada\nfox\n"
+  },
+  {
+    "input": "ada dan ada cal eve fox fox cal ada dan\nada\n"
+  },
+  {
+    "input": "fox eve dan cal eve cal ada\nbea\n"
+  },
+  {
+    "input": "bea\neve\n"
+  },
+  {
+    "input": "eve bea cal bea eve eve eve ada bea\neve\n"
+  },
+  {
+    "input": "dan bea cal dan fox eve bea\neve\n"
+  },
+  {
+    "input": "dan fox eve ada\ncal\n"
+  },
+  {
+    "input": "bea ada ada fox eve fox eve cal eve ada\ndan\n"
+  },
+  {
+    "input": "bea cal bea dan bea eve fox bea ada\nada\n"
+  },
+  {
+    "input": "eve eve ada eve fox ada cal ada dan\ncal\n"
+  },
+  {
+    "input": "ada bea eve\neve\n"
+  }
+]

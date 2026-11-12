@@ -1,0 +1,48 @@
+{
+  "id": "pns-40-counter-class",
+  "title": "40. Counter Class",
+  "difficulty": "Medium",
+  "link": "",
+  "category": "06-more-python",
+  "examples": [
+    {
+      "input": "5\nadd 3\nvalue\nadd 2\nvalue\nreset",
+      "output": "3 5"
+    },
+    {
+      "input": "2\nreset\nvalue",
+      "output": "0"
+    }
+  ],
+  "starterCode": {
+    "python": "class Counter:\n    def __init__(self):\n        self.total = 0\n\n    def add(self, number):\n        # Add number.\n        pass\n\n    def reset(self):\n        # Start again at 0.\n        pass\n\n    def value(self):\n        # Return the total.\n        return 0\n\ncount = int(input())\ncounter = Counter()\nfor _ in range(count):\n    command = input().split()\n    if command[0] == \"add\":\n        counter.add(int(command[1]))\n    elif command[0] == \"reset\":\n        counter.reset()\n    else:\n        print(counter.value())\n"
+  },
+  "testCases": [
+    {
+      "input": "5\nadd 3\nvalue\nadd 2\nvalue\nreset"
+    },
+    {
+      "input": "2\nreset\nvalue"
+    },
+    {
+      "input": "1\nvalue"
+    }
+  ],
+  "functionName": "program",
+  "params": [
+    {
+      "name": "input",
+      "type": "string"
+    }
+  ],
+  "outputType": "string",
+  "scriptMode": true,
+  "courseHelp": {
+    "title": "How this course works / Cómo funciona",
+    "body": "Read the short lesson, then change the starter code. **Run** tries the examples. **Submit** tries more cases. Most answers are numbers or values from the input. Spaces between numbers do not change the score. Open a hint if you need one.\n\nLee la explicación corta. Cambia el código inicial. **Run** prueba los ejemplos. **Submit** prueba más casos."
+  },
+  "hints": [
+    "Use self.total in each method.",
+    "add uses +=; reset uses = 0."
+  ]
+}

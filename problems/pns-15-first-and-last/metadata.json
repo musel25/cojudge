@@ -1,0 +1,48 @@
+{
+  "id": "pns-15-first-and-last",
+  "title": "15. First and Last",
+  "difficulty": "Easy",
+  "link": "",
+  "category": "03-lists",
+  "examples": [
+    {
+      "input": "4 8 3",
+      "output": "4 3"
+    },
+    {
+      "input": "7",
+      "output": "7 7"
+    }
+  ],
+  "starterCode": {
+    "python": "nums = []\nfor part in input().split():\n    nums.append(int(part))\n# Show the first and last values.\n"
+  },
+  "testCases": [
+    {
+      "input": "4 8 3"
+    },
+    {
+      "input": "7"
+    },
+    {
+      "input": "-2 0 5"
+    }
+  ],
+  "functionName": "program",
+  "params": [
+    {
+      "name": "input",
+      "type": "string"
+    }
+  ],
+  "outputType": "string",
+  "scriptMode": true,
+  "courseHelp": {
+    "title": "How this course works / Cómo funciona",
+    "body": "Read the short lesson, then change the starter code. **Run** tries the examples. **Submit** tries more cases. Most answers are numbers or values from the input. Spaces between numbers do not change the score. Open a hint if you need one.\n\nLee la explicación corta. Cambia el código inicial. **Run** prueba los ejemplos. **Submit** prueba más casos."
+  },
+  "hints": [
+    "Use nums[0].",
+    "Use nums[-1] for the last item."
+  ]
+}

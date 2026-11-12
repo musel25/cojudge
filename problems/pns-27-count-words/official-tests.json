@@ -1,0 +1,77 @@
+[
+  {
+    "input": "red blue green"
+  },
+  {
+    "input": "  one   two  "
+  },
+  {
+    "input": "\n"
+  },
+  {
+    "input": "word"
+  },
+  {
+    "input": "   "
+  },
+  {
+    "input": "a b c d"
+  },
+  {
+    "input": "tree"
+  },
+  {
+    "input": "cat sun moon sun book"
+  },
+  {
+    "input": "code red red tree sun red"
+  },
+  {
+    "input": "blue"
+  },
+  {
+    "input": "cat cat"
+  },
+  {
+    "input": "cat book code"
+  },
+  {
+    "input": "moon book"
+  },
+  {
+    "input": "red code code tree code"
+  },
+  {
+    "input": "sun blue cat"
+  },
+  {
+    "input": "code tree sun moon"
+  },
+  {
+    "input": "sun code moon cat"
+  },
+  {
+    "input": "red red"
+  },
+  {
+    "input": "book blue tree code cat"
+  },
+  {
+    "input": "sun blue red tree moon"
+  },
+  {
+    "input": "code cat code cat sun tree"
+  },
+  {
+    "input": "sun book book sun red"
+  },
+  {
+    "input": "code cat moon"
+  },
+  {
+    "input": "blue code red"
+  },
+  {
+    "input": "blue cat sun red"
+  }
+]

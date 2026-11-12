@@ -1,0 +1,48 @@
+{
+  "id": "pns-11-clamp-a-number",
+  "title": "11. Clamp a Number",
+  "difficulty": "Easy",
+  "link": "",
+  "category": "02-functions",
+  "examples": [
+    {
+      "input": "15\n0\n10",
+      "output": "10"
+    },
+    {
+      "input": "6\n0\n10",
+      "output": "6"
+    }
+  ],
+  "starterCode": {
+    "python": "def clamp(value, low, high):\n    # Return the value inside the limits.\n    return value\n\nvalue = int(input())\nlow = int(input())\nhigh = int(input())\nprint(clamp(value, low, high))\n"
+  },
+  "testCases": [
+    {
+      "input": "15\n0\n10"
+    },
+    {
+      "input": "6\n0\n10"
+    },
+    {
+      "input": "-5\n0\n10"
+    }
+  ],
+  "functionName": "program",
+  "params": [
+    {
+      "name": "input",
+      "type": "string"
+    }
+  ],
+  "outputType": "string",
+  "scriptMode": true,
+  "courseHelp": {
+    "title": "How this course works / Cómo funciona",
+    "body": "Read the short lesson, then change the starter code. **Run** tries the examples. **Submit** tries more cases. Most answers are numbers or values from the input. Spaces between numbers do not change the score. Open a hint if you need one.\n\nLee la explicación corta. Cambia el código inicial. **Run** prueba los ejemplos. **Submit** prueba más casos."
+  },
+  "hints": [
+    "Return low when value < low.",
+    "Return high when value > high."
+  ]
+}
