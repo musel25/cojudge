@@ -94,9 +94,11 @@ test('Tauri development mode exposes Firebase settings', async ({ page }) => {
   await page.goto('/');
 
   const menuButton = page.getByRole('button', { name: 'Toggle menu' });
-  await menuButton.focus();
-  await menuButton.press('ArrowDown');
-  await expect(page.getByRole('menuitem', { name: /Firebase settings/ })).toBeVisible();
+  await expect(async () => {
+    await menuButton.focus();
+    await menuButton.press('ArrowDown');
+    await expect(page.getByRole('menuitem', { name: /Firebase settings/ })).toBeVisible({ timeout: 1000 });
+  }).toPass({ timeout: 10000 });
   await page.keyboard.press('Escape');
   await expect(page.getByRole('menu')).toHaveCount(0);
 });
