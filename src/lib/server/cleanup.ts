@@ -1,5 +1,5 @@
 import { beginExecutionShutdown, EXECUTION_TIMEOUT_SECONDS } from '$lib/utils/util';
-import { containerCreatedLabel, containerSessionId, orphanMaxAgeMs } from '$lib/server/containerSession';
+import { cleanupCreatedLabels, containerCreatedLabel, containerSessionId, orphanMaxAgeMs } from '$lib/server/containerSession';
 import Dockerode from 'dockerode';
 import ContainerPool from '$lib/runners/ContainerPool';
 
@@ -55,14 +55,13 @@ async function cleanupContainers() {
         // Clean stale containers from the pool (idle > 5 minutes)
         await ContainerPool.cleanupStale(300000);
 
-        // Clean any orphaned containers (not in pool) older than 5 minutes
-        const containers = await docker.listContainers({
+        // Clean orphaned containers after their session-specific age limit.
+        // A regular server also reclaims verification containers left by a
+        // crashed checker. The checker only scans its own label.
+        const containers = (await Promise.all(cleanupCreatedLabels().map(label => docker.listContainers({
             all: true,
-            filters: {
-                // Age checks below make cross-session cleanup safe and reclaim crash leftovers.
-                label: [`cojudge.created=${containerCreatedLabel}`]
-            }
-        });
+            filters: { label: [`cojudge.created=${label}`] }
+        })))).flat();
 
         const now = Date.now();
         for (const containerInfo of containers) {

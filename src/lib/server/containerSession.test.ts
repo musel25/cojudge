@@ -9,15 +9,17 @@ describe('container session labels', () => {
     it('uses a separate label for isolated verification containers', async () => {
         vi.stubEnv('COJUDGE_ISOLATED_VERIFY', '1');
         vi.resetModules();
-        const { cojudgeContainerLabels } = await import('./containerSession');
+        const { cleanupCreatedLabels, cojudgeContainerLabels } = await import('./containerSession');
         expect(cojudgeContainerLabels()['cojudge.created']).toBe('verification');
+        expect(cleanupCreatedLabels()).toEqual(['verification']);
     });
 
     it('keeps the regular label outside verification', async () => {
         vi.stubEnv('COJUDGE_ISOLATED_VERIFY', '');
         vi.resetModules();
-        const { cojudgeContainerLabels } = await import('./containerSession');
+        const { cleanupCreatedLabels, cojudgeContainerLabels } = await import('./containerSession');
         expect(cojudgeContainerLabels()['cojudge.created']).toBe('true');
+        expect(cleanupCreatedLabels()).toEqual(['true', 'verification']);
     });
 
     it('gives containers from another session five minutes before orphan cleanup', async () => {
