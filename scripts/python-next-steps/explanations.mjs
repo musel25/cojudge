@@ -1,9 +1,9 @@
 // The output of each Learn code sample and the reason for each task result.
 // Keep these in course order so every problem has two explained examples.
 export const explanations = [
-  ['1\n2\n3', ['The even numbers from 1 through 6 are 2, 4, and 6. Their sum is 2 + 4 + 6 = 12.', 'There are no even numbers from 1 through 1, so the sum is 0.']],
-  ['2', ['The target is 3. It occurs three times in 3, 2, 3, 3.', 'The count is 0, so there are no numbers to compare.']],
-  ['6', ['Add 3 and 4. Stop when you read 0, so the result is 7.', 'The first number is 0. There are no numbers to add.']],
+  ['1\n2\n3\n1', ['From 1 through 6, the even numbers are 2, 4, and 6. Add 2 + 4 + 6 to get 12.', 'The only number from 1 through 1 is 1. It is odd, so the sum is 0.']],
+  ['hello\nhello\nhello', ['The first line sets the target to 3. The second line says that four numbers follow: 3, 2, 3, 3. Three of those four numbers equal 3.', 'The second line is 0, so no numbers follow it. The number of matches is 0.']],
+  ['3\n2\n1', ['Read 3, then 4, then 0. Add 3 + 4 to get 7. The 0 ends the input and is not added.', 'The first number is 0, so there are no earlier numbers to add. Print 0.']],
   ['0\n1', ['The first negative number is -2 at position 1. Positions start at 0.', 'All three numbers are positive, so no negative number has a position.']],
   ['0', ['The positive divisors of 6 are 1, 2, 3, and 6. There are four.', 'The only positive divisor of 1 is 1.']],
   ['9', ['The squares are 1, 4, and 9. Their sum is 1 + 4 + 9 = 14.', 'There are no numbers from 1 through 0, so the sum is 0.']],

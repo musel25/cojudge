@@ -15,7 +15,7 @@
     }
   ],
   "starterCode": {
-    "python": "target = int(input())\ncount = int(input())\nmatches = 0\nfor _ in range(count):\n    value = int(input())\n    # Check value here.\nprint(matches)\n"
+    "python": "# Read the target and count, then read exactly count more numbers.\n"
   },
   "testCases": [
     {
@@ -38,7 +38,7 @@
   "outputType": "string",
   "scriptMode": true,
   "hints": [
-    "Put if value == target: inside the loop.",
-    "Add 1 to matches for each match."
+    "The second line tells you how many values to read.",
+    "Count a value only when it equals the target."
   ]
 }

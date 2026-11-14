@@ -15,7 +15,7 @@
     }
   ],
   "starterCode": {
-    "python": "total = 0\nvalue = int(input())\nwhile value != 0:\n    # Add value before reading again.\n    value = int(input())\nprint(total)\n"
+    "python": "# Read numbers until 0. Print the sum of the earlier numbers.\n"
   },
   "testCases": [
     {
@@ -38,7 +38,7 @@
   "outputType": "string",
   "scriptMode": true,
   "hints": [
-    "Add total += value inside the while loop.",
-    "Keep the next input call inside the loop."
+    "What condition tells you when to stop reading?",
+    "Where must you read the next number so the loop can stop?"
   ]
 }
