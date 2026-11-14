@@ -15,7 +15,7 @@
     }
   ],
   "starterCode": {
-    "python": "n = int(input())\ntotal = 0\nfor number in range(1, n + 1):\n    # Add this number only if it is even.\n    pass\nprint(total)\n"
+    "python": "# Read n and print the sum of the even numbers from 1 through n.\n"
   },
   "testCases": [
     {
@@ -38,7 +38,7 @@
   "outputType": "string",
   "scriptMode": true,
   "hints": [
-    "Use range(1, n + 1).",
-    "Use if number % 2 == 0 inside the loop."
+    "How can you visit every number from 1 through n?",
+    "Which numbers leave no remainder when divided by 2?"
   ]
 }

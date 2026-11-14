@@ -1,24 +1,23 @@
 ## Learn
 
-A loop can read several input lines. A counter starts at 0. Add 1 each time a value matches the target.
+A for loop can repeat an action a fixed number of times. In the example below, range(3) makes the loop run three times. The name _ means the program does not need the loop number. You can use this kind of loop when an input line tells you how many more lines to read.
 
 ```python
-matches = 0
-for value in [3, 2, 3]:
-    if value == 3:
-        matches += 1
-print(matches)
+for _ in range(3):
+    print("hello")
 ```
 
 This code prints:
 
 ```text
-2
+hello
+hello
+hello
 ```
 
 ## Your task
 
-Read a target number, then a count, then that many numbers. Show how many numbers equal the target. The count is 0 through 12.
+Read the target integer from the first line. Read the count from the second line. Read exactly that many more lines, with one integer on each line. Print how many of those integers equal the target. Print only the number. The count is 0 through 12.
 
 **Example 1**
 
@@ -39,7 +38,7 @@ Result:
 3
 ```
 
-Why: The target is 3. It occurs three times in 3, 2, 3, 3.
+Why: The first line sets the target to 3. The second line says that four numbers follow: 3, 2, 3, 3. Three of those four numbers equal 3.
 
 **Example 2**
 
@@ -56,6 +55,6 @@ Result:
 0
 ```
 
-Why: The count is 0, so there are no numbers to compare.
+Why: The second line is 0, so no numbers follow it. The number of matches is 0.
 
-Start with the supplied code. Change the code near the comment.
+Write the full program. The starter comment is a reminder of the input format.
