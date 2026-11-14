@@ -22,6 +22,28 @@ test('ordinary coding problems keep their editable inputs', async ({ page }) => 
     await expect(page.getByRole('region', { name: 'Test details' })).toHaveCount(0);
 });
 
+test('long test inputs grow and scroll with the test case panel', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto('/problems/pns-02-count-matches');
+    const input = page.locator('.case-inputs textarea');
+    const content = page.locator('.panel .content');
+    await expect(input).toHaveValue('3\n4\n3\n2\n3\n3');
+    expect(await input.evaluate(element => element.clientHeight)).toBeGreaterThan(100);
+
+    const longInput = Array.from({ length: 30 }, (_, index) => String(index)).join('\n');
+    await input.fill(longInput);
+    await expect(input).toHaveValue(longInput);
+    await expect.poll(() => input.evaluate(element => element.clientHeight >= element.scrollHeight - 1)).toBe(true);
+    await expect.poll(() => content.evaluate(element => element.scrollHeight > element.clientHeight)).toBe(true);
+    await input.hover();
+    await page.mouse.wheel(0, 500);
+    await expect.poll(() => content.evaluate(element => element.scrollTop)).toBeGreaterThan(0);
+
+    await page.getByRole('button', { name: 'Case 2', exact: true }).click();
+    await expect(input).toHaveValue('5\n0');
+    expect(await input.evaluate(element => element.clientHeight)).toBeLessThan(200);
+});
+
 test('adding a supplied check keeps its selector editable', async ({ page }) => {
     await page.goto('/problems/presentation-vehicle');
     await page.getByRole('button', { name: 'Add test case', exact: true }).click();

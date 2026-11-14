@@ -501,6 +501,34 @@
         }
     }
 
+    function autoSizeCaseInput(node: HTMLTextAreaElement, _value: string) {
+        const fit = () => {
+            node.style.height = "auto";
+            const borderHeight = node.offsetHeight - node.clientHeight;
+            node.style.height = `${node.scrollHeight + borderHeight}px`;
+        };
+        let width = node.clientWidth;
+        const observer = new ResizeObserver(() => {
+            if (node.clientWidth !== width) {
+                width = node.clientWidth;
+                fit();
+            }
+        });
+        observer.observe(node);
+        node.addEventListener("input", fit);
+        fit();
+
+        return {
+            update: () => {
+                void tick().then(fit);
+            },
+            destroy: () => {
+                observer.disconnect();
+                node.removeEventListener("input", fit);
+            },
+        };
+    }
+
     // Resolve numNodes for a parameter based on its numNodesRef in problem.params
     function getNumNodesForParam(paramName: string): number | null {
         try {
@@ -1446,7 +1474,7 @@
                                 <label for={key}>{key} =</label>
                                 <textarea
                                     id={key}
-                                    rows="1"
+                                    use:autoSizeCaseInput={stringifyForTextarea(value)}
                                     {...{ autocorrect: "off" }}
                                     autocapitalize="off"
                                     autocomplete="off"
@@ -2320,11 +2348,14 @@
     }
     .case-inputs textarea {
         width: 100%;
+        min-height: 8rem;
+        box-sizing: border-box;
         padding: var(--spacing-2);
         border-radius: var(--border-radius);
         border: 1px solid var(--color-border-active);
         font-family: var(--font-mono);
-        resize: vertical;
+        resize: none;
+        overflow-y: hidden;
         background: var(--color-bg);
         color: var(--color-text);
     }
