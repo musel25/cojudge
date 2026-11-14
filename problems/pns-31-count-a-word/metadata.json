@@ -15,7 +15,7 @@
     }
   ],
   "starterCode": {
-    "python": "text = input()\ntarget = input()\ncounts = {}\n# Count each word.\nprint(counts.get(target, 0))\n"
+    "python": "# Read the words and target. Print the target word count.\n"
   },
   "testCases": [
     {
@@ -38,7 +38,7 @@
   "outputType": "string",
   "scriptMode": true,
   "hints": [
-    "Use counts.get(word, 0) + 1.",
-    "Show counts.get(target, 0)."
+    "Read the target after the line of words.",
+    "You can count matches directly or store a count for each word."
   ]
 }

@@ -15,7 +15,7 @@
     }
   ],
   "starterCode": {
-    "python": "def digit_count(number):\n    # Count the digits.\n    return 0\n\nnumber = int(input())\nprint(digit_count(number))\n"
+    "python": "# Write digit_count(number). Read an integer and print its digit count.\n"
   },
   "testCases": [
     {
@@ -38,7 +38,7 @@
   "outputType": "string",
   "scriptMode": true,
   "hints": [
-    "Handle 0 first.",
-    "Use number //= 10 inside the while loop."
+    "Handle 0 as a special case.",
+    "For other numbers, remove one decimal digit at a time and count how often you do it."
   ]
 }

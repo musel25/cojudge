@@ -17,7 +17,7 @@ This code prints:
 
 ## Your task
 
-Complete square(number). It must return number * number. The final line is ready and shows the returned value. Inputs use -100 through 100.
+Write a function named square(number). It must return number multiplied by itself. Read one integer from the first line, call your function, and print its result. Inputs use -100 through 100.
 
 **Example 1**
 
@@ -51,4 +51,4 @@ Result:
 
 Why: (-3) * (-3) = 9.
 
-Start with the supplied code. Change the code near the comment.
+Write the full program. The starter comment is a reminder of the task.

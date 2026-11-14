@@ -15,7 +15,7 @@
     }
   ],
   "starterCode": {
-    "python": "nums = []\nfor part in input().split():\n    nums.append(int(part))\nlimit = int(input())\nanswer = []\n# Add values below limit.\nfor number in answer:\n    print(number)\n"
+    "python": "# Read the integers and limit. Print values below the limit in order.\n"
   },
   "testCases": [
     {
@@ -38,7 +38,7 @@
   "outputType": "string",
   "scriptMode": true,
   "hints": [
-    "Use if number < limit:.",
-    "Call answer.append(number)."
+    "Read the list before you read the limit.",
+    "Keep a value only when it is strictly smaller than the limit."
   ]
 }

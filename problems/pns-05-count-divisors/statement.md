@@ -14,7 +14,7 @@ This code prints:
 
 ## Your task
 
-Read n. Count its positive divisors from 1 through n. Show the count. The test values use 1 through 500.
+Read one integer n from the first line. Count the positive integers from 1 through n that divide n with no remainder. Print that count. The test values use 1 through 500.
 
 **Example 1**
 
@@ -48,4 +48,4 @@ Result:
 
 Why: The only positive divisor of 1 is 1.
 
-Start with the supplied code. Change the code near the comment.
+Write the full program. The starter comment is a reminder of the task.

@@ -2,7 +2,7 @@
 
 1. Store the total in self.total.
 2. Change it in add() and reset().
-3. Return it in value(). The supplied loop reads and runs the commands.
+3. Return it in value(). Read the commands and call the matching methods.
 
 ## Edge case
 

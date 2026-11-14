@@ -16,7 +16,7 @@ True
 
 ## Your task
 
-Read two lines of text with the same length. Count positions where their characters differ. Big and small letters are different.
+Read two lines of text. They always have the same length. Count positions where the characters on the two lines differ. Print the count. Upper-case and lower-case letters are different.
 
 **Example 1**
 
@@ -52,4 +52,4 @@ Result:
 
 Why: abc and abc have the same character at every position.
 
-Start with the supplied code. Change the code near the comment.
+Write the full program. The starter comment is a reminder of the task.

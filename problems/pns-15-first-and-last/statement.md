@@ -1,6 +1,6 @@
 ## Learn
 
-split() makes a list of the words in one input line. The starter changes each word to an integer. List positions start at 0. Position -1 means the last item.
+split() separates one line of text into parts. List positions start at 0. Position -1 selects the last item. In the task, change each part into an integer before you print the first and last values.
 
 ```python
 nums = [4, 8, 3]
@@ -15,7 +15,7 @@ This code prints:
 
 ## Your task
 
-Read one line of numbers. Show the first and last number. The line always has at least one number. The starter reads the list for you.
+Read one line of space-separated integers. Print the first integer and the last integer. Separate them with a space or a new line. The line always contains at least one integer.
 
 **Example 1**
 
@@ -51,4 +51,4 @@ Why: 7 is both the first and last number.
 
 When the result has several numbers, you can put spaces or new lines between them.
 
-Start with the supplied code. Change the code near the comment.
+Write the full program. The starter comment is a reminder of the task.

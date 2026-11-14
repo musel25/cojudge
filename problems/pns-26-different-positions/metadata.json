@@ -15,7 +15,7 @@
     }
   ],
   "starterCode": {
-    "python": "first = input()\nsecond = input()\ncount = 0\n# Compare each position.\nprint(count)\n"
+    "python": "# Read two equal-length lines. Count positions that differ.\n"
   },
   "testCases": [
     {
@@ -38,7 +38,7 @@
   "outputType": "string",
   "scriptMode": true,
   "hints": [
-    "Use range(len(first)).",
-    "Compare first[index] and second[index]."
+    "Compare characters at the same position.",
+    "A comparison at each position can add 1 to a count."
   ]
 }

@@ -15,7 +15,7 @@
     }
   ],
   "starterCode": {
-    "python": "n = int(input())\ncount = 0\nfor value in range(1, n + 1):\n    # Count a divisor.\n    pass\nprint(count)\n"
+    "python": "# Read n. Print how many positive divisors it has.\n"
   },
   "testCases": [
     {
@@ -38,7 +38,7 @@
   "outputType": "string",
   "scriptMode": true,
   "hints": [
-    "Use range(1, n + 1).",
-    "A divisor meets n % value == 0."
+    "Try each positive number from 1 through n.",
+    "A divisor leaves a remainder of 0 when n is divided by it."
   ]
 }

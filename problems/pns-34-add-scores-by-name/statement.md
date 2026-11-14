@@ -1,22 +1,23 @@
 ## Learn
 
-A name can appear more than once. Read its old total with get(), then add the new score.
+A dictionary can hold a total for each name. get(name, 0) reads that total or gives 0 when the name is missing. In the task, update a name each time another score appears.
 
 ```python
-totals = {}
-totals["ada"] = totals.get("ada", 0) + 3
-print(totals["ada"])
+totals = {"ada": 3}
+print(totals.get("ada", 0))
+print(totals.get("bea", 0))
 ```
 
 This code prints:
 
 ```text
 3
+0
 ```
 
 ## Your task
 
-Read a count, then that many name and score lines. A name may repeat. Add its scores. Read a query name. Show its total, or 0 if missing.
+Read a count from the first line. Read that many more lines. Each line has a lower-case name, a space, and an integer score. A name may repeat. Add all scores for each name. Read one query name after the score lines. Print its total, or 0 if absent.
 
 **Example 1**
 
@@ -56,4 +57,4 @@ Result:
 
 Why: The only saved name is bea, so ada has a total of 0.
 
-Start with the supplied code. Change the code near the comment.
+Write the full program. The starter comment is a reminder of the task.

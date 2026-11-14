@@ -15,7 +15,7 @@
     }
   ],
   "starterCode": {
-    "python": "text = input()\ncount = 0\n# Count the vowels.\nprint(count)\n"
+    "python": "# Read one line of text. Print its vowel count.\n"
   },
   "testCases": [
     {
@@ -38,7 +38,7 @@
   "outputType": "string",
   "scriptMode": true,
   "hints": [
-    "Use text.lower().",
-    "Check if letter in \"aeiou\"."
+    "Visit each character.",
+    "Compare lower-case versions so A and a both count."
   ]
 }

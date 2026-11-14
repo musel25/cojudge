@@ -15,7 +15,7 @@ True
 
 ## Your task
 
-Read one line of numbers. Count how many values are greater than the value just before them. A blank or one-item list gives 0.
+Read one line of space-separated integers. Count each integer that is greater than the integer immediately before it. Print the count. A blank line or a line with one integer gives 0.
 
 **Example 1**
 
@@ -49,4 +49,4 @@ Result:
 
 Why: One value has no previous value to compare.
 
-Start with the supplied code. Change the code near the comment.
+Write the full program. The starter comment is a reminder of the task.

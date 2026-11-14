@@ -15,7 +15,7 @@
     }
   ],
   "starterCode": {
-    "python": "nums = []\nfor part in input().split():\n    nums.append(int(part))\nseen = set()\nanswer = -1\n# Find the first repeated value.\nprint(answer)\n"
+    "python": "# Read integers. Print the first repeated value, or -1.\n"
   },
   "testCases": [
     {
@@ -38,7 +38,7 @@
   "outputType": "string",
   "scriptMode": true,
   "hints": [
-    "Check if number in seen before seen.add(number).",
-    "Use break after you find the repeated number."
+    "Keep a set of values already seen.",
+    "Check for a repeat before adding the current value to that set."
   ]
 }

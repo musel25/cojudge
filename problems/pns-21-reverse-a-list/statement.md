@@ -1,22 +1,21 @@
 ## Learn
 
-A slice with step -1 reads a list backward. It makes a new list.
+A slice with step -1 makes a list in reverse order. This example changes ["a", "b", "c"] to ["c", "b", "a"]. In the task, read integers and print them without list brackets.
 
 ```python
-nums = [4, 8, 3]
-backward = nums[::-1]
-print(backward)  # [3, 8, 4]
+letters = ["a", "b", "c"]
+print(letters[::-1])
 ```
 
 This code prints:
 
 ```text
-[3, 8, 4]
+['c', 'b', 'a']
 ```
 
 ## Your task
 
-Read one line of numbers. Show them in reverse order. A blank line gives no output.
+Read one line of space-separated integers. Print them in reverse order, separated by spaces or new lines. A blank line gives no output.
 
 **Example 1**
 
@@ -48,4 +47,4 @@ Why: The list is empty, so there is no output.
 
 When the result has several numbers, you can put spaces or new lines between them.
 
-Start with the supplied code. Change the code near the comment.
+Write the full program. The starter comment is a reminder of the task.

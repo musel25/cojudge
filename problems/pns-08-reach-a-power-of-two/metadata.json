@@ -15,7 +15,7 @@
     }
   ],
   "starterCode": {
-    "python": "target = int(input())\npower = 1\n# Double power while it is too small.\nprint(power)\n"
+    "python": "# Read target. Print the first doubled value that reaches it.\n"
   },
   "testCases": [
     {
@@ -38,7 +38,7 @@
   "outputType": "string",
   "scriptMode": true,
   "hints": [
-    "Use while power < target:.",
-    "Change power with power *= 2."
+    "Start at 1.",
+    "Keep doubling while the current value is smaller than target."
   ]
 }

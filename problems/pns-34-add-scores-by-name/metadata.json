@@ -15,7 +15,7 @@
     }
   ],
   "starterCode": {
-    "python": "count = int(input())\ntotals = {}\nfor _ in range(count):\n    parts = input().split()\n    name = parts[0]\n    score = int(parts[1])\n    # Add this score to the name.\nquery = input()\nprint(totals.get(query, 0))\n"
+    "python": "# Read name-score lines and a query. Print the name total, or 0.\n"
   },
   "testCases": [
     {
@@ -38,7 +38,7 @@
   "outputType": "string",
   "scriptMode": true,
   "hints": [
-    "Use totals.get(name, 0).",
-    "Add score to the old total."
+    "Store a running total for each name in a dictionary.",
+    "When a name first appears, its earlier total is 0."
   ]
 }

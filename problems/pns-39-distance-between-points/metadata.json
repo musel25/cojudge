@@ -15,7 +15,7 @@
     }
   ],
   "starterCode": {
-    "python": "parts = input().split()\nfirst = (int(parts[0]), int(parts[1]))\nparts = input().split()\nsecond = (int(parts[0]), int(parts[1]))\n# Unpack both points and find the distance.\n"
+    "python": "# Read two points. Print their grid distance.\n"
   },
   "testCases": [
     {
@@ -38,7 +38,7 @@
   "outputType": "string",
   "scriptMode": true,
   "hints": [
-    "Use x1, y1 = first.",
-    "Use abs() for each difference."
+    "Split each line into two integer coordinates.",
+    "Use abs() on each coordinate difference before adding them."
   ]
 }

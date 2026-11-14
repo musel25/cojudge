@@ -15,7 +15,7 @@
     }
   ],
   "starterCode": {
-    "python": "nums = []\nfor part in input().split():\n    nums.append(int(part))\n# Make a reversed list.\n"
+    "python": "# Read a line of integers. Print them in reverse order.\n"
   },
   "testCases": [
     {
@@ -38,7 +38,7 @@
   "outputType": "string",
   "scriptMode": true,
   "hints": [
-    "Use nums[::-1].",
-    "Loop through the reversed list to print it."
+    "Split the line and change its parts into integers.",
+    "You can visit a list from its last item to its first."
   ]
 }

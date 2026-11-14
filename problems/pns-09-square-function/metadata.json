@@ -15,7 +15,7 @@
     }
   ],
   "starterCode": {
-    "python": "def square(number):\n    # Return the square.\n    return 0\n\nnumber = int(input())\nprint(square(number))\n"
+    "python": "# Write square(number), read one integer, and print the returned value.\n"
   },
   "testCases": [
     {
@@ -38,7 +38,7 @@
   "outputType": "string",
   "scriptMode": true,
   "hints": [
-    "Use return inside the function.",
-    "Return number * number."
+    "Define the function before you call it.",
+    "Inside the function, return a value made from number multiplied by itself."
   ]
 }

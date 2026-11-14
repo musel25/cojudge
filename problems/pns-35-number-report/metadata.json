@@ -15,7 +15,7 @@
     }
   ],
   "starterCode": {
-    "python": "nums = [int(part) for part in input().split()]\n# Find the four report values.\n"
+    "python": "# Read integers. Print count, sum, largest, and unique count.\n"
   },
   "testCases": [
     {
@@ -38,7 +38,7 @@
   "outputType": "string",
   "scriptMode": true,
   "hints": [
-    "Use len(nums) and sum(nums).",
-    "Use max(nums) if nums else 0."
+    "Read the line into a list of integers.",
+    "An empty list has no largest value, so use 0 for that part."
   ]
 }

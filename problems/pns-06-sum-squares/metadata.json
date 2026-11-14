@@ -15,7 +15,7 @@
     }
   ],
   "starterCode": {
-    "python": "n = int(input())\ntotal = 0\n# Add each square.\nprint(total)\n"
+    "python": "# Read n. Print the sum of the squares from 1 through n.\n"
   },
   "testCases": [
     {
@@ -38,7 +38,7 @@
   "outputType": "string",
   "scriptMode": true,
   "hints": [
-    "Use range(1, n + 1).",
-    "Add number * number to total."
+    "Start the total at 0.",
+    "Visit each number from 1 through n and add its square."
   ]
 }

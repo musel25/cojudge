@@ -17,7 +17,7 @@ This code prints:
 
 ## Your task
 
-Read a count, then that many lines with a name and a score. Names are unique and use small lower-case letters. Read a query name. Show its score, or 0 if missing.
+Read a count from the first line. Read that many more lines. Each line has a lower-case name, a space, and an integer score. Names are unique. Read one query name after those lines. Print its score, or 0 if the name is absent.
 
 **Example 1**
 
@@ -56,4 +56,4 @@ Result:
 
 Why: There is no score for cal, so show 0.
 
-Start with the supplied code. Change the code near the comment.
+Write the full program. The starter comment is a reminder of the task.

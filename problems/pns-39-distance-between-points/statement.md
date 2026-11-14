@@ -16,7 +16,7 @@ This code prints:
 
 ## Your task
 
-Read two points. Each line has x and y separated by a space. Show abs(x1 - x2) + abs(y1 - y2). This is the distance across grid rows and columns.
+Read two lines. Each line contains the x and y coordinates of one point, separated by a space. Print the grid distance between the points: abs(x1 - x2) + abs(y1 - y2). For (1, 2) and (4, 6), print 7.
 
 **Example 1**
 
@@ -52,4 +52,4 @@ Result:
 
 Why: Both points are (0, 0), so each difference is 0.
 
-Start with the supplied code. Change the code near the comment.
+Write the full program. The starter comment is a reminder of the task.

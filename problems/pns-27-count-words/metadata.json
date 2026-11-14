@@ -15,7 +15,7 @@
     }
   ],
   "starterCode": {
-    "python": "text = input()\n# Count the words.\n"
+    "python": "# Read one line of text. Print its word count.\n"
   },
   "testCases": [
     {
@@ -38,7 +38,7 @@
   "outputType": "string",
   "scriptMode": true,
   "hints": [
-    "Use text.split().",
-    "Use len(words)."
+    "Split the line into words.",
+    "Count the items in the resulting list."
   ]
 }

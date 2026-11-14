@@ -1,21 +1,21 @@
 ## Learn
 
-split() divides text at spaces and gives a list of words. len() gives the number of items in that list.
+split() separates a line at whitespace. Repeated spaces do not make empty words. This example makes a list with red and blue. len() counts the items in a list.
 
 ```python
-words = "red blue green".split()
-print(len(words))  # 3
+words = "red   blue".split()
+print(words)
 ```
 
 This code prints:
 
 ```text
-3
+['red', 'blue']
 ```
 
 ## Your task
 
-Read one line of text. Count its space-separated words. Extra spaces do not make extra words. Show the count.
+Read one line of text. Count its words and print the count. Spaces separate words. Extra spaces do not make extra words. A blank line gives 0.
 
 **Example 1**
 
@@ -49,4 +49,4 @@ Result:
 
 Why: Extra spaces do not create words. The words are one and two.
 
-Start with the supplied code. Change the code near the comment.
+Write the full program. The starter comment is a reminder of the task.

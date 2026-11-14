@@ -15,7 +15,7 @@
     }
   ],
   "starterCode": {
-    "python": "count = int(input())\nposition_found = -1\nfor position in range(count):\n    value = int(input())\n    # Check for a negative value.\nprint(position_found)\n"
+    "python": "# Read the count and values. Print the first negative position, or -1.\n"
   },
   "testCases": [
     {
@@ -38,7 +38,7 @@
   "outputType": "string",
   "scriptMode": true,
   "hints": [
-    "Check value < 0.",
-    "Do not replace the first position after you find it."
+    "Start with -1 as the answer when no value is negative.",
+    "Check each value in input order. Stop after the first negative value."
   ]
 }

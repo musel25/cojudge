@@ -15,7 +15,7 @@
     }
   ],
   "starterCode": {
-    "python": "nums = []\nfor part in input().split():\n    nums.append(int(part))\ntotal = 0\n# Add positive values.\nprint(total)\n"
+    "python": "# Read a line of integers. Print the sum of its positive values.\n"
   },
   "testCases": [
     {
@@ -38,7 +38,7 @@
   "outputType": "string",
   "scriptMode": true,
   "hints": [
-    "Loop with for number in nums:.",
-    "Check number > 0."
+    "Split the line and change each part into an integer.",
+    "Add a value only when it is greater than 0."
   ]
 }

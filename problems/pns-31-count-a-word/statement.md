@@ -16,7 +16,7 @@ This code prints:
 
 ## Your task
 
-Read a line of lower-case words, then one target word. Count how often the target appears. Words are separated by spaces. Show the count.
+Read one line of lower-case words separated by spaces. Read one target word from the next line. Print how many times the target word occurs in the first line. A missing word has a count of 0.
 
 **Example 1**
 
@@ -52,4 +52,4 @@ Result:
 
 Why: green does not occur in red blue, so its count is 0.
 
-Start with the supplied code. Change the code near the comment.
+Write the full program. The starter comment is a reminder of the task.

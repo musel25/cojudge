@@ -15,7 +15,7 @@ This code prints:
 
 ## Your task
 
-Read one line of lower-case words separated by spaces. Show three values: word count, different-word count, and longest word length. A blank line gives 0 0 0.
+Read one line of lower-case words separated by spaces. Print three values in this order: number of words, number of different words, and length of the longest word. Separate values with spaces or new lines. A blank line gives 0 0 0.
 
 **Example 1**
 
@@ -49,4 +49,4 @@ Why: There are no words, so all three results are 0.
 
 When the result has several numbers, you can put spaces or new lines between them.
 
-Start with the supplied code. Change the code near the comment.
+Write the full program. The starter comment is a reminder of the task.

@@ -16,7 +16,7 @@ This code prints:
 
 ## Your task
 
-Read one JSON list of whole numbers. Show its sum. The input is always valid JSON. A list may be empty.
+Read one line containing a JSON list of integers. The JSON is always valid. Print the sum of the integers. An empty list gives 0.
 
 **Example 1**
 
@@ -50,4 +50,4 @@ Result:
 
 Why: The empty list has a sum of 0.
 
-Start with the supplied code. Change the code near the comment.
+Write the full program. The starter comment is a reminder of the task.

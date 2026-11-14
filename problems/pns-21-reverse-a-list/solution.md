@@ -1,6 +1,6 @@
 ## Steps
 
-1. The starter reads the list.
+1. Read one line and change its parts into integers.
 2. Use nums[::-1] to make a backward copy.
 3. Show each number in that copy.
 

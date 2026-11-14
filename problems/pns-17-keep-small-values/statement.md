@@ -16,7 +16,7 @@ This code prints:
 
 ## Your task
 
-Read a line of numbers, then a limit on the next line. Keep values below the limit. Keep their original order. Show the kept numbers. Show nothing if none qualify.
+Read one line of space-separated integers. Read the limit from the next line. Print each integer that is smaller than the limit, in its original order. Separate results with spaces or new lines. If none qualifies, print nothing.
 
 **Example 1**
 
@@ -52,4 +52,4 @@ Why: Neither 7 nor 8 is below 3, so there is no output.
 
 When the result has several numbers, you can put spaces or new lines between them.
 
-Start with the supplied code. Change the code near the comment.
+Write the full program. The starter comment is a reminder of the task.

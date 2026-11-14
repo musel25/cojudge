@@ -18,7 +18,7 @@ This code prints:
 
 ## Your task
 
-Read one line of numbers. Add only numbers greater than 0. Show the sum. A blank line is an empty list.
+Read one line of space-separated integers. Add only the integers greater than 0. Print the sum. A blank line is an empty list and gives 0.
 
 **Example 1**
 
@@ -52,4 +52,4 @@ Result:
 
 Why: Neither -4 nor 0 is positive, so the sum is 0.
 
-Start with the supplied code. Change the code near the comment.
+Write the full program. The starter comment is a reminder of the task.

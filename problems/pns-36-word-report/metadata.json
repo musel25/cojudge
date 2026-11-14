@@ -15,7 +15,7 @@
     }
   ],
   "starterCode": {
-    "python": "text = input()\nwords = text.split()\n# Find the three report values.\n"
+    "python": "# Read words. Print word count, unique count, and longest length.\n"
   },
   "testCases": [
     {
@@ -38,7 +38,7 @@
   "outputType": "string",
   "scriptMode": true,
   "hints": [
-    "Start longest at 0.",
-    "Update it when len(word) is larger."
+    "Split the line into words.",
+    "Start the longest length at 0 so an empty line works."
   ]
 }

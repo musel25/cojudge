@@ -15,7 +15,7 @@
     }
   ],
   "starterCode": {
-    "python": "nums = []\nfor part in input().split():\n    nums.append(int(part))\n# Show the first and last values.\n"
+    "python": "# Read a line of integers. Print its first and last values.\n"
   },
   "testCases": [
     {
@@ -38,7 +38,7 @@
   "outputType": "string",
   "scriptMode": true,
   "hints": [
-    "Use nums[0].",
-    "Use nums[-1] for the last item."
+    "Split the input line into parts and change them to integers.",
+    "Use the first and last list positions."
   ]
 }

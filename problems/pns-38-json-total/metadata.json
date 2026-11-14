@@ -15,7 +15,7 @@
     }
   ],
   "starterCode": {
-    "python": "import json\n\nnums = json.loads(input())\n# Add the numbers.\n"
+    "python": "# Read a JSON list of integers and print its sum.\n"
   },
   "testCases": [
     {
@@ -38,7 +38,7 @@
   "outputType": "string",
   "scriptMode": true,
   "hints": [
-    "The starter already reads JSON.",
-    "Use sum(nums)."
+    "Import the json module.",
+    "Use json.loads() to change the input text into a list."
   ]
 }

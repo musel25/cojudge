@@ -1,8 +1,8 @@
 ## Steps
 
-1. The starter builds nums.
-2. Use nums[0] for the first value.
-3. Use nums[-1] for the last value.
+1. Read one line and change its parts into integers.
+2. Use position 0 for the first value.
+3. Use position -1 for the last value and print both.
 
 ## Edge case
 
