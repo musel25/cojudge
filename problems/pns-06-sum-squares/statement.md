@@ -15,7 +15,7 @@ This code prints:
 
 ## Your task
 
-Read n. Add 1 * 1 + 2 * 2 + ... + n * n. Show the total. If n is 0, show 0. The test values use 0 through 100.
+Read one integer n from the first line. Add the squares of every integer from 1 through n. Print the total. For n = 3, add 1 * 1 + 2 * 2 + 3 * 3. If n is 0, print 0. The test values use 0 through 100.
 
 **Example 1**
 
@@ -49,4 +49,4 @@ Result:
 
 Why: There are no numbers from 1 through 0, so the sum is 0.
 
-Start with the supplied code. Change the code near the comment.
+Write the full program. The starter comment is a reminder of the task.

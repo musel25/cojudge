@@ -15,7 +15,7 @@
     }
   ],
   "starterCode": {
-    "python": "text = input()\n# Show the text backward.\n"
+    "python": "# Read one line of text. Print its characters in reverse order.\n"
   },
   "testCases": [
     {
@@ -38,7 +38,7 @@
   "outputType": "string",
   "scriptMode": true,
   "hints": [
-    "Use text[::-1].",
-    "Do not change letter case."
+    "A string can use the same reverse slice as a list.",
+    "Reverse the whole line so spaces move with the other characters."
   ]
 }

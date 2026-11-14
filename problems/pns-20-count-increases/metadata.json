@@ -15,7 +15,7 @@
     }
   ],
   "starterCode": {
-    "python": "nums = []\nfor part in input().split():\n    nums.append(int(part))\ncount = 0\n# Compare neighboring items.\nprint(count)\n"
+    "python": "# Read a line of integers. Count increases between neighbors.\n"
   },
   "testCases": [
     {
@@ -38,7 +38,7 @@
   "outputType": "string",
   "scriptMode": true,
   "hints": [
-    "Loop over range(1, len(nums)).",
-    "Check nums[index] > nums[index - 1]."
+    "The first item has no previous item.",
+    "Compare each later item with the one just before it."
   ]
 }

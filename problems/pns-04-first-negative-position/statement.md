@@ -18,7 +18,7 @@ This code prints:
 
 ## Your task
 
-Read a count, then that many numbers. Show the position of the first negative number. Show -1 when there is none. The count is 0 through 12.
+Read the count from the first line. Read that many integers, one per line. Print the position of the first negative integer. Positions start at 0. Print -1 if none is negative. The count is 0 through 12.
 
 **Example 1**
 
@@ -59,4 +59,4 @@ Result:
 
 Why: All three numbers are positive, so no negative number has a position.
 
-Start with the supplied code. Change the code near the comment.
+Write the full program. The starter comment is a reminder of the task.

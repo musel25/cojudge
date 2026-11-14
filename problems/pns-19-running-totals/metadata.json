@@ -15,7 +15,7 @@
     }
   ],
   "starterCode": {
-    "python": "nums = []\nfor part in input().split():\n    nums.append(int(part))\ntotals = []\ntotal = 0\n# Build running totals.\nfor number in totals:\n    print(number)\n"
+    "python": "# Read a line of integers. Print the total after each one.\n"
   },
   "testCases": [
     {
@@ -38,7 +38,7 @@
   "outputType": "string",
   "scriptMode": true,
   "hints": [
-    "Change total inside the loop.",
-    "Append total after each addition."
+    "Start a total at 0.",
+    "After you add each value, show the new total."
   ]
 }

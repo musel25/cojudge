@@ -1,22 +1,22 @@
 ## Learn
 
-A list comprehension makes a new list from old items. Read it as: make number * number for each number in nums.
+A list comprehension makes a new list. This example doubles each value in [2, 3] and gives [4, 6]. In the task, make a new value by multiplying each number by itself.
 
 ```python
-nums = [2, 3]
-squares = [number * number for number in nums]
-print(squares)  # [4, 9]
+values = [2, 3]
+doubled = [value * 2 for value in values]
+print(doubled)
 ```
 
 This code prints:
 
 ```text
-[4, 9]
+[4, 6]
 ```
 
 ## Your task
 
-Read one line of numbers. Show the square of each number in the same order. A blank line gives no output.
+Read one line of space-separated integers. Print the square of each integer in the same order, separated by spaces or new lines. A blank line gives no output.
 
 **Example 1**
 
@@ -48,4 +48,4 @@ Why: The list is empty, so there are no squares to show.
 
 When the result has several numbers, you can put spaces or new lines between them.
 
-Start with the supplied code. Change the code near the comment.
+Write the full program. The starter comment is a reminder of the task.

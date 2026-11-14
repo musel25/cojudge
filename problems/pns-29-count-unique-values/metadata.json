@@ -15,7 +15,7 @@
     }
   ],
   "starterCode": {
-    "python": "nums = []\nfor part in input().split():\n    nums.append(int(part))\n# Count different values.\n"
+    "python": "# Read a line of integers. Print how many different values it has.\n"
   },
   "testCases": [
     {
@@ -38,7 +38,7 @@
   "outputType": "string",
   "scriptMode": true,
   "hints": [
-    "Use set(nums).",
-    "Use len() to count the set."
+    "Read the integers from the line.",
+    "A set contains each different value only once."
   ]
 }

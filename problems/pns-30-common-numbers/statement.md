@@ -1,22 +1,22 @@
 ## Learn
 
-The & sign finds values shared by two sets. sorted() puts the result in increasing order.
+The & operator gives values shared by two sets. This example gives a set containing 2 and 3. A set has no required order, so use sorted() when the result must increase.
 
 ```python
 left = {1, 2, 3}
 right = {2, 3, 4}
-print(sorted(left & right))  # [2, 3]
+print(left & right)
 ```
 
 This code prints:
 
 ```text
-[2, 3]
+{2, 3}
 ```
 
 ## Your task
 
-Read two lines of numbers. Show the numbers that appear in both lines, once each, in increasing order. If none are shared, show nothing.
+Read two lines of space-separated integers. Print the integers that occur in both lines, once each, in increasing order. Separate results with spaces or new lines. If none is shared, print nothing.
 
 **Example 1**
 
@@ -52,4 +52,4 @@ Why: The two lines share no number, so there is no output.
 
 When the result has several numbers, you can put spaces or new lines between them.
 
-Start with the supplied code. Change the code near the comment.
+Write the full program. The starter comment is a reminder of the task.

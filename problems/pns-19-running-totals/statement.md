@@ -1,24 +1,24 @@
 ## Learn
 
-A running total changes after each item. Append each new total to an answer list.
+A running total changes after each value. This example prints 4 after the first value and 3 after the second. The task asks you to read the values from input and show every new total.
 
 ```python
 total = 0
-for number in [2, 3]:
-    total += number
-    print(total)  # 2, then 5
+for value in [4, -1]:
+    total += value
+    print(total)
 ```
 
 This code prints:
 
 ```text
-2
-5
+4
+3
 ```
 
 ## Your task
 
-Read one line of numbers. Show the total after each number. For 2 3 -1, show 2 5 4. A blank line gives no output.
+Read one line of space-separated integers. Print the total after each integer, in input order. Separate totals with spaces or new lines. For 2 3 -1, print 2 5 4. A blank line gives no output.
 
 **Example 1**
 
@@ -50,4 +50,4 @@ Why: There are no values, so there are no running totals.
 
 When the result has several numbers, you can put spaces or new lines between them.
 
-Start with the supplied code. Change the code near the comment.
+Write the full program. The starter comment is a reminder of the task.

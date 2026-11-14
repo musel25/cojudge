@@ -15,7 +15,7 @@
     }
   ],
   "starterCode": {
-    "python": "class Counter:\n    def __init__(self):\n        self.total = 0\n\n    def add(self, number):\n        # Add number.\n        pass\n\n    def reset(self):\n        # Start again at 0.\n        pass\n\n    def value(self):\n        # Return the total.\n        return 0\n\ncount = int(input())\ncounter = Counter()\nfor _ in range(count):\n    command = input().split()\n    if command[0] == \"add\":\n        counter.add(int(command[1]))\n    elif command[0] == \"reset\":\n        counter.reset()\n    else:\n        print(counter.value())\n"
+    "python": "# Write Counter and read commands. Print a result for each value command.\n"
   },
   "testCases": [
     {
@@ -38,7 +38,7 @@
   "outputType": "string",
   "scriptMode": true,
   "hints": [
-    "Use self.total in each method.",
-    "add uses +=; reset uses = 0."
+    "Store the total on self so every method can use it.",
+    "Read each command after the count and call the matching method."
   ]
 }

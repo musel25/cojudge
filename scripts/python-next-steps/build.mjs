@@ -107,7 +107,7 @@ ${problem.task}
 
 ${examples}
 
-${hasSeveralNumbers ? 'When the result has several numbers, you can put spaces or new lines between them.\n\n' : ''}${problem.note ? `${problem.note}\n\n` : ''}${problem.instruction ?? 'Start with the supplied code. Change the code near the comment.'}
+${hasSeveralNumbers ? 'When the result has several numbers, you can put spaces or new lines between them.\n\n' : ''}${problem.note ? `${problem.note}\n\n` : ''}${problem.instruction ?? 'Write the full program. The starter comment is a reminder of the task.'}
 `;
 }
 

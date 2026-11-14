@@ -21,7 +21,7 @@ This code prints:
 
 ## Your task
 
-Read rows and columns. Count the grid positions where row + column is even. Rows and columns start at 0. Both sizes use 0 through 10.
+Read the number of rows from the first line and the number of columns from the second line. Row and column positions start at 0. Count positions where row + column is even. Print the count. Both sizes use 0 through 10.
 
 **Example 1**
 
@@ -57,4 +57,4 @@ Result:
 
 Why: There are no rows, so there are no grid positions.
 
-Start with the supplied code. Change the code near the comment.
+Write the full program. The starter comment is a reminder of the task.

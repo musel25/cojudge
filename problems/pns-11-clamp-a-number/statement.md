@@ -19,7 +19,7 @@ This code prints:
 
 ## Your task
 
-Complete clamp(value, low, high). Return low if value is below low. Return high if value is above high. Otherwise return value. low is never greater than high.
+Write a function named clamp(value, low, high). Return low when value is below low. Return high when value is above high. Otherwise return value. Read value, low, and high from three lines in that order. Call the function and print its result. low is never greater than high.
 
 **Example 1**
 
@@ -57,4 +57,4 @@ Result:
 
 Why: 6 is between 0 and 10, so clamp returns 6.
 
-Start with the supplied code. Change the code near the comment.
+Write the full program. The starter comment is a reminder of the task.

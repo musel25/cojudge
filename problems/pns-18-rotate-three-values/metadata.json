@@ -15,7 +15,7 @@
     }
   ],
   "starterCode": {
-    "python": "nums = []\nfor part in input().split():\n    nums.append(int(part))\n# Show item 1, item 2, then item 0.\n"
+    "python": "# Read three integers. Move the first to the end and print them.\n"
   },
   "testCases": [
     {
@@ -38,7 +38,7 @@
   "outputType": "string",
   "scriptMode": true,
   "hints": [
-    "Python list indexes start at 0.",
-    "Use nums[1], nums[2], nums[0]."
+    "Split the input line into three values.",
+    "List positions 1 and 2 come before position 0 in the result."
   ]
 }

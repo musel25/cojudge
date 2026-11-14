@@ -15,7 +15,7 @@
     }
   ],
   "starterCode": {
-    "python": "def clamp(value, low, high):\n    # Return the value inside the limits.\n    return value\n\nvalue = int(input())\nlow = int(input())\nhigh = int(input())\nprint(clamp(value, low, high))\n"
+    "python": "# Write clamp(value, low, high). Read three integers and print its result.\n"
   },
   "testCases": [
     {
@@ -38,7 +38,7 @@
   "outputType": "string",
   "scriptMode": true,
   "hints": [
-    "Return low when value < low.",
-    "Return high when value > high."
+    "Check whether the value is below the lower limit first.",
+    "If it is not below or above the limits, return the original value."
   ]
 }

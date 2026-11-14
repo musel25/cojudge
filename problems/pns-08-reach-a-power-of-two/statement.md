@@ -1,23 +1,23 @@
 ## Learn
 
-A while loop can grow a value until it reaches a goal. Keep changing the value inside the loop so it can stop.
+A while loop repeats while its condition is true. In this example, value changes from 1 to 3 to 5. At 5, the condition is false and the loop stops. In the task, you will double a value instead of adding 2.
 
 ```python
-power = 1
-while power < 8:
-    power = power * 2
-print(power)
+value = 1
+while value < 5:
+    value += 2
+print(value)
 ```
 
 This code prints:
 
 ```text
-8
+5
 ```
 
 ## Your task
 
-Read target. Start at 1. Double the number until it is at least target. Show that number. The target uses 1 through 10000.
+Read one integer target from the first line. Start with the number 1. Double it until it is at least target. Print the first number that reaches or passes target. The target uses 1 through 10000.
 
 **Example 1**
 
@@ -51,4 +51,4 @@ Result:
 
 Why: The starting value 1 already meets the target.
 
-Start with the supplied code. Change the code near the comment.
+Write the full program. The starter comment is a reminder of the task.

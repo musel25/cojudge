@@ -15,7 +15,7 @@
     }
   ],
   "starterCode": {
-    "python": "def inside(value, low, high):\n    # Check both ends.\n    return 0\n\nvalue = int(input())\nlow = int(input())\nhigh = int(input())\nprint(inside(value, low, high))\n"
+    "python": "# Write inside(value, low, high). Read three integers and print 1 or 0.\n"
   },
   "testCases": [
     {
@@ -38,7 +38,7 @@
   "outputType": "string",
   "scriptMode": true,
   "hints": [
-    "Use low <= value and value <= high.",
-    "Return 1 or 0, not an English sentence."
+    "Check both the lower and upper boundary.",
+    "Return the integer 1 when both checks pass. Return 0 otherwise."
   ]
 }

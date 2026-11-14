@@ -1,6 +1,6 @@
 ## Learn
 
-A function can use a loop and return its final total. The same function works for different inputs.
+A function can use a loop and return its final total. This example adds 1, 2, and 3. In the task, your function will use the two input numbers as the range limits.
 
 ```python
 def add_to_three():
@@ -20,7 +20,7 @@ This code prints:
 
 ## Your task
 
-Complete sum_range(start, end). Add every whole number from start through end. start is never greater than end. Values use -50 through 50.
+Write a function named sum_range(start, end). Return the sum of every integer from start through end, including both ends. Read start and end from two lines. Call the function and print its result. start is never greater than end. Values use -50 through 50.
 
 **Example 1**
 
@@ -56,4 +56,4 @@ Result:
 
 Why: Add -2 + -1 + 0 + 1 + 2 to get 0.
 
-Start with the supplied code. Change the code near the comment.
+Write the full program. The starter comment is a reminder of the task.

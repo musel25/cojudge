@@ -15,7 +15,7 @@
     }
   ],
   "starterCode": {
-    "python": "text = input()\nletters = []\n# Add the first letter of each word.\nprint(\"\".join(letters))\n"
+    "python": "# Read words. Print their first letters together in upper case.\n"
   },
   "testCases": [
     {
@@ -38,7 +38,7 @@
   "outputType": "string",
   "scriptMode": true,
   "hints": [
-    "Loop through text.split().",
-    "Use word[0].upper() and append it."
+    "Split the line into words.",
+    "Take the first character of each word and change it to upper case."
   ]
 }

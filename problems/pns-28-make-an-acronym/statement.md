@@ -15,7 +15,7 @@ C
 
 ## Your task
 
-Read one line of words. Take the first letter of each word. Show the letters together in upper case. Words contain only English letters. Spaces separate words.
+Read one line of words separated by spaces. Take the first letter of each word. Print those letters together in upper case, with no spaces. Words contain only English letters. A blank line gives an empty line.
 
 **Example 1**
 
@@ -49,4 +49,4 @@ BS
 
 Why: The first letters of Blue and sky are B and s. Change s to S.
 
-Start with the supplied code. Change the code near the comment.
+Write the full program. The starter comment is a reminder of the task.

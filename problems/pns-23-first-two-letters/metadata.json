@@ -15,7 +15,7 @@
     }
   ],
   "starterCode": {
-    "python": "text = input()\n# Show at most two characters.\n"
+    "python": "# Read one line of text. Print at most its first two characters.\n"
   },
   "testCases": [
     {
@@ -38,7 +38,7 @@
   "outputType": "string",
   "scriptMode": true,
   "hints": [
-    "Use text[:2].",
-    "A slice can be shorter than the number requested."
+    "The first character is at position 0.",
+    "A slice can stop before position 2 without an error on short text."
   ]
 }

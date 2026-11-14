@@ -73,6 +73,9 @@ for (const [index, problem] of problems.entries()) {
   const statement = readFileSync(join(root, 'problems', slug, 'statement.md'), 'utf8');
   const metadata = JSON.parse(readFileSync(join(root, 'problems', slug, 'metadata.json'), 'utf8'));
   const [learnOutput, reasons] = explanations[index];
+  if (!/^# [^\n]+\n$/.test(problem.starter) || metadata.starterCode.python !== problem.starter) {
+    throw new Error(`${slug}: starter must be one comment and match generated metadata`);
+  }
   const actual = run('uv', ['run', '--no-project', 'python', '-c', problem.learnCode]).trimEnd();
   if (actual !== learnOutput || !statement.includes(`This code prints:\n\n\x60\x60\x60text\n${learnOutput}\n\x60\x60\x60`)) {
     throw new Error(`${slug}: Learn output differs from the code`);

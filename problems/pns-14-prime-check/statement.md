@@ -14,7 +14,7 @@ This code prints:
 
 ## Your task
 
-Complete is_prime(number). Return 1 for a prime number and 0 otherwise. Inputs use 0 through 500.
+Write a function named is_prime(number). Return 1 if number is prime and 0 otherwise. A prime number is greater than 1 and has no positive divisors except 1 and itself. Read one integer from the first line. Call the function and print its result. Inputs use 0 through 500.
 
 **Example 1**
 
@@ -48,4 +48,4 @@ Result:
 
 Why: 9 has divisors 1, 3, and 9, so it is not prime.
 
-Start with the supplied code. Change the code near the comment.
+Write the full program. The starter comment is a reminder of the task.

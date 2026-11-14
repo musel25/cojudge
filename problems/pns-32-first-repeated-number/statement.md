@@ -16,7 +16,7 @@ True
 
 ## Your task
 
-Read one line of numbers. Show the first value that appears for a second time as you read left to right. Show -1 if no value repeats.
+Read one line of space-separated integers from left to right. Print the first integer that you encounter for the second time. Print -1 if no integer repeats. A blank line gives -1.
 
 **Example 1**
 
@@ -50,4 +50,4 @@ Result:
 
 Why: Each value occurs once, so show -1.
 
-Start with the supplied code. Change the code near the comment.
+Write the full program. The starter comment is a reminder of the task.

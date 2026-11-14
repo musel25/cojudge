@@ -15,7 +15,7 @@
     }
   ],
   "starterCode": {
-    "python": "def sum_range(start, end):\n    total = 0\n    # Add every number in the range.\n    return total\n\nstart = int(input())\nend = int(input())\nprint(sum_range(start, end))\n"
+    "python": "# Write sum_range(start, end). Read two integers and print its result.\n"
   },
   "testCases": [
     {
@@ -38,7 +38,7 @@
   "outputType": "string",
   "scriptMode": true,
   "hints": [
-    "Use range(start, end + 1).",
-    "Return total after the loop."
+    "Begin with a total of 0.",
+    "Python range stops before its second argument. Include end in the loop."
   ]
 }

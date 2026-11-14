@@ -15,7 +15,7 @@
     }
   ],
   "starterCode": {
-    "python": "nums = []\nfor part in input().split():\n    nums.append(int(part))\n# Make a list of squares.\n"
+    "python": "# Read a line of integers. Print each square in the same order.\n"
   },
   "testCases": [
     {
@@ -38,7 +38,7 @@
   "outputType": "string",
   "scriptMode": true,
   "hints": [
-    "Use [number * number for number in nums].",
-    "Show the result list with a loop."
+    "First read the integers from the line.",
+    "The square of a number is that number multiplied by itself."
   ]
 }

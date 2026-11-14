@@ -1,12 +1,12 @@
 ## Learn
 
-A function can receive more than one value. These values are its parameters. A result of 1 can mean yes, and 0 can mean no.
+A function can receive a value and return the result of a comparison. The example returns True because 20 is at least 18. In this task, your function must check two boundaries and return 1 or 0.
 
 ```python
-def inside(value, low, high):
-    return low <= value <= high
+def is_adult(age):
+    return age >= 18
 
-print(inside(5, 1, 10))
+print(is_adult(20))
 ```
 
 This code prints:
@@ -17,7 +17,7 @@ True
 
 ## Your task
 
-Complete inside(value, low, high). Return 1 when value is from low through high, including both ends. Otherwise return 0. low is never greater than high.
+Write a function named inside(value, low, high). Return 1 when value is between low and high, including both ends. Return 0 otherwise. Read value, low, and high from three lines in that order. Call the function and print its result. low is never greater than high.
 
 **Example 1**
 
@@ -55,4 +55,4 @@ Result:
 
 Why: 11 is above 10, so the result is 0.
 
-Start with the supplied code. Change the code near the comment.
+Write the full program. The starter comment is a reminder of the task.

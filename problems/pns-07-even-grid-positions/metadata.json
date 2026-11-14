@@ -15,7 +15,7 @@
     }
   ],
   "starterCode": {
-    "python": "rows = int(input())\ncolumns = int(input())\ncount = 0\n# Visit each row and column.\nprint(count)\n"
+    "python": "# Read the grid size. Count positions with an even row + column.\n"
   },
   "testCases": [
     {
@@ -38,7 +38,7 @@
   "outputType": "string",
   "scriptMode": true,
   "hints": [
-    "Use range(rows) and range(columns).",
-    "Check (row + column) % 2 == 0."
+    "Visit every row and, within each row, every column.",
+    "Count a position when its row and column add to an even number."
   ]
 }

@@ -15,7 +15,7 @@
     }
   ],
   "starterCode": {
-    "python": "def is_prime(number):\n    # Check for another divisor.\n    return 0\n\nnumber = int(input())\nprint(is_prime(number))\n"
+    "python": "# Write is_prime(number). Read an integer and print 1 or 0.\n"
   },
   "testCases": [
     {
@@ -38,7 +38,7 @@
   "outputType": "string",
   "scriptMode": true,
   "hints": [
-    "Use number % divisor == 0 to find a divisor.",
-    "Try range(2, number)."
+    "Numbers below 2 are not prime.",
+    "For larger numbers, look for a divisor between 2 and the number before number."
   ]
 }

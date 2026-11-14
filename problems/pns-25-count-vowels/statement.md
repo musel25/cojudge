@@ -15,7 +15,7 @@ True
 
 ## Your task
 
-Read one line of text. Count the letters a, e, i, o, and u. Count big and small letters. Show the count.
+Read one line of text. Count the letters a, e, i, o, and u. Count upper-case and lower-case letters. Print the count. Other characters do not count.
 
 **Example 1**
 
@@ -49,4 +49,4 @@ Result:
 
 Why: sky has none of a, e, i, o, or u.
 
-Start with the supplied code. Change the code near the comment.
+Write the full program. The starter comment is a reminder of the task.

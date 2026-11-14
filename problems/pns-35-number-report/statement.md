@@ -15,7 +15,7 @@ This code prints:
 
 ## Your task
 
-Read one line of numbers. Show four values: count, sum, largest value, and number of different values. For an empty list, use 0 for the largest value.
+Read one line of space-separated integers. Print four values in this order: number of integers, their sum, largest integer, and number of different integers. Separate values with spaces or new lines. If the line is blank, print 0 0 0 0.
 
 **Example 1**
 
@@ -49,4 +49,4 @@ Why: The list is empty. The task uses 0 for each of the four results.
 
 When the result has several numbers, you can put spaces or new lines between them.
 
-Start with the supplied code. Change the code near the comment.
+Write the full program. The starter comment is a reminder of the task.

@@ -19,7 +19,7 @@ This code prints:
 
 ## Your task
 
-Complete Counter. add(number) adds a number. reset() sets the total to 0. value() returns the total. The starter reads commands: add number, reset, or value. Show one number for each value command.
+Write a class named Counter. Its __init__ method starts a total at 0. Its add(number) method adds number to that total. Its reset() method sets the total to 0. Its value() method returns the total. Then read a count from the first line and read that many command lines. Each command is add followed by an integer, reset, or value. Run commands in order. Print one number for each value command. A sequence can have no value commands.
 
 **Example 1**
 
@@ -62,4 +62,4 @@ Why: Reset sets the total to 0. The value command shows 0.
 
 When the result has several numbers, you can put spaces or new lines between them.
 
-Start with the supplied code. Change the code near the comment.
+Write the full program. The starter comment is a reminder of the task.

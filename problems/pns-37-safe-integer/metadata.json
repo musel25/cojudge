@@ -15,7 +15,7 @@
     }
   ],
   "starterCode": {
-    "python": "text = input()\n# Try to change text to an integer.\n"
+    "python": "# Read text. Print int(text), or 0 when conversion fails.\n"
   },
   "testCases": [
     {
@@ -38,7 +38,7 @@
   "outputType": "string",
   "scriptMode": true,
   "hints": [
-    "Put int(text) inside try.",
-    "Catch ValueError and use 0."
+    "Put the conversion in a try block.",
+    "Catch ValueError and print 0 for invalid text."
   ]
 }

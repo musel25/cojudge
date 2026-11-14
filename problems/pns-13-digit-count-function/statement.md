@@ -16,7 +16,7 @@ This code prints:
 
 ## Your task
 
-Complete digit_count(number). Return the number of decimal digits. The number 0 has one digit. Inputs use 0 through 1,000,000.
+Write a function named digit_count(number). Return its number of decimal digits. The number 0 has one digit. Read one integer from the first line. Call the function and print its result. Inputs use 0 through 1,000,000.
 
 **Example 1**
 
@@ -50,4 +50,4 @@ Result:
 
 Why: 0 is one digit, so the result is 1.
 
-Start with the supplied code. Change the code near the comment.
+Write the full program. The starter comment is a reminder of the task.

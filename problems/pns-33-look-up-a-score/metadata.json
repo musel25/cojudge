@@ -15,7 +15,7 @@
     }
   ],
   "starterCode": {
-    "python": "count = int(input())\nscores = {}\nfor _ in range(count):\n    parts = input().split()\n    name = parts[0]\n    score = int(parts[1])\n    # Save this score.\nquery = input()\nprint(scores.get(query, 0))\n"
+    "python": "# Read name-score lines and a query. Print its score, or 0.\n"
   },
   "testCases": [
     {
@@ -38,7 +38,7 @@
   "outputType": "string",
   "scriptMode": true,
   "hints": [
-    "Use scores[name] = score.",
-    "The final get call is already in the starter."
+    "Store each name with its score in a dictionary.",
+    "After all scores, read the query and handle a missing name."
   ]
 }

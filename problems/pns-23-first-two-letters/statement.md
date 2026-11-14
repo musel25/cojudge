@@ -1,21 +1,21 @@
 ## Learn
 
-A string is a sequence of characters. A slice such as text[:2] takes at most the first two characters.
+A string slice selects characters from a start position up to, but not including, an end position. This example prints positions 1 and 2: yt. A slice can return fewer characters than requested.
 
 ```python
 text = "python"
-print(text[:2])  # py
+print(text[1:3])
 ```
 
 This code prints:
 
 ```text
-py
+yt
 ```
 
 ## Your task
 
-Read one line of text. Show its first two characters. If it has fewer than two, show what it has. Letter case stays the same.
+Read one line of text. Print its first two characters. If the line has fewer than two characters, print all that it has. Keep the original letter case.
 
 **Example 1**
 
@@ -49,4 +49,4 @@ A
 
 Why: A has one character, so show A.
 
-Start with the supplied code. Change the code near the comment.
+Write the full program. The starter comment is a reminder of the task.
