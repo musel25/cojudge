@@ -1,0 +1,372 @@
+{
+  "schemaVersion": 1,
+  "id": "community-workshop",
+  "title": "Community Workshop",
+  "summary": "Build a materials reservation system for the teams that use a shared workshop.",
+  "className": "Workshop",
+  "starter": "class Workshop:\n    def __init__(self):\n        pass\n\n    def register_team(self, team_id, owner):\n        pass\n\n    def grant_access(self, team_id, actor, person):\n        pass\n\n    def revoke_access(self, team_id, actor, person):\n        pass\n\n    def has_access(self, team_id, person):\n        pass\n",
+  "levels": [
+    {
+      "title": "Team Access",
+      "requirements": "A new Workshop has no teams. Each team has one owner and a set of additional members. Team IDs and person IDs are non-empty ASCII strings. Compare them exactly as written. An actor is the person who requests a change.\n\nregister_team(team_id, owner) creates a team with the specified owner and no additional members. Return True on success. If that team ID already exists, return False and keep its owner and members.\n\ngrant_access(team_id, actor, person) adds person as a member and returns True. Return False if the team does not exist, the actor is not its owner, or person already has access. The owner always has access.\n\nrevoke_access(team_id, actor, person) removes an additional member and returns True. Return False if the team does not exist, the actor is not its owner, or person is not an additional member. The owner cannot lose access.\n\nhas_access(team_id, person) returns True if person owns the team or is an additional member. Return False in all other cases. This query does not require an actor. All failed writes leave state unchanged.",
+      "visible": [
+        {
+          "id": "grant-and-revoke",
+          "kind": "requirements",
+          "steps": [
+            {"method":"register_team","args":["clay","lee"],"expected":true},
+            {"method":"has_access","args":["clay","lee"],"expected":true},
+            {"method":"has_access","args":["clay","kim"],"expected":false},
+            {"method":"grant_access","args":["clay","lee","kim"],"expected":true},
+            {"method":"has_access","args":["clay","kim"],"expected":true},
+            {"method":"revoke_access","args":["clay","lee","kim"],"expected":true},
+            {"method":"has_access","args":["clay","kim"],"expected":false}
+          ]
+        },
+        {
+          "id": "only-owner-changes-membership",
+          "kind": "validation",
+          "steps": [
+            {"method":"register_team","args":["paper","lee"],"expected":true},
+            {"method":"grant_access","args":["paper","lee","kim"],"expected":true},
+            {"method":"grant_access","args":["paper","kim","nia"],"expected":false},
+            {"method":"revoke_access","args":["paper","kim","kim"],"expected":false},
+            {"method":"has_access","args":["paper","kim"],"expected":true},
+            {"method":"has_access","args":["paper","nia"],"expected":false}
+          ]
+        }
+      ],
+      "hidden": [
+        {
+          "id": "owner-access-is-permanent",
+          "kind": "edge",
+          "steps": [
+            {"method":"register_team","args":["metal","kim"],"expected":true},
+            {"method":"grant_access","args":["metal","kim","kim"],"expected":false},
+            {"method":"revoke_access","args":["metal","kim","kim"],"expected":false},
+            {"method":"has_access","args":["metal","kim"],"expected":true},
+            {"method":"revoke_access","args":["metal","kim","nia"],"expected":false},
+            {"method":"has_access","args":["metal","nia"],"expected":false}
+          ]
+        },
+        {
+          "id": "registration-conflict-keeps-access",
+          "kind": "state",
+          "steps": [
+            {"method":"register_team","args":["paper","lee"],"expected":true},
+            {"method":"grant_access","args":["paper","lee","kim"],"expected":true},
+            {"method":"grant_access","args":["paper","lee","kim"],"expected":false},
+            {"method":"register_team","args":["paper","nia"],"expected":false},
+            {"method":"has_access","args":["paper","lee"],"expected":true},
+            {"method":"has_access","args":["paper","kim"],"expected":true},
+            {"method":"has_access","args":["paper","nia"],"expected":false}
+          ]
+        },
+        {
+          "id": "missing-and-case-sensitive-identifiers",
+          "kind": "edge",
+          "steps": [
+            {"method":"has_access","args":["Wood","Lee"],"expected":false},
+            {"method":"grant_access","args":["Wood","Lee","Kim"],"expected":false},
+            {"method":"revoke_access","args":["Wood","Lee","Kim"],"expected":false},
+            {"method":"register_team","args":["Wood","Lee"],"expected":true},
+            {"method":"register_team","args":["wood","lee"],"expected":true},
+            {"method":"has_access","args":["Wood","lee"],"expected":false},
+            {"method":"has_access","args":["wood","lee"],"expected":true}
+          ]
+        }
+      ],
+      "comprehension": {
+        "method": "grant_access",
+        "questions": [
+          {"prompt":"Who can grant access to another person?","choices":["Any member.","Only the team owner.","Anyone who knows the team ID."],"answer":1},
+          {"prompt":"What changes after a successful grant?","choices":["The person becomes an additional member.","The person becomes the owner.","The actor leaves the team."],"answer":0},
+          {"prompt":"What does the method return when the team is missing?","choices":["None","True","False"],"answer":2},
+          {"prompt":"What happens if the owner tries to grant access to themself?","choices":["It returns True and creates another role.","It returns False because the owner already has access.","It replaces the owner with a member."],"answer":1}
+        ]
+      }
+    },
+    {
+      "title": "Reservation Quotas",
+      "requirements": "Each team starts with quota 0 and no material reservations. A quota is the maximum total number of units reserved across all materials for one team. Reservations belong to the team, so granting or revoking access does not change them. Material names are non-empty ASCII strings. Compare them exactly as written. Quotas, amounts, and deltas are integers.\n\nset_quota(team_id, actor, quota) sets the team's quota and returns True. Return False if the team does not exist, the actor is not the owner, or the quota is below the sum of its current reservations. A quota of zero is valid when the team has no reservations.\n\nchange_reservation(team_id, actor, material, delta) changes that material's amount by delta. The owner and additional members can make this change. A positive delta reserves units. A negative delta releases them. Return False if the team is missing, the actor does not have access, delta is zero, the new material amount would be negative, or the total would exceed the team's quota. Otherwise apply the change and return True.\n\nreservation(team_id, actor, material) returns the reserved amount for the material, or 0 if no units of it are reserved. available(team_id, actor) returns quota minus the sum of current reservations. Both return None if the team is missing or actor does not have access.",
+      "visible": [
+        {
+          "id": "reserve-and-release",
+          "kind": "requirements",
+          "steps": [
+            {"method":"register_team","args":["wood","lee"],"expected":true},
+            {"method":"available","args":["wood","lee"],"expected":0},
+            {"method":"set_quota","args":["wood","lee",6],"expected":true},
+            {"method":"grant_access","args":["wood","lee","kim"],"expected":true},
+            {"method":"change_reservation","args":["wood","kim","plywood",4],"expected":true},
+            {"method":"reservation","args":["wood","lee","plywood"],"expected":4},
+            {"method":"change_reservation","args":["wood","lee","plywood",-1],"expected":true},
+            {"method":"available","args":["wood","kim"],"expected":3}
+          ]
+        },
+        {
+          "id": "shared-quota",
+          "kind": "validation",
+          "steps": [
+            {"method":"register_team","args":["paper","lee"],"expected":true},
+            {"method":"set_quota","args":["paper","lee",4],"expected":true},
+            {"method":"change_reservation","args":["paper","lee","card",3],"expected":true},
+            {"method":"change_reservation","args":["paper","lee","glue",2],"expected":false},
+            {"method":"reservation","args":["paper","lee","glue"],"expected":0},
+            {"method":"change_reservation","args":["paper","lee","glue",1],"expected":true},
+            {"method":"available","args":["paper","lee"],"expected":0}
+          ]
+        }
+      ],
+      "hidden": [
+        {
+          "id": "quota-changes-require-owner",
+          "kind": "validation",
+          "steps": [
+            {"method":"set_quota","args":["paper","lee",6],"expected":false},
+            {"method":"register_team","args":["paper","lee"],"expected":true},
+            {"method":"set_quota","args":["paper","lee",-1],"expected":false},
+            {"method":"grant_access","args":["paper","lee","kim"],"expected":true},
+            {"method":"set_quota","args":["paper","kim",6],"expected":false},
+            {"method":"set_quota","args":["paper","lee",6],"expected":true},
+            {"method":"change_reservation","args":["paper","kim","card",3],"expected":true},
+            {"method":"set_quota","args":["paper","lee",2],"expected":false},
+            {"method":"available","args":["paper","lee"],"expected":3},
+            {"method":"set_quota","args":["paper","lee",3],"expected":true},
+            {"method":"available","args":["paper","lee"],"expected":0}
+          ]
+        },
+        {
+          "id": "revoke-leaves-team-reservations",
+          "kind": "state",
+          "steps": [
+            {"method":"register_team","args":["metal","lee"],"expected":true},
+            {"method":"set_quota","args":["metal","lee",5],"expected":true},
+            {"method":"grant_access","args":["metal","lee","kim"],"expected":true},
+            {"method":"change_reservation","args":["metal","kim","wire",4],"expected":true},
+            {"method":"revoke_access","args":["metal","lee","kim"],"expected":true},
+            {"method":"reservation","args":["metal","kim","wire"],"expected":null},
+            {"method":"available","args":["metal","kim"],"expected":null},
+            {"method":"change_reservation","args":["metal","kim","wire",-4],"expected":false},
+            {"method":"reservation","args":["metal","lee","wire"],"expected":4},
+            {"method":"available","args":["metal","lee"],"expected":1}
+          ]
+        },
+        {
+          "id": "release-boundaries",
+          "kind": "edge",
+          "steps": [
+            {"method":"change_reservation","args":["wood","lee","pine",1],"expected":false},
+            {"method":"reservation","args":["wood","lee","pine"],"expected":null},
+            {"method":"register_team","args":["wood","lee"],"expected":true},
+            {"method":"change_reservation","args":["wood","lee","pine",1],"expected":false},
+            {"method":"set_quota","args":["wood","lee",2],"expected":true},
+            {"method":"change_reservation","args":["wood","lee","pine",2],"expected":true},
+            {"method":"change_reservation","args":["wood","lee","pine",-3],"expected":false},
+            {"method":"change_reservation","args":["wood","lee","pine",0],"expected":false},
+            {"method":"change_reservation","args":["wood","lee","pine",-2],"expected":true},
+            {"method":"reservation","args":["wood","lee","pine"],"expected":0},
+            {"method":"set_quota","args":["wood","lee",0],"expected":true}
+          ]
+        }
+      ],
+      "comprehension": {
+        "method": "change_reservation",
+        "questions": [
+          {"prompt":"Which people can change a team's reservation?","choices":["Only the additional members.","Only the owner.","The owner and additional members."],"answer":2},
+          {"prompt":"How does a successful delta of -2 change the named material?","choices":["It releases two units.","It reserves two units.","It reduces the team's quota by two."],"answer":0},
+          {"prompt":"What does the method return if the new total would exceed the quota?","choices":["The new total.","False","None"],"answer":1},
+          {"prompt":"Can a change make the total exactly equal to the quota?","choices":["Yes.","No, one unit must remain.","Only if it changes more than one material."],"answer":0}
+        ]
+      }
+    },
+    {
+      "title": "Atomic Reservations",
+      "requirements": "transact(team_id, actor, changes) tries a list of reservation changes as one operation. Each entry is a [material, delta] list with the same argument types as change_reservation. Repeated materials are allowed. Return False for a missing team, an actor without access, or an empty change list.\n\nCheck entries in their list order. Each entry must meet all change_reservation rules using the temporary state from earlier entries. Check the quota and the material amount after every entry. A later entry cannot make an earlier invalid entry valid.\n\nIf an entry fails, return False and restore the reservations to their state before the transaction. If all entries succeed, apply the final amounts and return True. Transactions do not change team membership or quota.",
+      "visible": [
+        {
+          "id": "release-before-reserving",
+          "kind": "requirements",
+          "steps": [
+            {"method":"register_team","args":["wood","lee"],"expected":true},
+            {"method":"set_quota","args":["wood","lee",5],"expected":true},
+            {"method":"change_reservation","args":["wood","lee","pine",5],"expected":true},
+            {"method":"transact","args":["wood","lee",[["pine",-2],["cedar",2]]],"expected":true},
+            {"method":"reservation","args":["wood","lee","pine"],"expected":3},
+            {"method":"reservation","args":["wood","lee","cedar"],"expected":2},
+            {"method":"available","args":["wood","lee"],"expected":0}
+          ]
+        },
+        {
+          "id": "later-failure-rolls-back-earlier-write",
+          "kind": "state",
+          "steps": [
+            {"method":"register_team","args":["metal","lee"],"expected":true},
+            {"method":"set_quota","args":["metal","lee",4],"expected":true},
+            {"method":"change_reservation","args":["metal","lee","wire",2],"expected":true},
+            {"method":"transact","args":["metal","lee",[["wire",-1],["foil",4]]],"expected":false},
+            {"method":"reservation","args":["metal","lee","wire"],"expected":2},
+            {"method":"reservation","args":["metal","lee","foil"],"expected":0},
+            {"method":"available","args":["metal","lee"],"expected":2}
+          ]
+        }
+      ],
+      "hidden": [
+        {
+          "id": "intermediate-quota-matters",
+          "kind": "edge",
+          "steps": [
+            {"method":"register_team","args":["wood","lee"],"expected":true},
+            {"method":"set_quota","args":["wood","lee",3],"expected":true},
+            {"method":"change_reservation","args":["wood","lee","pine",3],"expected":true},
+            {"method":"transact","args":["wood","lee",[["maple",1],["pine",-1]]],"expected":false},
+            {"method":"reservation","args":["wood","lee","pine"],"expected":3},
+            {"method":"reservation","args":["wood","lee","maple"],"expected":0}
+          ]
+        },
+        {
+          "id": "repeated-material-in-order",
+          "kind": "state",
+          "steps": [
+            {"method":"register_team","args":["metal","lee"],"expected":true},
+            {"method":"set_quota","args":["metal","lee",5],"expected":true},
+            {"method":"grant_access","args":["metal","lee","nia"],"expected":true},
+            {"method":"transact","args":["metal","nia",[["wire",2],["wire",-2],["wire",3]]],"expected":true},
+            {"method":"reservation","args":["metal","lee","wire"],"expected":3},
+            {"method":"transact","args":["metal","nia",[["wire",-4],["wire",4]]],"expected":false},
+            {"method":"transact","args":["metal","nia",[["foil",2],["wire",0]]],"expected":false},
+            {"method":"reservation","args":["metal","lee","wire"],"expected":3},
+            {"method":"reservation","args":["metal","lee","foil"],"expected":0}
+          ]
+        },
+        {
+          "id": "missing-team-actor-and-entries",
+          "kind": "validation",
+          "steps": [
+            {"method":"transact","args":["paper","lee",[["card",1]]],"expected":false},
+            {"method":"register_team","args":["paper","lee"],"expected":true},
+            {"method":"set_quota","args":["paper","lee",2],"expected":true},
+            {"method":"transact","args":["paper","kim",[["card",1]]],"expected":false},
+            {"method":"transact","args":["paper","lee",[]],"expected":false},
+            {"method":"available","args":["paper","lee"],"expected":2}
+          ]
+        }
+      ],
+      "comprehension": {
+        "method": "transact",
+        "questions": [
+          {"prompt":"When does the method check the team's quota?","choices":["After every entry.","Only before the first entry.","Only after the last entry."],"answer":0},
+          {"prompt":"What happens to earlier successful entries if a later entry fails?","choices":["They remain applied.","The owner can choose whether to keep them.","All entries leave the stored reservations unchanged."],"answer":2},
+          {"prompt":"What does the method return when the change list is empty?","choices":["An empty list.","False","True"],"answer":1},
+          {"prompt":"Can two entries in one transaction refer to the same material?","choices":["Yes. The method applies them in list order.","No, each material can appear only once.","Yes, but the method must sum them before validation."],"answer":0}
+        ]
+      }
+    },
+    {
+      "title": "Team Merges",
+      "requirements": "merge_teams(target_id, source_id, actor) combines two existing teams. The team IDs must differ and the actor must own both teams. The target's quota and owner stay the same. If the combined total across all reservations would exceed the target's existing quota, return False. The source's quota never adds to the target's quota.\n\nOn success, sum the reserved amounts for each material, keep every additional member from either team, and remove the source team and its quota. A person who was a member of both teams remains a single member. Return True. Other teams stay unchanged.\n\nAny invalid merge returns False and changes neither team. The removed ID can be registered again as a fresh team with no members, no reservations, and quota 0.",
+      "visible": [
+        {
+          "id": "merge-sums-reservations-and-members",
+          "kind": "requirements",
+          "steps": [
+            {"method":"register_team","args":["wood","lee"],"expected":true},
+            {"method":"register_team","args":["carving","lee"],"expected":true},
+            {"method":"set_quota","args":["wood","lee",7],"expected":true},
+            {"method":"set_quota","args":["carving","lee",10],"expected":true},
+            {"method":"change_reservation","args":["wood","lee","oak",3],"expected":true},
+            {"method":"change_reservation","args":["carving","lee","oak",2],"expected":true},
+            {"method":"change_reservation","args":["carving","lee","cedar",2],"expected":true},
+            {"method":"grant_access","args":["carving","lee","kim"],"expected":true},
+            {"method":"merge_teams","args":["wood","carving","lee"],"expected":true},
+            {"method":"reservation","args":["wood","kim","oak"],"expected":5},
+            {"method":"reservation","args":["wood","kim","cedar"],"expected":2},
+            {"method":"available","args":["wood","kim"],"expected":0},
+            {"method":"has_access","args":["carving","lee"],"expected":false}
+          ]
+        },
+        {
+          "id": "quota-failure-is-atomic",
+          "kind": "state",
+          "steps": [
+            {"method":"register_team","args":["paper","lee"],"expected":true},
+            {"method":"register_team","args":["ink","lee"],"expected":true},
+            {"method":"set_quota","args":["paper","lee",2],"expected":true},
+            {"method":"set_quota","args":["ink","lee",8],"expected":true},
+            {"method":"change_reservation","args":["paper","lee","card",1],"expected":true},
+            {"method":"change_reservation","args":["ink","lee","dye",2],"expected":true},
+            {"method":"grant_access","args":["ink","lee","nia"],"expected":true},
+            {"method":"merge_teams","args":["paper","ink","lee"],"expected":false},
+            {"method":"reservation","args":["paper","lee","card"],"expected":1},
+            {"method":"reservation","args":["paper","lee","dye"],"expected":0},
+            {"method":"reservation","args":["ink","nia","dye"],"expected":2},
+            {"method":"has_access","args":["paper","nia"],"expected":false}
+          ]
+        }
+      ],
+      "hidden": [
+        {
+          "id": "ownership-of-both-teams-required",
+          "kind": "validation",
+          "steps": [
+            {"method":"register_team","args":["wood","lee"],"expected":true},
+            {"method":"register_team","args":["paper","kim"],"expected":true},
+            {"method":"grant_access","args":["wood","lee","kim"],"expected":true},
+            {"method":"grant_access","args":["paper","kim","lee"],"expected":true},
+            {"method":"merge_teams","args":["wood","paper","lee"],"expected":false},
+            {"method":"merge_teams","args":["wood","paper","kim"],"expected":false},
+            {"method":"has_access","args":["wood","lee"],"expected":true},
+            {"method":"has_access","args":["paper","kim"],"expected":true}
+          ]
+        },
+        {
+          "id": "merged-source-can-register-cleanly",
+          "kind": "state",
+          "steps": [
+            {"method":"register_team","args":["wood","lee"],"expected":true},
+            {"method":"register_team","args":["paper","lee"],"expected":true},
+            {"method":"grant_access","args":["wood","lee","kim"],"expected":true},
+            {"method":"grant_access","args":["paper","lee","kim"],"expected":true},
+            {"method":"set_quota","args":["wood","lee",8],"expected":true},
+            {"method":"set_quota","args":["paper","lee",2],"expected":true},
+            {"method":"change_reservation","args":["paper","kim","card",2],"expected":true},
+            {"method":"merge_teams","args":["wood","paper","lee"],"expected":true},
+            {"method":"revoke_access","args":["wood","lee","kim"],"expected":true},
+            {"method":"has_access","args":["wood","kim"],"expected":false},
+            {"method":"register_team","args":["paper","nia"],"expected":true},
+            {"method":"has_access","args":["paper","lee"],"expected":false},
+            {"method":"has_access","args":["paper","kim"],"expected":false},
+            {"method":"available","args":["paper","nia"],"expected":0},
+            {"method":"reservation","args":["paper","nia","card"],"expected":0},
+            {"method":"reservation","args":["wood","lee","card"],"expected":2},
+            {"method":"available","args":["wood","lee"],"expected":6}
+          ]
+        },
+        {
+          "id": "empty-quota-and-invalid-team-ids",
+          "kind": "edge",
+          "steps": [
+            {"method":"register_team","args":["clay","lee"],"expected":true},
+            {"method":"register_team","args":["paper","lee"],"expected":true},
+            {"method":"merge_teams","args":["clay","clay","lee"],"expected":false},
+            {"method":"merge_teams","args":["clay","wire","lee"],"expected":false},
+            {"method":"merge_teams","args":["wire","paper","lee"],"expected":false},
+            {"method":"has_access","args":["clay","lee"],"expected":true},
+            {"method":"merge_teams","args":["clay","paper","lee"],"expected":true},
+            {"method":"available","args":["clay","lee"],"expected":0},
+            {"method":"available","args":["paper","lee"],"expected":null}
+          ]
+        }
+      ],
+      "comprehension": {
+        "method": "merge_teams",
+        "questions": [
+          {"prompt":"Which role must the actor have?","choices":["A member of both teams.","The owner of both teams.","The owner of either team."],"answer":1},
+          {"prompt":"What happens to the source team after a successful merge?","choices":["It remains with a quota of zero.","It becomes a copy of the target.","The source team is removed."],"answer":2},
+          {"prompt":"What does the method return if the target quota cannot fit both reservations?","choices":["False","The amount above quota.","None"],"answer":0},
+          {"prompt":"A person is a member of both teams before the merge. How many memberships do they have in the merged team?","choices":["Two memberships.","One membership.","Zero memberships."],"answer":1}
+        ]
+      }
+    }
+  ]
+}
