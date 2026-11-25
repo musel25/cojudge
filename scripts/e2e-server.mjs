@@ -56,8 +56,7 @@ const child = spawn(process.execPath, ['build'], {
 		COJUDGE_SERVER_PROGRESS_ORIGIN: suite === 'server-progress' ? origin : '',
 		COJUDGE_SERVER_PROGRESS_OWNER: suite === 'server-progress' ? 'musel' : '',
 		COJUDGE_SERVER_PROGRESS_USERS: suite === 'server-progress' ? 'musel,alessa' : '',
-		// Infer the origin for the general project's cojudge.localhost desktop test.
-		ORIGIN: suite === 'general' ? undefined : origin
+		ORIGIN: origin
 	}
 });
 for (const signal of ['SIGTERM', 'SIGINT']) {

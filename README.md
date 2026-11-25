@@ -182,6 +182,10 @@ npm ci
 npm run dev
 ```
 
+## Progressive Python assessments
+
+Open **Assessments** to practice four levels in one Python implementation. See the [assessment guide](docs/ASSESSMENTS.md) for timed practice, learning mode, and custom problems.
+
 ## Add a problem
 
 Local content lives in `~/cojudge` (auto-seeded from the repo's bundled `problems/` + `courses/` on first start; your copy overrides bundled content — edit / add / delete files there, changes apply immediately). Unedited copies auto-update when Cojudge ships fixes; your edits are never overwritten (reset stale "Modified" items in Manage Problems or via `cojudge sync --reset <id>`). Override the location with `COJUDGE_CONTENT_DIR`.

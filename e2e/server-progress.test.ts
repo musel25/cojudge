@@ -125,3 +125,30 @@ test('waits for another tab before changing the active browser profile', async (
   await expect.poll(() => incoming.evaluate(() => localStorage.getItem('cojudge-vps-active-profile'))).toBe('alessa');
   await context.close();
 });
+
+test('keeps assessment drafts and attempt links inside the authenticated profile', async ({ request }) => {
+  const route = '/assessments/tool-lending-desk';
+  const headers = { Origin: 'http://localhost:4175', Accept: 'text/html' };
+  const started = await request.post(route + '?/start', {
+    headers, form: { profile: 'musel', mode: 'learning' }, maxRedirects: 0
+  });
+  expect(started.status()).toBe(303);
+  const attempt = started.headers().location;
+  const id = new URL(attempt, 'http://localhost:4175').searchParams.get('attempt')!;
+  const draft = '# Private assessment draft';
+  const saved = await request.post(route + '?/save&attempt=' + id, {
+    headers, form: { id, code: draft, profile: 'musel', revision: 0 }
+  });
+  expect(saved.status()).toBe(200);
+  expect(await (await request.get(attempt)).text()).toContain(draft);
+
+  const other = { 'X-CoJudge-User': 'alessa', 'X-CoJudge-Profile': 'alessa' };
+  expect((await request.get(attempt, { headers: other })).status()).toBe(404);
+  expect(await (await request.get(route, { headers: other })).text()).not.toContain(id);
+  const stale = await request.post(route + '?/save&attempt=' + id, {
+    headers: { ...headers, ...other, Accept: 'application/json', 'x-sveltekit-action': 'true' },
+    form: { id, code: 'changed', profile: 'musel', revision: 1 }
+  });
+  expect(await stale.json()).toMatchObject({ type: 'failure', status: 403 });
+  expect(await (await request.get(attempt)).text()).toContain(draft);
+});

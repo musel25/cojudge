@@ -1,0 +1,333 @@
+{
+  "schemaVersion": 1,
+  "id": "tool-lending-desk",
+  "title": "Tool Lending Desk",
+  "summary": "Build the catalog for a community workshop. Keep one Python implementation across all four levels.",
+  "className": "LendingDesk",
+  "starter": "class LendingDesk:\n    def __init__(self):\n        pass\n\n    def add_tool(self, tool_id, category, units):\n        pass\n\n    def get_tool(self, tool_id):\n        pass\n\n    def update_tool(self, tool_id, category, units):\n        pass\n\n    def remove_tool(self, tool_id):\n        pass\n",
+  "levels": [
+    {
+      "title": "Tool Catalog",
+      "requirements": "A new LendingDesk has an empty catalog. Each tool has a unique ID, a category, and a positive integer stock count. IDs and categories are non-empty ASCII strings. Compare them exactly as written.\n\nadd_tool(tool_id, category, units) adds a record and returns True. Return False if the ID already exists or units is zero or negative.\n\nget_tool(tool_id) returns a new [category, units] list for an existing ID. Return None if the ID is missing.\n\nupdate_tool(tool_id, category, units) replaces both fields of an existing record and returns True. Return False if the ID is missing or units is zero or negative. An update to the same values still succeeds.\n\nremove_tool(tool_id) removes an existing record and returns True. Return False if the ID is missing. A removed ID can be added again.\n\nA failed operation leaves the catalog unchanged. The tests only pass arguments of the stated types.",
+      "visible": [
+        {
+          "id": "catalog-lifecycle",
+          "kind": "requirements",
+          "steps": [
+            {"method":"get_tool","args":["plane"],"expected":null},
+            {"method":"add_tool","args":["plane","cutting",3],"expected":true},
+            {"method":"get_tool","args":["plane"],"expected":["cutting",3]},
+            {"method":"update_tool","args":["plane","finishing",2],"expected":true},
+            {"method":"get_tool","args":["plane"],"expected":["finishing",2]},
+            {"method":"remove_tool","args":["plane"],"expected":true},
+            {"method":"get_tool","args":["plane"],"expected":null}
+          ]
+        },
+        {
+          "id": "invalid-stock-count",
+          "kind": "validation",
+          "steps": [
+            {"method":"add_tool","args":["awl","cutting",0],"expected":false},
+            {"method":"add_tool","args":["awl","cutting",1],"expected":true},
+            {"method":"update_tool","args":["awl","fastening",-1],"expected":false},
+            {"method":"get_tool","args":["awl"],"expected":["cutting",1]}
+          ]
+        }
+      ],
+      "hidden": [
+        {
+          "id": "duplicate-preserves-both-fields",
+          "kind": "state",
+          "steps": [
+            {"method":"add_tool","args":["chisel","carving",4],"expected":true},
+            {"method":"add_tool","args":["chisel","cutting",9],"expected":false},
+            {"method":"get_tool","args":["chisel"],"expected":["carving",4]}
+          ]
+        },
+        {
+          "id": "write-missing-key",
+          "kind": "validation",
+          "steps": [
+            {"method":"update_tool","args":["clamp","fastening",2],"expected":false},
+            {"method":"remove_tool","args":["clamp"],"expected":false},
+            {"method":"get_tool","args":["clamp"],"expected":null}
+          ]
+        },
+        {
+          "id": "remove-and-readd",
+          "kind": "edge",
+          "steps": [
+            {"method":"add_tool","args":["ruler","measuring",2],"expected":true},
+            {"method":"remove_tool","args":["ruler"],"expected":true},
+            {"method":"remove_tool","args":["ruler"],"expected":false},
+            {"method":"add_tool","args":["ruler","marking",5],"expected":true},
+            {"method":"update_tool","args":["ruler","marking",5],"expected":true},
+            {"method":"get_tool","args":["ruler"],"expected":["marking",5]}
+          ]
+        }
+      ],
+      "comprehension": {
+        "method": "update_tool",
+        "questions": [
+          {"prompt":"What must be true before the tool can change?","choices":["The category must already exist.","The tool ID must exist and units must be greater than zero.","Units can be zero if the tool already exists."],"answer":1},
+          {"prompt":"Which fields does a successful update replace?","choices":["Both category and units.","Only category.","Only units."],"answer":0},
+          {"prompt":"What does an update return when the tool ID is missing?","choices":["None","True","False"],"answer":2},
+          {"prompt":"What happens if both new values equal the current values?","choices":["The update succeeds and returns True.","The tool is removed.","The update returns False."],"answer":0}
+        ]
+      }
+    },
+    {
+      "title": "Stock Summaries",
+      "requirements": "Use the current records from the previous level. These methods do not change the catalog.\n\ntotal_units(category) returns the sum of stock counts for all current tools in that category. Return 0 if the category has no tools.\n\ntop_tools(limit) takes an integer and returns up to limit current tool IDs across all categories. Sort by stock count from largest to smallest. For equal stock counts, sort by ID from smallest to largest using case-sensitive string order. If limit is zero or negative, return an empty list. If the catalog contains fewer than limit records, return all current tool IDs in that order.",
+      "visible": [
+        {
+          "id": "totals-follow-updates",
+          "kind": "state",
+          "steps": [
+            {"method":"add_tool","args":["level","measuring",4],"expected":true},
+            {"method":"add_tool","args":["tape","measuring",3],"expected":true},
+            {"method":"total_units","args":["measuring"],"expected":7},
+            {"method":"update_tool","args":["tape","marking",2],"expected":true},
+            {"method":"total_units","args":["measuring"],"expected":4},
+            {"method":"total_units","args":["marking"],"expected":2}
+          ]
+        },
+        {
+          "id": "ranking-ties",
+          "kind": "requirements",
+          "steps": [
+            {"method":"add_tool","args":["saw","cutting",6],"expected":true},
+            {"method":"add_tool","args":["mallet","fastening",6],"expected":true},
+            {"method":"add_tool","args":["clamp","fastening",8],"expected":true},
+            {"method":"top_tools","args":[2],"expected":["clamp","mallet"]}
+          ]
+        }
+      ],
+      "hidden": [
+        {
+          "id": "empty-summary-and-limits",
+          "kind": "edge",
+          "steps": [
+            {"method":"top_tools","args":[3],"expected":[]},
+            {"method":"total_units","args":["measuring"],"expected":0},
+            {"method":"add_tool","args":["square","measuring",4],"expected":true},
+            {"method":"top_tools","args":[0],"expected":[]},
+            {"method":"top_tools","args":[-1],"expected":[]},
+            {"method":"top_tools","args":[100],"expected":["square"]}
+          ]
+        },
+        {
+          "id": "summary-after-removal",
+          "kind": "state",
+          "steps": [
+            {"method":"add_tool","args":["gauge","measuring",8],"expected":true},
+            {"method":"add_tool","args":["square","measuring",4],"expected":true},
+            {"method":"remove_tool","args":["gauge"],"expected":true},
+            {"method":"total_units","args":["measuring"],"expected":4},
+            {"method":"top_tools","args":[2],"expected":["square"]},
+            {"method":"remove_tool","args":["square"],"expected":true},
+            {"method":"total_units","args":["measuring"],"expected":0}
+          ]
+        },
+        {
+          "id": "case-sensitive-ranking-and-category",
+          "kind": "requirements",
+          "steps": [
+            {"method":"add_tool","args":["saw","Cutting",4],"expected":true},
+            {"method":"add_tool","args":["Sander","cutting",4],"expected":true},
+            {"method":"total_units","args":["Cutting"],"expected":4},
+            {"method":"total_units","args":["cutting"],"expected":4},
+            {"method":"top_tools","args":[2],"expected":["Sander","saw"]},
+            {"method":"update_tool","args":["saw","Cutting",5],"expected":true},
+            {"method":"top_tools","args":[2],"expected":["saw","Sander"]}
+          ]
+        }
+      ],
+      "comprehension": {
+        "method": "top_tools",
+        "questions": [
+          {"prompt":"What does the method do with a negative limit?","choices":["It returns an empty list.","It uses the absolute value.","It raises an error."],"answer":0},
+          {"prompt":"What changes in the catalog when the method ranks tools?","choices":["It removes records outside the limit.","It updates their stock counts.","The catalog stays the same."],"answer":2},
+          {"prompt":"What does the returned list contain?","choices":["Stock counts.","Tool IDs.","Category names."],"answer":1},
+          {"prompt":"If A and B have the same stock count, which ID comes first?","choices":["B.","Whichever ID was added first.","A."],"answer":2}
+        ]
+      }
+    },
+    {
+      "title": "Scheduled Holds",
+      "requirements": "A hold has a unique hold ID and belongs to one tool. Hold IDs are non-empty ASCII strings. Compare them exactly as written. A hold is active from its start time up to, but excluding, start + ttl. A hold does not reserve or change stock. Multiple holds can overlap for the same tool.\n\nAll time arguments are integers. Calls that take now always pass a non-negative value greater than or equal to the previous now. Calls at the same time take effect in call order.\n\nschedule_hold(hold_id, tool_id, start, ttl, now) records a hold and returns True. Return False if the tool does not exist, the hold ID was used in any successful schedule, start is less than now, or ttl is zero or negative. A failed schedule does not use the hold ID.\n\ncancel_hold(hold_id, now) cancels a scheduled or active hold and returns True. Return False if the hold does not exist, is already cancelled, has reached its expiry time, or belongs to a tool that was removed. A cancelled hold ID remains used.\n\nactive_holds(tool_id, now) returns the active hold IDs for that tool in case-sensitive ascending string order. Return an empty list if there are none or if the tool does not exist.\n\nRemoving a tool cancels all its holds. Adding that tool ID again does not restore them. Updating a tool leaves its holds in place.",
+      "visible": [
+        {
+          "id": "activation-and-expiry",
+          "kind": "requirements",
+          "steps": [
+            {"method":"add_tool","args":["saw","cutting",1],"expected":true},
+            {"method":"schedule_hold","args":["afternoon","saw",5,2,0],"expected":true},
+            {"method":"active_holds","args":["saw",4],"expected":[]},
+            {"method":"active_holds","args":["saw",5],"expected":["afternoon"]},
+            {"method":"active_holds","args":["saw",6],"expected":["afternoon"]},
+            {"method":"active_holds","args":["saw",7],"expected":[]}
+          ]
+        },
+        {
+          "id": "cancel-before-start",
+          "kind": "state",
+          "steps": [
+            {"method":"add_tool","args":["vice","holding",2],"expected":true},
+            {"method":"schedule_hold","args":["late","vice",8,3,0],"expected":true},
+            {"method":"cancel_hold","args":["late",4],"expected":true},
+            {"method":"active_holds","args":["vice",8],"expected":[]}
+          ]
+        }
+      ],
+      "hidden": [
+        {
+          "id": "failed-schedule-does-not-consume-id",
+          "kind": "validation",
+          "steps": [
+            {"method":"cancel_hold","args":["f",0],"expected":false},
+            {"method":"schedule_hold","args":["f","file",1,2,0],"expected":false},
+            {"method":"add_tool","args":["file","finishing",2],"expected":true},
+            {"method":"schedule_hold","args":["f","file",0,2,1],"expected":false},
+            {"method":"schedule_hold","args":["f","file",1,0,1],"expected":false},
+            {"method":"schedule_hold","args":["f","file",1,-2,1],"expected":false},
+            {"method":"schedule_hold","args":["f","file",1,1,1],"expected":true},
+            {"method":"active_holds","args":["file",1],"expected":["f"]},
+            {"method":"cancel_hold","args":["f",2],"expected":false},
+            {"method":"schedule_hold","args":["f","file",2,1,2],"expected":false}
+          ]
+        },
+        {
+          "id": "overlapping-holds-do-not-change-stock",
+          "kind": "edge",
+          "steps": [
+            {"method":"add_tool","args":["drill","cutting",1],"expected":true},
+            {"method":"add_tool","args":["bit","cutting",3],"expected":true},
+            {"method":"schedule_hold","args":["z","drill",2,4,0],"expected":true},
+            {"method":"schedule_hold","args":["a","drill",2,5,1],"expected":true},
+            {"method":"schedule_hold","args":["x","bit",2,4,1],"expected":true},
+            {"method":"schedule_hold","args":["z","bit",2,4,1],"expected":false},
+            {"method":"active_holds","args":["drill",2],"expected":["a","z"]},
+            {"method":"active_holds","args":["bit",2],"expected":["x"]},
+            {"method":"active_holds","args":["other",2],"expected":[]},
+            {"method":"total_units","args":["cutting"],"expected":4},
+            {"method":"update_tool","args":["drill","boring",4],"expected":true},
+            {"method":"active_holds","args":["drill",2],"expected":["a","z"]},
+            {"method":"cancel_hold","args":["z",2],"expected":true},
+            {"method":"cancel_hold","args":["z",2],"expected":false},
+            {"method":"active_holds","args":["drill",2],"expected":["a"]}
+          ]
+        },
+        {
+          "id": "removal-cancels-pending-and-active-holds",
+          "kind": "state",
+          "steps": [
+            {"method":"add_tool","args":["polisher","finishing",2],"expected":true},
+            {"method":"schedule_hold","args":["active","polisher",3,9,1],"expected":true},
+            {"method":"schedule_hold","args":["pending","polisher",8,4,1],"expected":true},
+            {"method":"active_holds","args":["polisher",3],"expected":["active"]},
+            {"method":"remove_tool","args":["polisher"],"expected":true},
+            {"method":"active_holds","args":["polisher",3],"expected":[]},
+            {"method":"cancel_hold","args":["active",3],"expected":false},
+            {"method":"add_tool","args":["polisher","finishing",7],"expected":true},
+            {"method":"active_holds","args":["polisher",8],"expected":[]},
+            {"method":"schedule_hold","args":["pending","polisher",8,1,8],"expected":false}
+          ]
+        }
+      ],
+      "comprehension": {
+        "method": "schedule_hold",
+        "questions": [
+          {"prompt":"When is a hold's start time valid?","choices":["Only when start is greater than now.","Whenever start is zero or greater.","When start is greater than or equal to now."],"answer":2},
+          {"prompt":"How does a successful schedule affect stock?","choices":["It reduces the stock count by one.","The stock count stays the same.","It reduces the stock count when the hold becomes active."],"answer":1},
+          {"prompt":"What does a schedule return after it records a valid hold?","choices":["True","The expiry time","The hold ID"],"answer":0},
+          {"prompt":"A hold starts at 5 and has a TTL of 2. Is it active at time 7?","choices":["Yes, time 7 is the last active time.","Yes, until someone cancels it.","No, time 7 is the first expired time."],"answer":2}
+        ]
+      }
+    },
+    {
+      "title": "Catalog History",
+      "requirements": "The empty catalog is revision 0. Each successful add_tool, update_tool, or remove_tool operation advances the whole catalog revision by exactly one. This includes an update that writes the same values. Failed operations, reads, and all hold operations leave the revision unchanged.\n\nrevision() returns the current catalog revision as an integer.\n\ntool_at(tool_id, revision) takes an integer revision and returns a new [category, units] list as the tool existed immediately after that revision. Return None if the revision is negative or greater than the current revision, or if the tool did not exist at that revision. Tool history persists when a tool is removed and when its ID is used again. Reading history does not change the current catalog.",
+      "visible": [
+        {
+          "id": "history-through-update",
+          "kind": "requirements",
+          "steps": [
+            {"method":"revision","args":[],"expected":0},
+            {"method":"add_tool","args":["knife","cutting",2],"expected":true},
+            {"method":"update_tool","args":["knife","carving",5],"expected":true},
+            {"method":"revision","args":[],"expected":2},
+            {"method":"tool_at","args":["knife",0],"expected":null},
+            {"method":"tool_at","args":["knife",1],"expected":["cutting",2]},
+            {"method":"tool_at","args":["knife",2],"expected":["carving",5]}
+          ]
+        },
+        {
+          "id": "history-through-removal",
+          "kind": "state",
+          "steps": [
+            {"method":"add_tool","args":["saw","cutting",2],"expected":true},
+            {"method":"remove_tool","args":["saw"],"expected":true},
+            {"method":"add_tool","args":["saw","cutting",4],"expected":true},
+            {"method":"tool_at","args":["saw",1],"expected":["cutting",2]},
+            {"method":"tool_at","args":["saw",2],"expected":null},
+            {"method":"tool_at","args":["saw",3],"expected":["cutting",4]}
+          ]
+        }
+      ],
+      "hidden": [
+        {
+          "id": "invalid-revisions-and-missing-tool",
+          "kind": "edge",
+          "steps": [
+            {"method":"add_tool","args":["ruler","measuring",2],"expected":true},
+            {"method":"tool_at","args":["ruler",-1],"expected":null},
+            {"method":"tool_at","args":["ruler",2],"expected":null},
+            {"method":"tool_at","args":["tape",1],"expected":null},
+            {"method":"revision","args":[],"expected":1},
+            {"method":"get_tool","args":["ruler"],"expected":["measuring",2]}
+          ]
+        },
+        {
+          "id": "global-revision-and-same-value-update",
+          "kind": "requirements",
+          "steps": [
+            {"method":"add_tool","args":["saw","cutting",2],"expected":true},
+            {"method":"add_tool","args":["clamp","holding",4],"expected":true},
+            {"method":"update_tool","args":["saw","cutting",2],"expected":true},
+            {"method":"revision","args":[],"expected":3},
+            {"method":"tool_at","args":["saw",2],"expected":["cutting",2]},
+            {"method":"tool_at","args":["clamp",3],"expected":["holding",4]},
+            {"method":"tool_at","args":["clamp",1],"expected":null}
+          ]
+        },
+        {
+          "id": "failed-writes-and-holds-do-not-advance-revision",
+          "kind": "validation",
+          "steps": [
+            {"method":"add_tool","args":["file","finishing",5],"expected":true},
+            {"method":"add_tool","args":["file","cutting",8],"expected":false},
+            {"method":"update_tool","args":["file","cutting",0],"expected":false},
+            {"method":"remove_tool","args":["vice"],"expected":false},
+            {"method":"schedule_hold","args":["f","file",0,2,0],"expected":true},
+            {"method":"active_holds","args":["file",0],"expected":["f"]},
+            {"method":"cancel_hold","args":["f",0],"expected":true},
+            {"method":"top_tools","args":[1],"expected":["file"]},
+            {"method":"total_units","args":["finishing"],"expected":5},
+            {"method":"revision","args":[],"expected":1},
+            {"method":"tool_at","args":["file",1],"expected":["finishing",5]}
+          ]
+        }
+      ],
+      "comprehension": {
+        "method": "tool_at",
+        "questions": [
+          {"prompt":"Which revision numbers are valid for a historical lookup?","choices":["Every integer.","Revisions from 0 through the current revision, inclusive.","Only the current revision."],"answer":1},
+          {"prompt":"What happens to the current catalog when you read a past revision?","choices":["The catalog stays the same.","The catalog rolls back.","The current revision increases by one."],"answer":0},
+          {"prompt":"What does tool_at return for a tool present at the requested revision?","choices":["The stock count alone.","The tool ID.","A new [category, units] list."],"answer":2},
+          {"prompt":"A tool was removed at revision 3 and added again at revision 4. What does tool_at return for revision 3?","choices":["None.","The record from revision 2.","The record from revision 4."],"answer":0}
+        ]
+      }
+    }
+  ]
+}
