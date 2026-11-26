@@ -1,0 +1,386 @@
+{
+  "schemaVersion": 1,
+  "id": "bike-repair-desk",
+  "title": "Bike Repair Desk",
+  "summary": "A puncture repair needs a tube and rim tape. Write the estimate the customer will see before they approve the repair.",
+  "className": "RepairDesk",
+  "starter": "class RepairDesk:\n    def __init__(self):\n        pass\n\n    def open_estimate(self, ticket, bike, shop, labor_cents):\n        pass\n\n    def set_part(self, ticket, sku, units, unit_cents):\n        pass\n\n    def view(self, ticket):\n        pass\n",
+  "levels": [
+    {
+      "title": "Write the estimate",
+      "requirements": "At the Canal counter, a mechanic has found damaged rim tape inside a wheel with a flat tire. The customer wants the full price before they leave the bike.\n\nStart with no tickets. The two shop IDs are \"canal\" and \"station\". Ticket numbers, bike descriptions, and part SKUs are nonempty ASCII strings. Compare strings as written. Quantities and prices are integers. Prices are in cents.\n\nopen_estimate(ticket, bike, shop, labor_cents) creates an estimate and returns True. Return False if the ticket number already exists, the shop is unknown, or labor_cents is negative. A new estimate has no parts.\n\nset_part(ticket, sku, units, unit_cents) sets the quoted quantity and price for that SKU. A second call for the same SKU replaces the whole line. Zero units removes the line if it exists. Return True for an accepted edit, including removal of an absent line. Return False if the ticket is missing, its status is not \"estimate\", or either number is negative.\n\nview(ticket) returns None for an unknown ticket. Otherwise, return a new dictionary with these keys.\n- \"bike\" and \"shop\" hold the stored strings.\n- \"status\" is \"estimate\" when you open the ticket.\n- \"parts\" is a list of [sku, units, unit_cents] lists sorted by SKU in ascending order.\n- \"total_cents\" is the labor price plus the sum of units times unit_cents for the quoted parts.\n\nA rejected call changes nothing. The tests supply arguments of the stated types.",
+      "visible": [
+        {
+          "id": "canal-puncture-estimate",
+          "kind": "requirements",
+          "steps": [
+            {"method":"open_estimate","args":["C-104","Marin commuter","canal",2800],"expected":true},
+            {"method":"set_part","args":["C-104","tube-700x35",1,950],"expected":true},
+            {"method":"set_part","args":["C-104","rim-tape-700",1,450],"expected":true},
+            {"method":"view","args":["C-104"],"expected":{"bike":"Marin commuter","shop":"canal","status":"estimate","total_cents":4200,"parts":[["rim-tape-700",1,450],["tube-700x35",1,950]]}}
+          ]
+        },
+        {
+          "id": "quote-correction",
+          "kind": "state",
+          "steps": [
+            {"method":"open_estimate","args":["S-216","orange cargo bike","station",4000],"expected":true},
+            {"method":"set_part","args":["S-216","pad-b01s",1,1450],"expected":true},
+            {"method":"set_part","args":["S-216","pad-b01s",2,1350],"expected":true},
+            {"method":"view","args":["S-216"],"expected":{"bike":"orange cargo bike","shop":"station","status":"estimate","total_cents":6700,"parts":[["pad-b01s",2,1350]]}},
+            {"method":"set_part","args":["S-216","pad-b01s",0,0],"expected":true},
+            {"method":"view","args":["S-216"],"expected":{"bike":"orange cargo bike","shop":"station","status":"estimate","total_cents":4000,"parts":[]}}
+          ]
+        }
+      ],
+      "hidden": [
+        {
+          "id": "duplicate-keeps-bicycle-and-labor",
+          "kind": "validation",
+          "steps": [
+            {"method":"open_estimate","args":["C-007","blue step-through","canal",1250],"expected":true},
+            {"method":"open_estimate","args":["C-007","folding bike","station",4500],"expected":false},
+            {"method":"open_estimate","args":["S-007","folding bike","Station",4500],"expected":false},
+            {"method":"open_estimate","args":["S-007","folding bike","station",-1],"expected":false},
+            {"method":"view","args":["C-007"],"expected":{"bike":"blue step-through","shop":"canal","status":"estimate","total_cents":1250,"parts":[]}},
+            {"method":"view","args":["S-007"],"expected":null},
+            {"method":"open_estimate","args":["S-007","folding bike","station",4500],"expected":true}
+          ]
+        },
+        {
+          "id": "invalid-line-keeps-quoted-part",
+          "kind": "validation",
+          "steps": [
+            {"method":"open_estimate","args":["S-098","city bike","station",2500],"expected":true},
+            {"method":"set_part","args":["S-098","housing-4mm",2,350],"expected":true},
+            {"method":"set_part","args":["S-098","housing-4mm",-1,300],"expected":false},
+            {"method":"set_part","args":["S-098","housing-4mm",0,-1],"expected":false},
+            {"method":"set_part","args":["S-099","chain-9s",1,1890],"expected":false},
+            {"method":"view","args":["S-098"],"expected":{"bike":"city bike","shop":"station","status":"estimate","total_cents":3200,"parts":[["housing-4mm",2,350]]}}
+          ]
+        },
+        {
+          "id": "free-check-with-no-parts",
+          "kind": "edge",
+          "steps": [
+            {"method":"view","args":["C-201"],"expected":null},
+            {"method":"open_estimate","args":["C-201","kids BMX","canal",0],"expected":true},
+            {"method":"set_part","args":["C-201","tube-20x2",0,500],"expected":true},
+            {"method":"view","args":["C-201"],"expected":{"bike":"kids BMX","shop":"canal","status":"estimate","total_cents":0,"parts":[]}}
+          ]
+        }
+      ],
+      "comprehension": {
+        "method": "set_part",
+        "questions": [
+          {"prompt":"A quote already has a chain line. Can you change its price to -1?","choices":["Yes, if only one chain is needed.","No. The price must be zero or higher."],"answer":1},
+          {"prompt":"The quote shows one tube at 950 cents. You set the same SKU to two at 900 cents. What is on the quote?","choices":["One line for two tubes at 900 cents each.","Two lines, with one tube on the old line.","One line for three tubes at 900 cents each."],"answer":0},
+          {"prompt":"What does editing a ticket number that the desk has never issued return?","choices":["None","True","False"],"answer":2},
+          {"prompt":"A customer wants to remove a part that is already absent. What happens when you set its quantity to zero?","choices":["The edit succeeds and the quote stays the same.","The part is added with zero units.","The desk rejects the edit."],"answer":0}
+        ]
+      }
+    },
+    {
+      "title": "Set parts aside",
+      "requirements": "Two customers just approved quotes that need the last nine-speed chain at Canal. Reserve the chain for the first ticket that can take it. Each shop has its own shelf stock.\n\nBoth shops start with zero stock. An estimate reserves nothing. Keep the estimate methods from the previous level.\n\nreceive(shop, sku, units) adds units to the shop's physical stock and returns True. Return False for an unknown shop or a quantity of zero or less.\n\nstock(shop, sku) returns [on_hand, available]. on_hand is the quantity physically present. available is on_hand minus the quantity reserved by approved tickets at that shop. A known shop with no units of the SKU returns [0, 0]. Return None for an unknown shop.\n\napprove(ticket) accepts a ticket in \"estimate\" status only. Check the available quantity of every quoted part at its shop. When all parts are available, reserve those quantities, set the status to \"approved\", and return True. An estimate with no parts can be approved. If the ticket is missing or has the wrong status, or any part is short, return False. A failed approval reserves nothing and leaves the ticket unchanged.\n\nAn approved quote keeps the labor price and parts you saw before approval. set_part still accepts only estimates.",
+      "visible": [
+        {
+          "id": "two-quotes-for-the-last-chain",
+          "kind": "state",
+          "steps": [
+            {"method":"receive","args":["canal","chain-9s",1],"expected":true},
+            {"method":"open_estimate","args":["C-301","red touring bike","canal",1900],"expected":true},
+            {"method":"set_part","args":["C-301","chain-9s",1,2200],"expected":true},
+            {"method":"open_estimate","args":["C-302","green city bike","canal",1900],"expected":true},
+            {"method":"set_part","args":["C-302","chain-9s",1,2200],"expected":true},
+            {"method":"stock","args":["canal","chain-9s"],"expected":[1,1]},
+            {"method":"approve","args":["C-301"],"expected":true},
+            {"method":"stock","args":["canal","chain-9s"],"expected":[1,0]},
+            {"method":"approve","args":["C-302"],"expected":false},
+            {"method":"view","args":["C-302"],"expected":{"bike":"green city bike","shop":"canal","status":"estimate","total_cents":4100,"parts":[["chain-9s",1,2200]]}}
+          ]
+        },
+        {
+          "id": "the-other-shelf",
+          "kind": "requirements",
+          "steps": [
+            {"method":"receive","args":["station","tube-700x35",3],"expected":true},
+            {"method":"open_estimate","args":["C-310","gray commuter","canal",2500],"expected":true},
+            {"method":"set_part","args":["C-310","tube-700x35",2,900],"expected":true},
+            {"method":"approve","args":["C-310"],"expected":false},
+            {"method":"stock","args":["canal","tube-700x35"],"expected":[0,0]},
+            {"method":"receive","args":["canal","tube-700x35",2],"expected":true},
+            {"method":"approve","args":["C-310"],"expected":true},
+            {"method":"stock","args":["station","tube-700x35"],"expected":[3,3]},
+            {"method":"stock","args":["canal","tube-700x35"],"expected":[2,0]}
+          ]
+        }
+      ],
+      "hidden": [
+        {
+          "id": "approve-all-lines-or-none",
+          "kind": "state",
+          "steps": [
+            {"method":"receive","args":["station","pad-b01s",2],"expected":true},
+            {"method":"receive","args":["station","housing-4mm",1],"expected":true},
+            {"method":"open_estimate","args":["S-320","silver hybrid","station",3500],"expected":true},
+            {"method":"set_part","args":["S-320","pad-b01s",2,1300],"expected":true},
+            {"method":"set_part","args":["S-320","housing-4mm",2,300],"expected":true},
+            {"method":"approve","args":["S-320"],"expected":false},
+            {"method":"stock","args":["station","pad-b01s"],"expected":[2,2]},
+            {"method":"stock","args":["station","housing-4mm"],"expected":[1,1]},
+            {"method":"receive","args":["station","housing-4mm",1],"expected":true},
+            {"method":"approve","args":["S-320"],"expected":true},
+            {"method":"stock","args":["station","pad-b01s"],"expected":[2,0]},
+            {"method":"view","args":["S-320"],"expected":{"bike":"silver hybrid","shop":"station","status":"approved","total_cents":6700,"parts":[["housing-4mm",2,300],["pad-b01s",2,1300]]}}
+          ]
+        },
+        {
+          "id": "approval-locks-the-quote",
+          "kind": "validation",
+          "steps": [
+            {"method":"receive","args":["canal","pad-b01s",3],"expected":true},
+            {"method":"open_estimate","args":["C-322","red road bike","canal",2700],"expected":true},
+            {"method":"set_part","args":["C-322","pad-b01s",1,1400],"expected":true},
+            {"method":"approve","args":["C-322"],"expected":true},
+            {"method":"approve","args":["C-322"],"expected":false},
+            {"method":"set_part","args":["C-322","pad-b01s",0,0],"expected":false},
+            {"method":"set_part","args":["C-322","chain-9s",1,1800],"expected":false},
+            {"method":"stock","args":["canal","pad-b01s"],"expected":[3,2]},
+            {"method":"view","args":["C-322"],"expected":{"bike":"red road bike","shop":"canal","status":"approved","total_cents":4100,"parts":[["pad-b01s",1,1400]]}}
+          ]
+        },
+        {
+          "id": "delivery-validation-and-no-parts-job",
+          "kind": "edge",
+          "steps": [
+            {"method":"receive","args":["warehouse","housing-4mm",8],"expected":false},
+            {"method":"stock","args":["warehouse","housing-4mm"],"expected":null},
+            {"method":"receive","args":["station","housing-4mm",0],"expected":false},
+            {"method":"receive","args":["station","housing-4mm",-1],"expected":false},
+            {"method":"stock","args":["station","housing-4mm"],"expected":[0,0]},
+            {"method":"approve","args":["S-329"],"expected":false},
+            {"method":"open_estimate","args":["S-329","tandem wheel check","station",1500],"expected":true},
+            {"method":"approve","args":["S-329"],"expected":true},
+            {"method":"view","args":["S-329"],"expected":{"bike":"tandem wheel check","shop":"station","status":"approved","total_cents":1500,"parts":[]}}
+          ]
+        }
+      ],
+      "comprehension": {
+        "method": "approve",
+        "questions": [
+          {"prompt":"Can Station approve a ticket when its shelf is empty and Canal has plenty?","choices":["Yes. Both shops share reservations.","No. The ticket uses the shelf at its own shop."],"answer":1},
+          {"prompt":"When the desk approves a ticket for two tubes, what changes immediately?","choices":["Available stock drops by two. Physical stock stays the same.","Physical and available stock both drop by two.","The quote remains an estimate."],"answer":0},
+          {"prompt":"The job needs two pads and only one is available. What does approval return?","choices":["True","None","False"],"answer":2},
+          {"prompt":"Can you approve a quote for a brake adjustment that needs labor but no parts?","choices":["Yes. There is no part shortage.","No. Every quote must have at least one part."],"answer":0}
+        ]
+      }
+    },
+    {
+      "title": "Close the ticket",
+      "requirements": "The mechanic fitted the reserved pads on one bike. A different customer canceled before work started. The first ticket uses up its parts. The other ticket puts its reserved parts back on the available shelf.\n\ncomplete(ticket) closes an approved ticket and returns its quoted total in cents. Subtract the reserved units from physical stock at the ticket's shop, clear its reservation, and set its status to \"completed\". Return None if the ticket is missing or its status is not \"approved\". An approved free job closes with a return value of 0.\n\ncancel(ticket) cancels a ticket in \"estimate\" or \"approved\" status and returns True. If approved, clear its reservation without changing physical stock. Set its status to \"canceled\". Return False if the ticket is missing, completed, or already canceled.\n\nCompleted and canceled tickets stay in the records. view shows their new status and original quote. They cannot be approved, edited, or opened again under the same number.",
+      "visible": [
+        {
+          "id": "fit-the-reserved-pads",
+          "kind": "state",
+          "steps": [
+            {"method":"receive","args":["canal","pad-b01s",3],"expected":true},
+            {"method":"open_estimate","args":["C-401","silver city bike","canal",3200],"expected":true},
+            {"method":"set_part","args":["C-401","pad-b01s",2,1500],"expected":true},
+            {"method":"approve","args":["C-401"],"expected":true},
+            {"method":"stock","args":["canal","pad-b01s"],"expected":[3,1]},
+            {"method":"complete","args":["C-401"],"expected":6200},
+            {"method":"stock","args":["canal","pad-b01s"],"expected":[1,1]},
+            {"method":"view","args":["C-401"],"expected":{"bike":"silver city bike","shop":"canal","status":"completed","total_cents":6200,"parts":[["pad-b01s",2,1500]]}}
+          ]
+        },
+        {
+          "id": "cancel-and-rebook-the-tube",
+          "kind": "requirements",
+          "steps": [
+            {"method":"receive","args":["station","tube-700x35",1],"expected":true},
+            {"method":"open_estimate","args":["S-410","red cargo bike","station",2100],"expected":true},
+            {"method":"set_part","args":["S-410","tube-700x35",1,950],"expected":true},
+            {"method":"approve","args":["S-410"],"expected":true},
+            {"method":"open_estimate","args":["S-411","black commuter","station",2000],"expected":true},
+            {"method":"set_part","args":["S-411","tube-700x35",1,900],"expected":true},
+            {"method":"approve","args":["S-411"],"expected":false},
+            {"method":"cancel","args":["S-410"],"expected":true},
+            {"method":"stock","args":["station","tube-700x35"],"expected":[1,1]},
+            {"method":"approve","args":["S-411"],"expected":true},
+            {"method":"complete","args":["S-411"],"expected":2900},
+            {"method":"stock","args":["station","tube-700x35"],"expected":[0,0]}
+          ]
+        }
+      ],
+      "hidden": [
+        {
+          "id": "terminal-job-cannot-consume-twice",
+          "kind": "edge",
+          "steps": [
+            {"method":"receive","args":["canal","chain-9s",2],"expected":true},
+            {"method":"open_estimate","args":["C-424","gravel bike","canal",1800],"expected":true},
+            {"method":"set_part","args":["C-424","chain-9s",1,2200],"expected":true},
+            {"method":"approve","args":["C-424"],"expected":true},
+            {"method":"complete","args":["C-424"],"expected":4000},
+            {"method":"complete","args":["C-424"],"expected":null},
+            {"method":"cancel","args":["C-424"],"expected":false},
+            {"method":"approve","args":["C-424"],"expected":false},
+            {"method":"open_estimate","args":["C-424","folding bike","station",0],"expected":false},
+            {"method":"set_part","args":["C-424","chain-9s",0,0],"expected":false},
+            {"method":"stock","args":["canal","chain-9s"],"expected":[1,1]}
+          ]
+        },
+        {
+          "id": "cancel-an-estimate-with-another-hold",
+          "kind": "state",
+          "steps": [
+            {"method":"receive","args":["station","housing-4mm",2],"expected":true},
+            {"method":"open_estimate","args":["S-422","blue hybrid","station",2400],"expected":true},
+            {"method":"set_part","args":["S-422","housing-4mm",2,250],"expected":true},
+            {"method":"approve","args":["S-422"],"expected":true},
+            {"method":"open_estimate","args":["S-423","touring bike","station",2800],"expected":true},
+            {"method":"set_part","args":["S-423","housing-4mm",1,250],"expected":true},
+            {"method":"complete","args":["S-423"],"expected":null},
+            {"method":"cancel","args":["S-423"],"expected":true},
+            {"method":"cancel","args":["S-423"],"expected":false},
+            {"method":"complete","args":["S-423"],"expected":null},
+            {"method":"stock","args":["station","housing-4mm"],"expected":[2,0]},
+            {"method":"view","args":["S-423"],"expected":{"bike":"touring bike","shop":"station","status":"canceled","total_cents":3050,"parts":[["housing-4mm",1,250]]}}
+          ]
+        },
+        {
+          "id": "zero-price-invoice-is-a-completion",
+          "kind": "edge",
+          "steps": [
+            {"method":"complete","args":["C-426"],"expected":null},
+            {"method":"cancel","args":["C-426"],"expected":false},
+            {"method":"open_estimate","args":["C-426","safety recheck","canal",0],"expected":true},
+            {"method":"approve","args":["C-426"],"expected":true},
+            {"method":"complete","args":["C-426"],"expected":0},
+            {"method":"view","args":["C-426"],"expected":{"bike":"safety recheck","shop":"canal","status":"completed","total_cents":0,"parts":[]}}
+          ]
+        }
+      ],
+      "comprehension": {
+        "method": "complete",
+        "questions": [
+          {"prompt":"A ticket is still an estimate. Can the mechanic complete it?","choices":["Yes, if it needs only labor.","No. Only an approved ticket can be completed."],"answer":1},
+          {"prompt":"There are five pads on the shelf. Two are reserved for this job. What changes when you complete it?","choices":["Two pads are subtracted from physical stock and the reservation is cleared.","The pads stay on the shelf and become available.","The reservation stays after completion."],"answer":0},
+          {"prompt":"A quote has 2,000 cents of labor and two parts at 600 cents each. What does successful completion return?","choices":["True","2600","3200"],"answer":2},
+          {"prompt":"What does completion return for an approved recheck that costs nothing?","choices":["0","None","False"],"answer":0}
+        ]
+      }
+    },
+    {
+      "title": "Move the job",
+      "requirements": "Canal is out of bench space. The staff can send a bike to Station, but the parts bins stay where they are. Before moving an approved repair, check that Station can do the entire job with its own unreserved stock.\n\nmove(ticket, shop) accepts a ticket in \"estimate\" or \"approved\" status and a known destination shop. Return False for an unknown ticket, a completed or canceled ticket, or an unknown shop.\n\n- If the destination is the current shop, return True and change nothing.\n- For an estimate, change the shop and return True. There are no reservations to move.\n- For an approved ticket, check the available quantity of every quoted part at the destination. If anything is short, return False. Leave the ticket and all reservations where they were. Otherwise, release the whole reservation at the original shop, reserve the same quantities at the destination, change the ticket's shop, and return True.\n\nA successful move keeps the status, labor price, parts, and quoted prices. It never changes physical stock. Completion and cancellation take effect at the ticket's current shop.",
+      "visible": [
+        {
+          "id": "station-short-one-part",
+          "kind": "state",
+          "steps": [
+            {"method":"receive","args":["canal","pad-b01s",2],"expected":true},
+            {"method":"receive","args":["canal","housing-4mm",1],"expected":true},
+            {"method":"receive","args":["station","pad-b01s",2],"expected":true},
+            {"method":"open_estimate","args":["C-504","green cargo bike","canal",5000],"expected":true},
+            {"method":"set_part","args":["C-504","pad-b01s",2,1500],"expected":true},
+            {"method":"set_part","args":["C-504","housing-4mm",1,350],"expected":true},
+            {"method":"approve","args":["C-504"],"expected":true},
+            {"method":"move","args":["C-504","station"],"expected":false},
+            {"method":"stock","args":["canal","pad-b01s"],"expected":[2,0]},
+            {"method":"stock","args":["station","pad-b01s"],"expected":[2,2]},
+            {"method":"receive","args":["station","housing-4mm",1],"expected":true},
+            {"method":"move","args":["C-504","station"],"expected":true},
+            {"method":"stock","args":["canal","housing-4mm"],"expected":[1,1]},
+            {"method":"stock","args":["station","housing-4mm"],"expected":[1,0]},
+            {"method":"complete","args":["C-504"],"expected":8350},
+            {"method":"stock","args":["station","pad-b01s"],"expected":[0,0]},
+            {"method":"stock","args":["canal","pad-b01s"],"expected":[2,2]}
+          ]
+        },
+        {
+          "id": "route-an-estimate-to-the-other-counter",
+          "kind": "requirements",
+          "steps": [
+            {"method":"receive","args":["station","chain-9s",1],"expected":true},
+            {"method":"open_estimate","args":["C-511","black folding bike","canal",2000],"expected":true},
+            {"method":"set_part","args":["C-511","chain-9s",1,2300],"expected":true},
+            {"method":"move","args":["C-511","station"],"expected":true},
+            {"method":"stock","args":["station","chain-9s"],"expected":[1,1]},
+            {"method":"approve","args":["C-511"],"expected":true},
+            {"method":"view","args":["C-511"],"expected":{"bike":"black folding bike","shop":"station","status":"approved","total_cents":4300,"parts":[["chain-9s",1,2300]]}}
+          ]
+        }
+      ],
+      "hidden": [
+        {
+          "id": "destination-part-is-already-spoken-for",
+          "kind": "validation",
+          "steps": [
+            {"method":"receive","args":["station","tube-700x35",2],"expected":true},
+            {"method":"receive","args":["canal","tube-700x35",2],"expected":true},
+            {"method":"open_estimate","args":["S-521","silver hybrid","station",1600],"expected":true},
+            {"method":"set_part","args":["S-521","tube-700x35",1,900],"expected":true},
+            {"method":"approve","args":["S-521"],"expected":true},
+            {"method":"open_estimate","args":["C-521","gray commuter","canal",2800],"expected":true},
+            {"method":"set_part","args":["C-521","tube-700x35",2,900],"expected":true},
+            {"method":"approve","args":["C-521"],"expected":true},
+            {"method":"move","args":["C-521","station"],"expected":false},
+            {"method":"stock","args":["canal","tube-700x35"],"expected":[2,0]},
+            {"method":"stock","args":["station","tube-700x35"],"expected":[2,1]},
+            {"method":"cancel","args":["S-521"],"expected":true},
+            {"method":"move","args":["C-521","station"],"expected":true},
+            {"method":"cancel","args":["C-521"],"expected":true},
+            {"method":"stock","args":["canal","tube-700x35"],"expected":[2,2]},
+            {"method":"stock","args":["station","tube-700x35"],"expected":[2,2]}
+          ]
+        },
+        {
+          "id": "move-twice-and-keep-one-reservation",
+          "kind": "edge",
+          "steps": [
+            {"method":"receive","args":["canal","chain-9s",1],"expected":true},
+            {"method":"receive","args":["station","chain-9s",1],"expected":true},
+            {"method":"open_estimate","args":["C-525","red city bike","canal",1700],"expected":true},
+            {"method":"set_part","args":["C-525","chain-9s",1,2100],"expected":true},
+            {"method":"approve","args":["C-525"],"expected":true},
+            {"method":"move","args":["C-525","canal"],"expected":true},
+            {"method":"stock","args":["canal","chain-9s"],"expected":[1,0]},
+            {"method":"move","args":["C-525","station"],"expected":true},
+            {"method":"move","args":["C-525","canal"],"expected":true},
+            {"method":"stock","args":["station","chain-9s"],"expected":[1,1]},
+            {"method":"stock","args":["canal","chain-9s"],"expected":[1,0]},
+            {"method":"view","args":["C-525"],"expected":{"bike":"red city bike","shop":"canal","status":"approved","total_cents":3800,"parts":[["chain-9s",1,2100]]}}
+          ]
+        },
+        {
+          "id": "moving-a-closed-ticket-is-rejected",
+          "kind": "validation",
+          "steps": [
+            {"method":"move","args":["C-529","station"],"expected":false},
+            {"method":"open_estimate","args":["C-529","shop loan bike","canal",1400],"expected":true},
+            {"method":"move","args":["C-529","warehouse"],"expected":false},
+            {"method":"approve","args":["C-529"],"expected":true},
+            {"method":"complete","args":["C-529"],"expected":1400},
+            {"method":"move","args":["C-529","canal"],"expected":false},
+            {"method":"move","args":["C-529","station"],"expected":false},
+            {"method":"open_estimate","args":["C-530","kids BMX","canal",2000],"expected":true},
+            {"method":"cancel","args":["C-530"],"expected":true},
+            {"method":"move","args":["C-530","station"],"expected":false},
+            {"method":"view","args":["C-530"],"expected":{"bike":"kids BMX","shop":"canal","status":"canceled","total_cents":2000,"parts":[]}}
+          ]
+        }
+      ],
+      "comprehension": {
+        "method": "move",
+        "questions": [
+          {"prompt":"Station has the right tube in the bin, but another approved job has reserved it. Can the Canal ticket use that tube?","choices":["Yes. Physical stock is enough.","No. Check the unreserved quantity first."],"answer":1},
+          {"prompt":"What changes when an approved ticket moves successfully?","choices":["The old shop frees its reservation. The new shop reserves the quoted parts.","Both shops reserve the same parts.","Physical stock moves with the ticket."],"answer":0},
+          {"prompt":"One quoted part is short at the destination. What does the move return?","choices":["True","None","False"],"answer":2},
+          {"prompt":"The desk selects the ticket’s current shop as the destination. What happens to an approved ticket?","choices":["The call succeeds and reservations stay the same.","The stock is reserved again.","The call fails."],"answer":0}
+        ]
+      }
+    }
+  ]
+}

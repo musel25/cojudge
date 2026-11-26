@@ -1,0 +1,552 @@
+{
+  "schemaVersion": 1,
+  "id": "returns-receiving",
+  "title": "Returns Receiving",
+  "summary": "A lighting shop gets returns in separate boxes. Keep the desk's approved quantities and the warehouse's counts in agreement.",
+  "className": "ReturnsDesk",
+  "starter": "class ReturnsDesk:\n    def __init__(self):\n        pass\n\n    def record_sale(self, order, sku, quantity, unit_cents):\n        pass\n\n    def request_return(self, claim, order, sku, quantity):\n        pass\n\n    def authorize_return(self, claim, quantity):\n        pass\n\n    def return_status(self, claim):\n        pass\n",
+  "levels": [
+    {
+      "title": "Approve a return",
+      "requirements": "The lighting shop has an order for three wall lamps. The customer asks to send all three back. The desk approves two. Keep the original request and the approval separate.\n\nrecord_sale(order, sku, quantity, unit_cents) records a fulfilled line. An order can have several lines. A line is identified by its order and SKU together. Both numbers must be positive integers. If the line already exists, keep the original quantity and price and return False. Return True after recording a new line.\n\nrequest_return(claim, order, sku, quantity) opens a request for one line. The sale line must exist and the claim ID must be new across the shop. The quantity must be from 1 through the number sold on that line. Pending requests can overlap. Return True if you record the request, or False if any check fails.\n\nauthorize_return(claim, quantity) approves an unapproved request once. The quantity must be from 1 through the number requested. The sum of approved quantities for the same sale line, including the new approval, cannot exceed the number sold. Return True on approval and False on failure. A failed approval leaves the request pending so staff can try a smaller quantity.\n\nreturn_status(claim) returns a list [requested, authorized]. Use 0 as the authorized count until approval. Return None for an unknown claim.\n\nA new desk has no sales or claims. Any failed write leaves the desk unchanged. All IDs and SKUs are nonempty, case-sensitive strings. The tests pass integers for quantities and amounts.",
+      "visible": [
+        {
+          "id": "Customer asks for three, desk approves two",
+          "kind": "requirements",
+          "steps": [
+            {"method":"record_sale","args":["R-314","wall-lamp",3,3499],"expected":true},
+            {"method":"request_return","args":["RA-51","R-314","wall-lamp",3],"expected":true},
+            {"method":"return_status","args":["RA-51"],"expected":[3,0]},
+            {"method":"authorize_return","args":["RA-51",2],"expected":true},
+            {"method":"return_status","args":["RA-51"],"expected":[3,2]}
+          ]
+        },
+        {
+          "id": "The same SKU appears on two orders",
+          "kind": "state",
+          "steps": [
+            {"method":"record_sale","args":["R-327","clamp-lamp",1,1795],"expected":true},
+            {"method":"record_sale","args":["R-327","glass-shade",2,825],"expected":true},
+            {"method":"record_sale","args":["R-329","clamp-lamp",2,1595],"expected":true},
+            {"method":"request_return","args":["RA-61","R-327","clamp-lamp",1],"expected":true},
+            {"method":"request_return","args":["RA-62","R-329","clamp-lamp",2],"expected":true},
+            {"method":"request_return","args":["RA-63","R-327","glass-shade",2],"expected":true},
+            {"method":"authorize_return","args":["RA-61",1],"expected":true},
+            {"method":"authorize_return","args":["RA-62",2],"expected":true},
+            {"method":"authorize_return","args":["RA-63",2],"expected":true}
+          ]
+        }
+      ],
+      "hidden": [
+        {
+          "id": "A second pending request can use the last unit",
+          "kind": "edge",
+          "steps": [
+            {"method":"record_sale","args":["R-445","linen-shade",4,1250],"expected":true},
+            {"method":"request_return","args":["RA-77","R-445","linen-shade",4],"expected":true},
+            {"method":"request_return","args":["RA-78","R-445","linen-shade",3],"expected":true},
+            {"method":"authorize_return","args":["RA-77",3],"expected":true},
+            {"method":"authorize_return","args":["RA-78",2],"expected":false},
+            {"method":"return_status","args":["RA-78"],"expected":[3,0]},
+            {"method":"authorize_return","args":["RA-78",1],"expected":true},
+            {"method":"authorize_return","args":["RA-78",1],"expected":false},
+            {"method":"request_return","args":["RA-79","R-445","linen-shade",1],"expected":true},
+            {"method":"authorize_return","args":["RA-79",1],"expected":false}
+          ]
+        },
+        {
+          "id": "Invalid counts do not create records",
+          "kind": "validation",
+          "steps": [
+            {"method":"record_sale","args":["R-452","task-lamp",0,2150],"expected":false},
+            {"method":"record_sale","args":["R-452","task-lamp",2,0],"expected":false},
+            {"method":"request_return","args":["RA-82","R-452","task-lamp",2],"expected":false},
+            {"method":"record_sale","args":["R-452","task-lamp",2,2150],"expected":true},
+            {"method":"record_sale","args":["R-452","task-lamp",6,2150],"expected":false},
+            {"method":"request_return","args":["RA-82","R-452","task-lamp",0],"expected":false},
+            {"method":"request_return","args":["RA-82","R-452","task-lamp",3],"expected":false},
+            {"method":"request_return","args":["RA-82","R-452","task-lamp",2],"expected":true},
+            {"method":"authorize_return","args":["RA-82",0],"expected":false},
+            {"method":"authorize_return","args":["RA-82",3],"expected":false},
+            {"method":"return_status","args":["RA-82"],"expected":[2,0]},
+            {"method":"authorize_return","args":["RA-82",2],"expected":true}
+          ]
+        },
+        {
+          "id": "A claim ID belongs to one sale line",
+          "kind": "state",
+          "steps": [
+            {"method":"return_status","args":["RA-88"],"expected":null},
+            {"method":"authorize_return","args":["RA-88",1],"expected":false},
+            {"method":"record_sale","args":["R-481","ceiling-rose",3,525],"expected":true},
+            {"method":"record_sale","args":["R-481","lamp-cord",6,769],"expected":true},
+            {"method":"request_return","args":["RA-88","R-481","ceiling-rose",3],"expected":true},
+            {"method":"request_return","args":["RA-88","R-481","lamp-cord",5],"expected":false},
+            {"method":"return_status","args":["RA-88"],"expected":[3,0]},
+            {"method":"authorize_return","args":["RA-88",3],"expected":true}
+          ]
+        }
+      ],
+      "comprehension": {
+        "method": "authorize_return",
+        "questions": [
+          {
+            "prompt": "Four units sold. A different claim already has three approved. How many can this desk approve now?",
+            "choices": [
+              "One at most",
+              "Up to four",
+              "Three, if this claim asked for three"
+            ],
+            "answer": 0
+          },
+          {
+            "prompt": "Staff approve two units on a request for three. What should the status list show?",
+            "choices": [
+              "[2, 2]",
+              "[3, 2]",
+              "[2, 3]"
+            ],
+            "answer": 1
+          },
+          {
+            "prompt": "What does authorize_return return when it records the approval?",
+            "choices": [
+              "The claim ID",
+              "The approved quantity",
+              "True"
+            ],
+            "answer": 2
+          },
+          {
+            "prompt": "Staff try to approve one unit on a claim that already has one approved. What happens?",
+            "choices": [
+              "The count becomes two",
+              "The call fails and the count stays one",
+              "The desk resets the claim to pending"
+            ],
+            "answer": 1
+          }
+        ]
+      }
+    },
+    {
+      "title": "Count and inspect the boxes",
+      "requirements": "A customer ships two boxes for one claim. A clerk scans each box at arrival. Staff can inspect its contents in smaller batches later.\n\nreceive_parcel(parcel, claim, quantity) records a box for an approved claim. The parcel ID must be new across the shop. The quantity must be positive. All parcels for the claim together can contain at most the approved quantity. Return True after recording the box, or False on failure. A parcel ID from a failed scan is still available.\n\ninspect_units(parcel, sellable, damaged) adds inspection counts to a known parcel. Both counts must be zero or greater, and their sum must be positive. The sum cannot exceed the number of units in that parcel that staff have yet to inspect. Return True and add both counts when the checks pass. Return False on failure.\n\nparcel_status(parcel) returns a list [received, sellable, damaged] for that parcel, or None if the parcel is unknown. Both inspection counts start at zero. Receiving and inspection leave the original request and approval counts unchanged.",
+      "visible": [
+        {
+          "id": "Two boxes arrive under one claim",
+          "kind": "state",
+          "steps": [
+            {"method":"record_sale","args":["R-314","wall-lamp",3,3499],"expected":true},
+            {"method":"request_return","args":["RA-51","R-314","wall-lamp",3],"expected":true},
+            {"method":"authorize_return","args":["RA-51",3],"expected":true},
+            {"method":"receive_parcel","args":["BOX-235","RA-51",1],"expected":true},
+            {"method":"parcel_status","args":["BOX-235"],"expected":[1,0,0]},
+            {"method":"receive_parcel","args":["BOX-242","RA-51",2],"expected":true},
+            {"method":"inspect_units","args":["BOX-235",1,0],"expected":true},
+            {"method":"inspect_units","args":["BOX-242",1,1],"expected":true},
+            {"method":"parcel_status","args":["BOX-235"],"expected":[1,1,0]},
+            {"method":"parcel_status","args":["BOX-242"],"expected":[2,1,1]},
+            {"method":"return_status","args":["RA-51"],"expected":[3,3]}
+          ]
+        },
+        {
+          "id": "The label arrives before approval",
+          "kind": "validation",
+          "steps": [
+            {"method":"record_sale","args":["R-330","clamp-lamp",2,1795],"expected":true},
+            {"method":"request_return","args":["RA-65","R-330","clamp-lamp",2],"expected":true},
+            {"method":"receive_parcel","args":["BOX-244","RA-65",1],"expected":false},
+            {"method":"parcel_status","args":["BOX-244"],"expected":null},
+            {"method":"authorize_return","args":["RA-65",2],"expected":true},
+            {"method":"receive_parcel","args":["BOX-244","RA-65",1],"expected":true},
+            {"method":"receive_parcel","args":["BOX-244","RA-65",1],"expected":false},
+            {"method":"receive_parcel","args":["BOX-245","RA-65",1],"expected":true}
+          ]
+        }
+      ],
+      "hidden": [
+        {
+          "id": "A scan cannot use another claim or exceed its approval",
+          "kind": "validation",
+          "steps": [
+            {"method":"record_sale","args":["R-510","linen-shade",5,1250],"expected":true},
+            {"method":"request_return","args":["RA-95","R-510","linen-shade",4],"expected":true},
+            {"method":"request_return","args":["RA-96","R-510","linen-shade",2],"expected":true},
+            {"method":"authorize_return","args":["RA-95",3],"expected":true},
+            {"method":"authorize_return","args":["RA-96",2],"expected":true},
+            {"method":"receive_parcel","args":["BOX-264","RA-95",2],"expected":true},
+            {"method":"receive_parcel","args":["BOX-265","RA-95",2],"expected":false},
+            {"method":"receive_parcel","args":["BOX-264","RA-96",2],"expected":false},
+            {"method":"receive_parcel","args":["BOX-265","RA-95",1],"expected":true},
+            {"method":"receive_parcel","args":["BOX-266","RA-96",2],"expected":true}
+          ]
+        },
+        {
+          "id": "Inspect only the unchecked units",
+          "kind": "edge",
+          "steps": [
+            {"method":"record_sale","args":["R-517","desk-lamp",3,4999],"expected":true},
+            {"method":"request_return","args":["RA-101","R-517","desk-lamp",3],"expected":true},
+            {"method":"authorize_return","args":["RA-101",3],"expected":true},
+            {"method":"receive_parcel","args":["BOX-270","RA-101",3],"expected":true},
+            {"method":"inspect_units","args":["BOX-270",1,1],"expected":true},
+            {"method":"inspect_units","args":["BOX-270",1,1],"expected":false},
+            {"method":"inspect_units","args":["BOX-270",-1,2],"expected":false},
+            {"method":"inspect_units","args":["BOX-270",0,0],"expected":false},
+            {"method":"parcel_status","args":["BOX-270"],"expected":[3,1,1]},
+            {"method":"inspect_units","args":["BOX-270",0,1],"expected":true},
+            {"method":"inspect_units","args":["BOX-270",1,0],"expected":false},
+            {"method":"parcel_status","args":["BOX-270"],"expected":[3,1,2]}
+          ]
+        },
+        {
+          "id": "A zero count is a failed scan",
+          "kind": "requirements",
+          "steps": [
+            {"method":"receive_parcel","args":["BOX-271","RA-106",1],"expected":false},
+            {"method":"inspect_units","args":["BOX-271",1,0],"expected":false},
+            {"method":"record_sale","args":["R-523","ceiling-rose",1,525],"expected":true},
+            {"method":"request_return","args":["RA-106","R-523","ceiling-rose",1],"expected":true},
+            {"method":"authorize_return","args":["RA-106",1],"expected":true},
+            {"method":"receive_parcel","args":["BOX-271","RA-106",-1],"expected":false},
+            {"method":"receive_parcel","args":["BOX-271","RA-106",0],"expected":false},
+            {"method":"receive_parcel","args":["BOX-271","RA-106",1],"expected":true},
+            {"method":"parcel_status","args":["BOX-271"],"expected":[1,0,0]}
+          ]
+        }
+      ],
+      "comprehension": {
+        "method": "inspect_units",
+        "questions": [
+          {
+            "prompt": "A box holds four units. Staff already checked three. Which new inspection can the desk accept?",
+            "choices": [
+              "Two damaged",
+              "One sellable and one damaged",
+              "One damaged"
+            ],
+            "answer": 2
+          },
+          {
+            "prompt": "Staff check a sellable unit after recording one damaged unit. What happens to the damaged count?",
+            "choices": [
+              "It stays at one",
+              "It becomes zero",
+              "It becomes two"
+            ],
+            "answer": 0
+          },
+          {
+            "prompt": "What does inspect_units return for an unknown parcel ID?",
+            "choices": [
+              "None",
+              "False",
+              "[0, 0, 0]"
+            ],
+            "answer": 1
+          },
+          {
+            "prompt": "One unit is unchecked. Can staff submit zero sellable and zero damaged?",
+            "choices": [
+              "Yes, the count would stay unchanged",
+              "Yes, until the claim is approved",
+              "No, the batch must cover at least one unit"
+            ],
+            "answer": 2
+          }
+        ]
+      }
+    },
+    {
+      "title": "Put units back on the shelf",
+      "requirements": "Staff can send a sealed lamp back to the shop and keep a damaged one off the shelf. This shop refunds both after inspection. Stock and refund credit must track different counts.\n\nrestock(parcel, location, quantity) adds a positive number of sellable units from a known parcel to one location. The quantity cannot exceed that parcel's sellable units that staff have not already restocked at any location. Inspection alone does not add stock. Return True after restocking, or False on failure. Locations are nonempty, case-sensitive strings. You do not need to register them.\n\nstock_added(sku, location) returns the total units restocked for that SKU at that location across all returns. Return 0 when none have been restocked there. This count includes only stock added from returns.\n\nrefund_due(claim) returns the unpaid credit in whole cents. Each inspected unit, sellable or damaged, contributes the original unit price from the claim's sale line. Uninspected units contribute nothing. Restocking has no effect on the credit. Return 0 for a known claim with no credit and None for an unknown claim.",
+      "visible": [
+        {
+          "id": "Only the sealed lamp goes on the shelf",
+          "kind": "requirements",
+          "steps": [
+            {"method":"record_sale","args":["R-314","wall-lamp",2,3499],"expected":true},
+            {"method":"request_return","args":["RA-51","R-314","wall-lamp",2],"expected":true},
+            {"method":"authorize_return","args":["RA-51",2],"expected":true},
+            {"method":"receive_parcel","args":["BOX-235","RA-51",2],"expected":true},
+            {"method":"inspect_units","args":["BOX-235",1,1],"expected":true},
+            {"method":"stock_added","args":["wall-lamp","shop"],"expected":0},
+            {"method":"refund_due","args":["RA-51"],"expected":6998},
+            {"method":"restock","args":["BOX-235","shop",2],"expected":false},
+            {"method":"restock","args":["BOX-235","shop",1],"expected":true},
+            {"method":"stock_added","args":["wall-lamp","shop"],"expected":1},
+            {"method":"refund_due","args":["RA-51"],"expected":6998}
+          ]
+        },
+        {
+          "id": "A checked box can be split between two stockrooms",
+          "kind": "state",
+          "steps": [
+            {"method":"record_sale","args":["R-535","glass-shade",4,825],"expected":true},
+            {"method":"request_return","args":["RA-122","R-535","glass-shade",4],"expected":true},
+            {"method":"authorize_return","args":["RA-122",4],"expected":true},
+            {"method":"receive_parcel","args":["BOX-285","RA-122",4],"expected":true},
+            {"method":"refund_due","args":["RA-122"],"expected":0},
+            {"method":"inspect_units","args":["BOX-285",2,0],"expected":true},
+            {"method":"restock","args":["BOX-285","shop",1],"expected":true},
+            {"method":"restock","args":["BOX-285","backroom",1],"expected":true},
+            {"method":"stock_added","args":["glass-shade","shop"],"expected":1},
+            {"method":"stock_added","args":["glass-shade","backroom"],"expected":1},
+            {"method":"refund_due","args":["RA-122"],"expected":1650}
+          ]
+        }
+      ],
+      "hidden": [
+        {
+          "id": "One SKU has different prices on different orders",
+          "kind": "state",
+          "steps": [
+            {"method":"record_sale","args":["R-561","desk-lamp",1,4200],"expected":true},
+            {"method":"record_sale","args":["R-564","desk-lamp",1,2990],"expected":true},
+            {"method":"request_return","args":["RA-132","R-561","desk-lamp",1],"expected":true},
+            {"method":"request_return","args":["RA-135","R-564","desk-lamp",1],"expected":true},
+            {"method":"authorize_return","args":["RA-132",1],"expected":true},
+            {"method":"authorize_return","args":["RA-135",1],"expected":true},
+            {"method":"receive_parcel","args":["BOX-301","RA-132",1],"expected":true},
+            {"method":"receive_parcel","args":["BOX-304","RA-135",1],"expected":true},
+            {"method":"inspect_units","args":["BOX-301",1,0],"expected":true},
+            {"method":"inspect_units","args":["BOX-304",1,0],"expected":true},
+            {"method":"restock","args":["BOX-301","shop",1],"expected":true},
+            {"method":"restock","args":["BOX-304","shop",1],"expected":true},
+            {"method":"stock_added","args":["desk-lamp","shop"],"expected":2},
+            {"method":"stock_added","args":["desk-lamp","backroom"],"expected":0},
+            {"method":"stock_added","args":["clamp-lamp","shop"],"expected":0},
+            {"method":"refund_due","args":["RA-132"],"expected":4200},
+            {"method":"refund_due","args":["RA-135"],"expected":2990}
+          ]
+        },
+        {
+          "id": "Inspection can release more sellable stock later",
+          "kind": "edge",
+          "steps": [
+            {"method":"record_sale","args":["R-570","pendant-shade",3,2250],"expected":true},
+            {"method":"request_return","args":["RA-142","R-570","pendant-shade",3],"expected":true},
+            {"method":"authorize_return","args":["RA-142",3],"expected":true},
+            {"method":"receive_parcel","args":["BOX-309","RA-142",3],"expected":true},
+            {"method":"restock","args":["BOX-309","shop",1],"expected":false},
+            {"method":"inspect_units","args":["BOX-309",1,1],"expected":true},
+            {"method":"restock","args":["BOX-309","shop",1],"expected":true},
+            {"method":"restock","args":["BOX-309","backroom",1],"expected":false},
+            {"method":"inspect_units","args":["BOX-309",1,0],"expected":true},
+            {"method":"restock","args":["BOX-309","backroom",1],"expected":true},
+            {"method":"stock_added","args":["pendant-shade","shop"],"expected":1},
+            {"method":"stock_added","args":["pendant-shade","backroom"],"expected":1},
+            {"method":"refund_due","args":["RA-142"],"expected":6750}
+          ]
+        },
+        {
+          "id": "A pending claim has no credit",
+          "kind": "validation",
+          "steps": [
+            {"method":"refund_due","args":["RA-150"],"expected":null},
+            {"method":"restock","args":["BOX-320","shop",1],"expected":false},
+            {"method":"record_sale","args":["R-582","lamp-cord",1,769],"expected":true},
+            {"method":"request_return","args":["RA-150","R-582","lamp-cord",1],"expected":true},
+            {"method":"refund_due","args":["RA-150"],"expected":0},
+            {"method":"authorize_return","args":["RA-150",1],"expected":true},
+            {"method":"receive_parcel","args":["BOX-320","RA-150",1],"expected":true},
+            {"method":"inspect_units","args":["BOX-320",1,0],"expected":true},
+            {"method":"restock","args":["BOX-320","shop",-1],"expected":false},
+            {"method":"restock","args":["BOX-320","shop",0],"expected":false},
+            {"method":"stock_added","args":["lamp-cord","shop"],"expected":0},
+            {"method":"refund_due","args":["RA-150"],"expected":769}
+          ]
+        }
+      ],
+      "comprehension": {
+        "method": "restock",
+        "questions": [
+          {
+            "prompt": "A parcel has two sellable units and one damaged unit. One sellable unit is already at the shop. How many can go to the backroom?",
+            "choices": [
+              "One",
+              "Two",
+              "Three"
+            ],
+            "answer": 0
+          },
+          {
+            "prompt": "The clerk restocks one sellable lamp. What should happen to the amount due for the return?",
+            "choices": [
+              "It drops by the unit price",
+              "It stays the same",
+              "It rises by the unit price"
+            ],
+            "answer": 1
+          },
+          {
+            "prompt": "What does stock_added return for a location with no restocked units for that SKU?",
+            "choices": [
+              "None",
+              "False",
+              "0"
+            ],
+            "answer": 2
+          },
+          {
+            "prompt": "The same SKU was restocked at two locations. Does the shop's count include the backroom?",
+            "choices": [
+              "Yes, by SKU",
+              "No, count only the requested location",
+              "Yes, if the units are from the same parcel"
+            ],
+            "answer": 1
+          }
+        ]
+      }
+    },
+    {
+      "title": "Retry a refund safely",
+      "requirements": "The desk can refund part of the credit while another box is still on the way. The payment system sometimes misses an acknowledgment and sends the same refund request again. Use its payment reference to prevent a second payout.\n\nissue_refund(payment, claim, amount_cents) records a payout for a known claim. A payment reference is a nonempty, case-sensitive string. On the first successful call for a reference, the amount must be positive and at most the claim's current refund_due. Add the amount to the paid count, reduce the unpaid credit by the same amount, and return the amount.\n\nIf the reference already succeeded for the same claim and amount, return that amount again even if the claim now has no credit. Leave all balances unchanged. If it succeeded for a different claim or amount, return None and leave both claims unchanged. For any other failure return None. A failed request does not reserve its payment reference.\n\nrefund_paid(claim) returns the total paid on that claim, or None if the claim is unknown. The total starts at 0. refund_due still returns the unpaid credit. A later inspection adds more credit. A payout never changes stock or inspection counts.",
+      "visible": [
+        {
+          "id": "Refund today's box and pay the rest later",
+          "kind": "state",
+          "steps": [
+            {"method":"record_sale","args":["R-620","clamp-lamp",2,1299],"expected":true},
+            {"method":"request_return","args":["RA-170","R-620","clamp-lamp",2],"expected":true},
+            {"method":"authorize_return","args":["RA-170",2],"expected":true},
+            {"method":"receive_parcel","args":["BOX-370","RA-170",1],"expected":true},
+            {"method":"inspect_units","args":["BOX-370",1,0],"expected":true},
+            {"method":"issue_refund","args":["PAY-371","RA-170",700],"expected":700},
+            {"method":"refund_due","args":["RA-170"],"expected":599},
+            {"method":"receive_parcel","args":["BOX-381","RA-170",1],"expected":true},
+            {"method":"inspect_units","args":["BOX-381",0,1],"expected":true},
+            {"method":"refund_due","args":["RA-170"],"expected":1898},
+            {"method":"issue_refund","args":["PAY-382","RA-170",1898],"expected":1898},
+            {"method":"refund_due","args":["RA-170"],"expected":0},
+            {"method":"refund_paid","args":["RA-170"],"expected":2598}
+          ]
+        },
+        {
+          "id": "The same refund request arrives twice",
+          "kind": "edge",
+          "steps": [
+            {"method":"record_sale","args":["R-630","lamp-cord",1,769],"expected":true},
+            {"method":"request_return","args":["RA-175","R-630","lamp-cord",1],"expected":true},
+            {"method":"authorize_return","args":["RA-175",1],"expected":true},
+            {"method":"receive_parcel","args":["BOX-388","RA-175",1],"expected":true},
+            {"method":"inspect_units","args":["BOX-388",1,0],"expected":true},
+            {"method":"issue_refund","args":["PAY-389","RA-175",769],"expected":769},
+            {"method":"issue_refund","args":["PAY-389","RA-175",769],"expected":769},
+            {"method":"issue_refund","args":["PAY-389","RA-175",700],"expected":null},
+            {"method":"issue_refund","args":["PAY-390","RA-175",1],"expected":null},
+            {"method":"refund_paid","args":["RA-175"],"expected":769},
+            {"method":"refund_due","args":["RA-175"],"expected":0}
+          ]
+        }
+      ],
+      "hidden": [
+        {
+          "id": "An early payout can reuse its reference after inspection",
+          "kind": "validation",
+          "steps": [
+            {"method":"issue_refund","args":["PAY-419","RA-190",500],"expected":null},
+            {"method":"record_sale","args":["R-663","ceiling-rose",1,525],"expected":true},
+            {"method":"request_return","args":["RA-190","R-663","ceiling-rose",1],"expected":true},
+            {"method":"authorize_return","args":["RA-190",1],"expected":true},
+            {"method":"receive_parcel","args":["BOX-416","RA-190",1],"expected":true},
+            {"method":"issue_refund","args":["PAY-419","RA-190",500],"expected":null},
+            {"method":"inspect_units","args":["BOX-416",0,1],"expected":true},
+            {"method":"issue_refund","args":["PAY-419","RA-190",526],"expected":null},
+            {"method":"issue_refund","args":["PAY-419","RA-190",0],"expected":null},
+            {"method":"issue_refund","args":["PAY-419","RA-190",-1],"expected":null},
+            {"method":"issue_refund","args":["PAY-419","RA-190",500],"expected":500},
+            {"method":"refund_due","args":["RA-190"],"expected":25},
+            {"method":"refund_paid","args":["RA-190"],"expected":500}
+          ]
+        },
+        {
+          "id": "A payment reference belongs to one claim",
+          "kind": "validation",
+          "steps": [
+            {"method":"record_sale","args":["R-676","desk-lamp",2,4999],"expected":true},
+            {"method":"request_return","args":["RA-207","R-676","desk-lamp",1],"expected":true},
+            {"method":"request_return","args":["RA-208","R-676","desk-lamp",1],"expected":true},
+            {"method":"authorize_return","args":["RA-207",1],"expected":true},
+            {"method":"authorize_return","args":["RA-208",1],"expected":true},
+            {"method":"receive_parcel","args":["BOX-425","RA-207",1],"expected":true},
+            {"method":"receive_parcel","args":["BOX-426","RA-208",1],"expected":true},
+            {"method":"inspect_units","args":["BOX-425",1,0],"expected":true},
+            {"method":"inspect_units","args":["BOX-426",0,1],"expected":true},
+            {"method":"issue_refund","args":["PAY-429","RA-207",4999],"expected":4999},
+            {"method":"issue_refund","args":["PAY-429","RA-208",4999],"expected":null},
+            {"method":"refund_paid","args":["RA-208"],"expected":0},
+            {"method":"issue_refund","args":["PAY-430","RA-208",4999],"expected":4999},
+            {"method":"refund_paid","args":["RA-207"],"expected":4999},
+            {"method":"refund_paid","args":["RA-208"],"expected":4999}
+          ]
+        },
+        {
+          "id": "Restocking does not change a paid balance",
+          "kind": "state",
+          "steps": [
+            {"method":"refund_paid","args":["RA-216"],"expected":null},
+            {"method":"record_sale","args":["R-686","wall-lamp",2,3499],"expected":true},
+            {"method":"request_return","args":["RA-216","R-686","wall-lamp",2],"expected":true},
+            {"method":"authorize_return","args":["RA-216",2],"expected":true},
+            {"method":"receive_parcel","args":["BOX-439","RA-216",2],"expected":true},
+            {"method":"inspect_units","args":["BOX-439",1,0],"expected":true},
+            {"method":"issue_refund","args":["PAY-440","RA-216",3499],"expected":3499},
+            {"method":"restock","args":["BOX-439","shop",1],"expected":true},
+            {"method":"inspect_units","args":["BOX-439",0,1],"expected":true},
+            {"method":"issue_refund","args":["PAY-440","RA-216",3499],"expected":3499},
+            {"method":"refund_due","args":["RA-216"],"expected":3499},
+            {"method":"issue_refund","args":["PAY-445","RA-216",3499],"expected":3499},
+            {"method":"parcel_status","args":["BOX-439"],"expected":[2,1,1]},
+            {"method":"stock_added","args":["wall-lamp","shop"],"expected":1},
+            {"method":"refund_paid","args":["RA-216"],"expected":6998},
+            {"method":"refund_due","args":["RA-216"],"expected":0}
+          ]
+        }
+      ],
+      "comprehension": {
+        "method": "issue_refund",
+        "questions": [
+          {
+            "prompt": "Which first-time payout can succeed when a claim has 599 cents due?",
+            "choices": [
+              "599 cents",
+              "600 cents",
+              "0 cents"
+            ],
+            "answer": 0
+          },
+          {
+            "prompt": "A payout of 500 cents succeeds. How does it affect the claim?",
+            "choices": [
+              "Paid rises by 500 and unpaid credit falls by 500",
+              "Paid rises by 500 and stock rises by 500",
+              "Paid stays the same until another box arrives"
+            ],
+            "answer": 0
+          },
+          {
+            "prompt": "The same claim and amount arrive again with a successful payment reference. What does the method return?",
+            "choices": [
+              "None",
+              "0",
+              "The original payout amount"
+            ],
+            "answer": 2
+          },
+          {
+            "prompt": "A new payment reference was rejected because nothing was due. Can the desk use it after an inspection adds enough credit?",
+            "choices": [
+              "No, all used references are final",
+              "Yes, a rejected call did not reserve it",
+              "Only for a different claim"
+            ],
+            "answer": 1
+          }
+        ]
+      }
+    }
+  ]
+}

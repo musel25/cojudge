@@ -1,0 +1,7 @@
+# Returns Receiving
+
+The workflow comes from a retail lighting shop scenario. An order clerk approves a return request. The receiving desk counts each box when it arrives and inspects units in batches. The stockroom can restock selected units at a chosen location. The payment desk can refund some credit now and the rest after another box arrives.
+
+Shopify documents request review and approval for self-serve returns. Its processing guide describes inspecting items first, processing part of a return, selecting where to restock, and paying a refund now or later. Its creation guide limits returns to fulfilled items that have not already been refunded. [Request management](https://help.shopify.com/en/manual/fulfillment/managing-orders/returns/self-serve-returns/management) · [Return processing](https://help.shopify.com/en/manual/fulfillment/managing-orders/returns/processing-returns) · [Return creation](https://help.shopify.com/en/manual/fulfillment/managing-orders/returns/creating-returns)
+
+The exercise uses original order, parcel, and payment examples. Its store policy approves a quantity once per claim and caps open and finished approvals at the sale line's quantity. Each parcel belongs to one claim. Each inspected unit earns its recorded unit price in whole cents, even if staff mark it damaged. A successful payment reference belongs to one claim and amount across the whole shop. Those rules give the desk predictable results when a scan or payment request repeats.
