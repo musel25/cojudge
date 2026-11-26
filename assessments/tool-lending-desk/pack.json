@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "tool-lending-desk",
   "title": "Tool Lending Desk",
-  "summary": "A tool library needs one record for each model it keeps on the shelf.",
+  "summary": "A tool library needs one record for each model it lends.",
   "className": "LendingDesk",
   "starter": "class LendingDesk:\n    def __init__(self):\n        pass\n\n    def add_tool(self, tool_id, category, units):\n        pass\n\n    def get_tool(self, tool_id):\n        pass\n\n    def update_tool(self, tool_id, category, units):\n        pass\n\n    def remove_tool(self, tool_id):\n        pass\n",
   "levels": [
