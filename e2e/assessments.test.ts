@@ -45,3 +45,11 @@ test('checks the unlocked requirements in learning mode', async ({ page }) => {
 	await expect(practice.getByRole('status')).toHaveText('4 of 4 correct');
 	await expect(page.getByText('Level 2 · Locked', { exact: true })).toBeVisible();
 });
+
+test('lists all four bundled assessments', async ({ page }) => {
+	await page.goto('/assessments');
+	const list = page.getByRole('main').getByRole('list');
+	for (const title of ['Tool Lending Desk', 'Community Workshop', 'Bike Repair Desk', 'Returns Receiving']) {
+		await expect(list.getByRole('link', { name: title, exact: true })).toBeVisible();
+	}
+});
